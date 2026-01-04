@@ -6,8 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { WorkoutsStackParamList } from '../navigation/WorkoutsStack';
 import Card from '../components/Card';
 import AddWorkoutModal from '../components/AddWorkoutModal';
 import EditWorkoutModal from '../components/EditWorkoutModal';
@@ -15,7 +17,10 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, getTodayDate } from '../services/storage';
 import { WorkoutLog, User } from '../types';
 
+type WorkoutsScreenNavigationProp = StackNavigationProp<WorkoutsStackParamList, 'WorkoutsList'>;
+
 const WorkoutsScreen = () => {
+  const navigation = useNavigation<WorkoutsScreenNavigationProp>();
   const [workouts, setWorkouts] = useState<WorkoutLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddWorkoutModal, setShowAddWorkoutModal] = useState(false);
@@ -85,7 +90,11 @@ const WorkoutsScreen = () => {
     return (
       <Card>
         <View style={styles.workoutContainer}>
-          <TouchableOpacity style={styles.workoutContent}>
+          <TouchableOpacity
+            style={styles.workoutContent}
+            onPress={() => navigation.navigate('WorkoutDetail', { workoutId: item.id })}
+            activeOpacity={0.7}
+          >
             <View style={styles.workoutHeader}>
               <Text style={styles.workoutName}>{item.name}</Text>
               <Text style={styles.workoutDate}>{formattedDate}</Text>

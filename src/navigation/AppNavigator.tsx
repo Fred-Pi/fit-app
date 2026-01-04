@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 // Screens
 import TodayScreen from '../screens/TodayScreen';
-import WorkoutsScreen from '../screens/WorkoutsScreen';
+import WorkoutsStack from './WorkoutsStack';
 import NutritionScreen from '../screens/NutritionScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
@@ -91,8 +91,8 @@ const AppNavigator = () => {
         />
         <Tab.Screen
           name="Workouts"
-          component={WorkoutsScreen}
-          options={{ headerTitle: 'Workouts' }}
+          component={WorkoutsStack}
+          options={{ headerShown: false }}
         />
         <Tab.Screen
           name="Nutrition"
