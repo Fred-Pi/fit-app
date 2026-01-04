@@ -37,6 +37,31 @@ export interface SetLog {
   completed: boolean;
 }
 
+// ============ EXERCISE DATABASE MODELS ============
+
+export type MuscleGroup =
+  | 'Chest'
+  | 'Back'
+  | 'Shoulders'
+  | 'Arms'
+  | 'Legs'
+  | 'Core'
+  | 'Cardio';
+
+export interface Exercise {
+  id: string;
+  name: string;
+  category: MuscleGroup;
+  defaultSets?: number;
+  defaultReps?: number;
+}
+
+export interface ExerciseCategory {
+  name: MuscleGroup;
+  icon: string;
+  color: string;
+}
+
 // For future use (Phase 2)
 export interface WorkoutTemplate {
   id: string;

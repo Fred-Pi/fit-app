@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutLog, ExerciseLog, SetLog } from '../types';
 import { generateId } from '../services/storage';
+import ExercisePicker from './ExercisePicker';
 
 interface AddWorkoutModalProps {
   visible: boolean;
@@ -38,6 +39,9 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
   const [sets, setSets] = useState('3');
   const [reps, setReps] = useState('10');
   const [weight, setWeight] = useState('');
+
+  // Exercise picker
+  const [showExercisePicker, setShowExercisePicker] = useState(false);
 
   const handleAddExercise = () => {
     if (!exerciseName.trim()) {
@@ -72,6 +76,15 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
 
   const handleRemoveExercise = (id: string) => {
     setExercises(exercises.filter(ex => ex.id !== id));
+  };
+
+  const handleSelectExercise = (name: string, defaults?: { sets: number; reps: number }) => {
+    setExerciseName(name);
+    if (defaults) {
+      setSets(defaults.sets.toString());
+      setReps(defaults.reps.toString());
+    }
+    setShowExercisePicker(false);
   };
 
   const handleSave = () => {
@@ -196,6 +209,24 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
 
             <View style={styles.section}>
               <Text style={styles.label}>Exercise Name *</Text>
+
+              {/* Exercise Picker Button */}
+              <TouchableOpacity
+                style={styles.exercisePickerButton}
+                onPress={() => setShowExercisePicker(true)}
+              >
+                <Ionicons name="search-outline" size={20} color="#3A9BFF" />
+                <Text style={[
+                  styles.exercisePickerButtonText,
+                  exerciseName && styles.exercisePickerButtonTextSelected
+                ]}>
+                  {exerciseName || 'Select from exercise database'}
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color="#A0A0A8" />
+              </TouchableOpacity>
+
+              {/* Manual Entry */}
+              <Text style={styles.orText}>or enter custom name</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g., Bench Press, Squat"
@@ -261,6 +292,14 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Exercise Picker Modal */}
+      <ExercisePicker
+        visible={showExercisePicker}
+        onClose={() => setShowExercisePicker(false)}
+        onSelectExercise={handleSelectExercise}
+        currentExerciseName={exerciseName}
+      />
     </Modal>
   );
 };
@@ -390,6 +429,32 @@ const styles = StyleSheet.create({
     color: '#A0A0A8',
     marginLeft: 8,
     lineHeight: 18,
+  },
+  exercisePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2A2A30',
+    borderWidth: 1,
+    borderColor: '#3A3A42',
+    borderRadius: 8,
+    padding: 14,
+    marginBottom: 12,
+  },
+  exercisePickerButtonText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#A0A0A8',
+    marginLeft: 10,
+  },
+  exercisePickerButtonTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  orText: {
+    fontSize: 13,
+    color: '#A0A0A8',
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });
 
