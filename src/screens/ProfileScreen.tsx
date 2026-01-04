@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Card from '../components/Card';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { getUser, saveUser, clearAllData } from '../services/storage';
 import { User } from '../types';
 import { createSampleData } from '../utils/sampleData';
@@ -21,6 +23,20 @@ const ProfileScreen = () => {
   const [name, setName] = useState('');
   const [calorieTarget, setCalorieTarget] = useState('');
   const [stepGoal, setStepGoal] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    icon?: keyof typeof Ionicons.glyphMap;
+    iconColor?: string;
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   const loadUser = async () => {
     const userData = await getUser();
@@ -76,22 +92,47 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleReset = () => {
-    Alert.alert(
-      'Reset All Data',
-      'This will delete all your workouts, meals, and steps data. This cannot be undone. Are you sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: async () => {
-            await clearAllData();
-            Alert.alert('Success', 'All data has been reset. Please restart the app.');
-          },
-        },
-      ]
-    );
+  const showConfirmDialog = (
+    title: string,
+    message: string,
+    onConfirm: () => void,
+    confirmText: string = 'Delete',
+    icon: keyof typeof Ionicons.glyphMap = 'alert-circle',
+    iconColor: string = '#FF3B30'
+  ) => {
+    setConfirmDialog({
+      visible: true,
+      title,
+      message,
+      onConfirm,
+      confirmText,
+      icon,
+      iconColor,
+    });
+  };
+
+  const handleDeleteWorkouts = async () => {
+    await AsyncStorage.removeItem('@fit_app_workouts');
+    setConfirmDialog({ ...confirmDialog, visible: false });
+    Alert.alert('Success', 'All workouts deleted');
+  };
+
+  const handleDeleteNutrition = async () => {
+    await AsyncStorage.removeItem('@fit_app_nutrition');
+    setConfirmDialog({ ...confirmDialog, visible: false });
+    Alert.alert('Success', 'All nutrition data deleted');
+  };
+
+  const handleDeleteSteps = async () => {
+    await AsyncStorage.removeItem('@fit_app_steps');
+    setConfirmDialog({ ...confirmDialog, visible: false });
+    Alert.alert('Success', 'All step data deleted');
+  };
+
+  const handleResetAll = async () => {
+    await clearAllData();
+    setConfirmDialog({ ...confirmDialog, visible: false });
+    Alert.alert('Success', 'All data has been reset');
   };
 
   if (!user) {
@@ -251,12 +292,94 @@ const ProfileScreen = () => {
 
       {/* Danger Zone */}
       <Card style={styles.dangerCard}>
-        <Text style={styles.dangerTitle}>Danger Zone</Text>
-        <TouchableOpacity style={styles.dangerButton} onPress={handleReset}>
-          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-          <Text style={styles.dangerButtonText}>Reset All Data</Text>
+        <Text style={styles.dangerTitle}>Delete Data</Text>
+        <Text style={styles.dangerSubtitle}>
+          Choose what data to delete. This cannot be undone.
+        </Text>
+
+        <TouchableOpacity
+          style={styles.dangerButton}
+          onPress={() =>
+            showConfirmDialog(
+              'Delete All Workouts?',
+              'This will permanently delete all your workout history. This cannot be undone.',
+              handleDeleteWorkouts,
+              'Delete Workouts',
+              'barbell',
+              '#FF3B30'
+            )
+          }
+        >
+          <Ionicons name="barbell" size={20} color="#FF3B30" />
+          <Text style={styles.dangerButtonText}>Delete All Workouts</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.dangerButton}
+          onPress={() =>
+            showConfirmDialog(
+              'Delete All Nutrition Data?',
+              'This will permanently delete all your meal logs and nutrition history. This cannot be undone.',
+              handleDeleteNutrition,
+              'Delete Nutrition',
+              'nutrition',
+              '#FF3B30'
+            )
+          }
+        >
+          <Ionicons name="nutrition" size={20} color="#FF3B30" />
+          <Text style={styles.dangerButtonText}>Delete All Nutrition</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.dangerButton}
+          onPress={() =>
+            showConfirmDialog(
+              'Delete All Step Data?',
+              'This will permanently delete all your step count history. This cannot be undone.',
+              handleDeleteSteps,
+              'Delete Steps',
+              'footsteps',
+              '#FF3B30'
+            )
+          }
+        >
+          <Ionicons name="footsteps" size={20} color="#FF3B30" />
+          <Text style={styles.dangerButtonText}>Delete All Steps</Text>
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        <TouchableOpacity
+          style={[styles.dangerButton, styles.dangerButtonCritical]}
+          onPress={() =>
+            showConfirmDialog(
+              'Reset Everything?',
+              'This will delete ALL your data including workouts, nutrition, steps, and reset your profile to default. This cannot be undone.',
+              handleResetAll,
+              'Reset Everything',
+              'warning',
+              '#FF3B30'
+            )
+          }
+        >
+          <Ionicons name="warning" size={20} color="#FFFFFF" />
+          <Text style={[styles.dangerButtonText, styles.dangerButtonTextCritical]}>
+            Reset All Data
+          </Text>
         </TouchableOpacity>
       </Card>
+
+      <ConfirmDialog
+        visible={confirmDialog.visible}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        icon={confirmDialog.icon}
+        iconColor={confirmDialog.iconColor}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, visible: false })}
+      />
     </ScrollView>
   );
 };
@@ -272,7 +395,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   contentContainer: {
-    padding: 16,
+    padding: 20,
+    paddingBottom: 32,
   },
   header: {
     flexDirection: 'row',
@@ -281,9 +405,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
   editButton: {
     fontSize: 16,
@@ -376,10 +501,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   dangerTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#FF3B30',
-    marginBottom: 12,
+    marginBottom: 10,
+    letterSpacing: 0.2,
+  },
+  dangerSubtitle: {
+    fontSize: 13,
+    color: '#98989D',
+    marginBottom: 16,
+    lineHeight: 18,
   },
   dangerButton: {
     flexDirection: 'row',
@@ -387,12 +519,24 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#3A1C1C',
     borderRadius: 8,
+    marginBottom: 8,
   },
   dangerButtonText: {
     fontSize: 15,
     color: '#FF3B30',
     marginLeft: 8,
     fontWeight: '500',
+  },
+  dangerButtonCritical: {
+    backgroundColor: '#FF3B30',
+  },
+  dangerButtonTextCritical: {
+    color: '#FFFFFF',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#38383A',
+    marginVertical: 12,
   },
   testButton: {
     flexDirection: 'row',

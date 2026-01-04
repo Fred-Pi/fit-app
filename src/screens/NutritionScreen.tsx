@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Card from '../components/Card';
 import ProgressBar from '../components/ProgressBar';
 import AddMealModal from '../components/AddMealModal';
+import EditMealModal from '../components/EditMealModal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import {
   getNutritionByDate,
   getTodayDate,
@@ -25,6 +27,13 @@ const NutritionScreen = () => {
   const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAddMealModal, setShowAddMealModal] = useState(false);
+  const [showEditMealModal, setShowEditMealModal] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{
+    visible: boolean;
+    mealId: string;
+    mealName: string;
+  }>({ visible: false, mealId: '', mealName: '' });
   const date = getTodayDate();
 
   const loadData = async () => {
@@ -71,6 +80,33 @@ const NutritionScreen = () => {
 
     await saveNutrition(updatedNutrition);
     setNutrition(updatedNutrition);
+  };
+
+  const handleEditMeal = async (editedMeal: Meal) => {
+    if (!nutrition) return;
+
+    const updatedNutrition: DailyNutrition = {
+      ...nutrition,
+      meals: nutrition.meals.map((m) => (m.id === editedMeal.id ? editedMeal : m)),
+    };
+
+    await saveNutrition(updatedNutrition);
+    setNutrition(updatedNutrition);
+    setShowEditMealModal(false);
+    setSelectedMeal(null);
+  };
+
+  const handleDeleteMeal = async () => {
+    if (!nutrition) return;
+
+    const updatedNutrition: DailyNutrition = {
+      ...nutrition,
+      meals: nutrition.meals.filter((m) => m.id !== confirmDelete.mealId),
+    };
+
+    await saveNutrition(updatedNutrition);
+    setNutrition(updatedNutrition);
+    setConfirmDelete({ visible: false, mealId: '', mealName: '' });
   };
 
   if (loading) {
@@ -131,20 +167,47 @@ const NutritionScreen = () => {
         ) : (
           nutrition?.meals.map((meal) => (
             <Card key={meal.id}>
-              <View style={styles.mealHeader}>
-                <Text style={styles.mealName}>{meal.name}</Text>
-                <Text style={styles.mealTime}>
-                  {new Date(meal.time).toLocaleTimeString('en-US', {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  })}
-                </Text>
-              </View>
-              <View style={styles.mealMacros}>
-                <Text style={styles.mealCalories}>{meal.calories} cal</Text>
-                <Text style={styles.mealMacroDetail}>
-                  P: {meal.protein}g • C: {meal.carbs}g • F: {meal.fats}g
-                </Text>
+              <View style={styles.mealContainer}>
+                <View style={styles.mealContent}>
+                  <View style={styles.mealHeader}>
+                    <Text style={styles.mealName}>{meal.name}</Text>
+                    <Text style={styles.mealTime}>
+                      {new Date(meal.time).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                  </View>
+                  <View style={styles.mealMacros}>
+                    <Text style={styles.mealCalories}>{meal.calories} cal</Text>
+                    <Text style={styles.mealMacroDetail}>
+                      P: {meal.protein}g • C: {meal.carbs}g • F: {meal.fats}g
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.mealActions}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => {
+                      setSelectedMeal(meal);
+                      setShowEditMealModal(true);
+                    }}
+                  >
+                    <Ionicons name="pencil-outline" size={20} color="#007AFF" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() =>
+                      setConfirmDelete({
+                        visible: true,
+                        mealId: meal.id,
+                        mealName: meal.name,
+                      })
+                    }
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                  </TouchableOpacity>
+                </View>
               </View>
             </Card>
           ))
@@ -163,6 +226,27 @@ const NutritionScreen = () => {
         onClose={() => setShowAddMealModal(false)}
         onSave={handleAddMeal}
       />
+
+      <EditMealModal
+        visible={showEditMealModal}
+        onClose={() => {
+          setShowEditMealModal(false);
+          setSelectedMeal(null);
+        }}
+        onSave={handleEditMeal}
+        meal={selectedMeal}
+      />
+
+      <ConfirmDialog
+        visible={confirmDelete.visible}
+        title="Delete Meal?"
+        message={`Are you sure you want to delete "${confirmDelete.mealName}"? This cannot be undone.`}
+        confirmText="Delete"
+        onConfirm={handleDeleteMeal}
+        onCancel={() => setConfirmDelete({ visible: false, mealId: '', mealName: '' })}
+        icon="restaurant"
+        iconColor="#FF3B30"
+      />
     </View>
   );
 };
@@ -178,14 +262,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   contentContainer: {
-    padding: 16,
+    padding: 20,
     paddingBottom: 80,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 16,
+    marginBottom: 18,
+    letterSpacing: 0.2,
   },
   summaryContainer: {
     marginBottom: 20,
@@ -214,18 +299,20 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   mealsTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
   emptyContainer: {
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#999',
-    marginTop: 12,
+    fontSize: 17,
+    color: '#98989D',
+    marginTop: 16,
+    fontWeight: '500',
   },
   mealHeader: {
     flexDirection: 'row',
@@ -234,13 +321,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   mealName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
   mealTime: {
     fontSize: 14,
     color: '#98989D',
+    fontWeight: '500',
   },
   mealMacros: {
     marginTop: 4,
@@ -254,6 +343,22 @@ const styles = StyleSheet.create({
   mealMacroDetail: {
     fontSize: 14,
     color: '#98989D',
+  },
+  mealContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  mealContent: {
+    flex: 1,
+  },
+  mealActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginLeft: 12,
+  },
+  actionButton: {
+    padding: 8,
   },
   fab: {
     position: 'absolute',
