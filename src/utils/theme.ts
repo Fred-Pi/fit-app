@@ -23,7 +23,7 @@ export interface Theme {
 export const darkTheme: Theme = {
   isDark: true,
   colors: {
-    background: '#0A0A0A',
+    background: '#0E0E14',     // Rich dark blue-gray instead of pure black
     surface: '#1E1E22',        // Richer, slightly blue-tinted surface
     surfaceAlt: '#2A2A30',     // More depth with subtle blue tone
     text: '#FFFFFF',

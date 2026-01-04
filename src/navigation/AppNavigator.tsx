@@ -23,7 +23,7 @@ const CustomDarkTheme = {
   colors: {
     ...DarkTheme.colors,
     primary: '#3A9BFF',
-    background: '#0A0A0A',
+    background: '#0E0E14',
     card: '#1E1E22',
     text: '#FFFFFF',
     border: '#3A3A42',
