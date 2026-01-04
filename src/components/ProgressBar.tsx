@@ -13,7 +13,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   current,
   target,
   unit = '',
-  color = '#007AFF',
+  color = '#3A9BFF',
   height = 12,
 }) => {
   const percentage = Math.min((current / target) * 100, 100);
@@ -65,15 +65,15 @@ const styles = StyleSheet.create({
   target: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#98989D',
+    color: '#A0A0A8',
   },
   barContainer: {
     width: '100%',
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#2A2A30',
     borderRadius: 999,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#38383A',
+    borderColor: '#3A3A42',
   },
   barFill: {
     height: '100%',

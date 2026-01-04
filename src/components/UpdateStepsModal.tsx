@@ -77,6 +77,7 @@ const UpdateStepsModal: React.FC<UpdateStepsModalProps> = ({
             <TextInput
               style={styles.input}
               placeholder="0"
+              placeholderTextColor="#98989D"
               value={steps}
               onChangeText={setSteps}
               keyboardType="number-pad"
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   container: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#1E1E22',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: Platform.OS === 'ios' ? 34 : 20,
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: '#3A3A42',
   },
   iconContainer: {
     width: 56,
@@ -155,17 +156,18 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#38383A',
+    borderColor: '#3A3A42',
     borderRadius: 8,
     padding: 16,
     fontSize: 24,
     fontWeight: '600',
     textAlign: 'center',
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#2A2A30',
+    color: '#FFFFFF',
   },
   hint: {
     fontSize: 13,
-    color: '#98989D',
+    color: '#A0A0A8',
     textAlign: 'center',
     marginTop: 8,
   },
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#98989D',
+    color: '#A0A0A8',
   },
   saveButton: {
     backgroundColor: '#4CAF50',

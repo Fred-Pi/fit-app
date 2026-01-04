@@ -22,11 +22,11 @@ const CustomDarkTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    primary: '#0A84FF',
+    primary: '#3A9BFF',
     background: '#0A0A0A',
-    card: '#1C1C1E',
+    card: '#1E1E22',
     text: '#FFFFFF',
-    border: '#38383A',
+    border: '#3A3A42',
   },
 };
 
@@ -41,13 +41,13 @@ const AppNavigator = () => {
 
             if (route.name === 'Today') {
               iconName = focused ? 'today' : 'today-outline';
-              iconColor = focused ? '#30D158' : color;
+              iconColor = focused ? '#32D760' : color;
             } else if (route.name === 'Workouts') {
               iconName = focused ? 'barbell' : 'barbell-outline';
-              iconColor = focused ? '#0A84FF' : color;
+              iconColor = focused ? '#3A9BFF' : color;
             } else if (route.name === 'Nutrition') {
               iconName = focused ? 'nutrition' : 'nutrition-outline';
-              iconColor = focused ? '#FF453A' : color;
+              iconColor = focused ? '#FF5E6D' : color;
             } else {
               iconName = focused ? 'person' : 'person-outline';
               iconColor = focused ? '#BF5AF2' : color;
@@ -56,12 +56,12 @@ const AppNavigator = () => {
             return <Ionicons name={iconName} size={size} color={iconColor} />;
           },
           tabBarActiveTintColor: '#FFFFFF',
-          tabBarInactiveTintColor: '#98989D',
+          tabBarInactiveTintColor: '#A0A0A8',
           headerShown: true,
           headerStyle: {
-            backgroundColor: '#1C1C1E',
+            backgroundColor: '#1E1E22',
             borderBottomWidth: 1,
-            borderBottomColor: '#38383A',
+            borderBottomColor: '#3A3A42',
           },
           headerTitleStyle: {
             fontWeight: '700',
@@ -70,8 +70,8 @@ const AppNavigator = () => {
             letterSpacing: 0.2,
           },
           tabBarStyle: {
-            backgroundColor: '#1C1C1E',
-            borderTopColor: '#38383A',
+            backgroundColor: '#1E1E22',
+            borderTopColor: '#3A3A42',
             borderTopWidth: 1,
             paddingTop: 8,
             paddingBottom: 8,

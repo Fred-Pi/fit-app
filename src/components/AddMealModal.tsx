@@ -94,6 +94,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
             <TextInput
               style={styles.input}
               placeholder="e.g., Breakfast, Chicken & Rice"
+              placeholderTextColor="#98989D"
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
@@ -105,6 +106,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
             <TextInput
               style={styles.input}
               placeholder="e.g., 500"
+              placeholderTextColor="#98989D"
               value={calories}
               onChangeText={setCalories}
               keyboardType="number-pad"
@@ -120,6 +122,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
                 <TextInput
                   style={styles.input}
                   placeholder="0"
+                  placeholderTextColor="#98989D"
                   value={protein}
                   onChangeText={setProtein}
                   keyboardType="number-pad"
@@ -131,6 +134,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
                 <TextInput
                   style={styles.input}
                   placeholder="0"
+                  placeholderTextColor="#98989D"
                   value={carbs}
                   onChangeText={setCarbs}
                   keyboardType="number-pad"
@@ -142,6 +146,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
                 <TextInput
                   style={styles.input}
                   placeholder="0"
+                  placeholderTextColor="#98989D"
                   value={fats}
                   onChangeText={setFats}
                   keyboardType="number-pad"
@@ -165,7 +170,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#1E1E22',
   },
   header: {
     flexDirection: 'row',
@@ -174,7 +179,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: '#3A3A42',
   },
   title: {
     fontSize: 18,
@@ -183,11 +188,11 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     fontSize: 16,
-    color: '#98989D',
+    color: '#A0A0A8',
   },
   saveButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3A9BFF',
     fontWeight: '600',
   },
   content: {
@@ -211,11 +216,12 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#38383A',
+    borderColor: '#3A3A42',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#2A2A30',
+    color: '#FFFFFF',
   },
   macrosSection: {
     marginBottom: 24,
@@ -238,7 +244,7 @@ const styles = StyleSheet.create({
   helpText: {
     flex: 1,
     fontSize: 13,
-    color: '#98989D',
+    color: '#A0A0A8',
     marginLeft: 8,
     lineHeight: 18,
   },

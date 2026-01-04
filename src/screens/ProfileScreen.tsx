@@ -173,6 +173,7 @@ const ProfileScreen = () => {
               value={name}
               onChangeText={setName}
               placeholder="Enter your name"
+              placeholderTextColor="#98989D"
             />
           ) : (
             <Text style={styles.value}>{user.name}</Text>
@@ -188,6 +189,7 @@ const ProfileScreen = () => {
               onChangeText={setCalorieTarget}
               keyboardType="number-pad"
               placeholder="2200"
+              placeholderTextColor="#98989D"
             />
           ) : (
             <Text style={styles.value}>{user.dailyCalorieTarget} cal</Text>
@@ -203,6 +205,7 @@ const ProfileScreen = () => {
               onChangeText={setStepGoal}
               keyboardType="number-pad"
               placeholder="10000"
+              placeholderTextColor="#98989D"
             />
           ) : (
             <Text style={styles.value}>{user.dailyStepGoal.toLocaleString()} steps</Text>
@@ -412,7 +415,7 @@ const styles = StyleSheet.create({
   },
   editButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3A9BFF',
     fontWeight: '600',
   },
   editActions: {
@@ -425,7 +428,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 16,
-    color: '#98989D',
+    color: '#A0A0A8',
   },
   saveButton: {
     paddingHorizontal: 12,
@@ -433,7 +436,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3A9BFF',
     fontWeight: '600',
   },
   settingItem: {
@@ -441,7 +444,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#98989D',
+    color: '#A0A0A8',
     marginBottom: 6,
   },
   value: {
@@ -453,10 +456,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#38383A',
+    borderColor: '#3A3A42',
     borderRadius: 8,
     padding: 10,
-    backgroundColor: '#FFF',
+    backgroundColor: '#2A2A30',
   },
   infoItem: {
     flexDirection: 'row',
@@ -465,7 +468,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 15,
-    color: '#98989D',
+    color: '#A0A0A8',
   },
   infoValue: {
     fontSize: 15,
@@ -479,18 +482,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#2A2A30',
     borderWidth: 1,
-    borderColor: '#38383A',
+    borderColor: '#3A3A42',
   },
   unitButtonActive: {
-    backgroundColor: '#0A84FF',
-    borderColor: '#0A84FF',
+    backgroundColor: '#3A9BFF',
+    borderColor: '#3A9BFF',
   },
   unitButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#98989D',
+    color: '#A0A0A8',
   },
   unitButtonTextActive: {
     color: '#FFFFFF',
@@ -509,7 +512,7 @@ const styles = StyleSheet.create({
   },
   dangerSubtitle: {
     fontSize: 13,
-    color: '#98989D',
+    color: '#A0A0A8',
     marginBottom: 16,
     lineHeight: 18,
   },
@@ -535,7 +538,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#38383A',
+    backgroundColor: '#3A3A42',
     marginVertical: 12,
   },
   testButton: {
@@ -548,13 +551,13 @@ const styles = StyleSheet.create({
   },
   testButtonText: {
     fontSize: 15,
-    color: '#007AFF',
+    color: '#3A9BFF',
     marginLeft: 8,
     fontWeight: '500',
   },
   testDescription: {
     fontSize: 13,
-    color: '#98989D',
+    color: '#A0A0A8',
     lineHeight: 18,
   },
 });

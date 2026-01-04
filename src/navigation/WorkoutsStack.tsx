@@ -25,9 +25,9 @@ const WorkoutsStack = () => {
           headerShown: true,
           headerTitle: 'Workout Details',
           headerStyle: {
-            backgroundColor: '#1C1C1E',
+            backgroundColor: '#1E1E22',
             borderBottomWidth: 1,
-            borderBottomColor: '#38383A',
+            borderBottomColor: '#3A3A42',
           },
           headerTitleStyle: {
             fontWeight: '700',
@@ -35,7 +35,7 @@ const WorkoutsStack = () => {
             color: '#FFFFFF',
             letterSpacing: 0.2,
           },
-          headerTintColor: '#0A84FF',
+          headerTintColor: '#3A9BFF',
         }}
       />
     </Stack.Navigator>

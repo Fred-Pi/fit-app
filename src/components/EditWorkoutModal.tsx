@@ -130,6 +130,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
             <TextInput
               style={styles.input}
               placeholder="e.g., Push Day, Upper Body"
+              placeholderTextColor="#98989D"
               value={workoutName}
               onChangeText={setWorkoutName}
               autoCapitalize="words"
@@ -172,6 +173,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
               <TextInput
                 style={styles.input}
                 placeholder="e.g., Bench Press, Squat"
+                placeholderTextColor="#98989D"
                 value={exerciseName}
                 onChangeText={setExerciseName}
                 autoCapitalize="words"
@@ -184,6 +186,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
                 <TextInput
                   style={styles.input}
                   placeholder="3"
+                  placeholderTextColor="#98989D"
                   value={sets}
                   onChangeText={setSets}
                   keyboardType="number-pad"
@@ -195,6 +198,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
                 <TextInput
                   style={styles.input}
                   placeholder="10"
+                  placeholderTextColor="#98989D"
                   value={reps}
                   onChangeText={setReps}
                   keyboardType="number-pad"
@@ -206,6 +210,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
                 <TextInput
                   style={styles.input}
                   placeholder="0"
+                  placeholderTextColor="#98989D"
                   value={weight}
                   onChangeText={setWeight}
                   keyboardType="number-pad"
@@ -237,7 +242,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#1E1E22',
   },
   header: {
     flexDirection: 'row',
@@ -246,7 +251,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: '#3A3A42',
   },
   title: {
     fontSize: 18,
@@ -255,11 +260,11 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     fontSize: 16,
-    color: '#98989D',
+    color: '#A0A0A8',
   },
   saveButton: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#3A9BFF',
     fontWeight: '600',
   },
   content: {
@@ -283,11 +288,11 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#38383A',
+    borderColor: '#3A3A42',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#2A2A30',
     color: '#FFFFFF',
   },
   row: {
@@ -321,10 +326,10 @@ const styles = StyleSheet.create({
   },
   exerciseItemDetails: {
     fontSize: 14,
-    color: '#98989D',
+    color: '#A0A0A8',
   },
   addExerciseSection: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#2A2A30',
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
@@ -337,13 +342,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F1A2E',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#3A9BFF',
     borderStyle: 'dashed',
   },
   addExerciseButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#3A9BFF',
     marginLeft: 8,
   },
   helpSection: {
@@ -356,7 +361,7 @@ const styles = StyleSheet.create({
   helpText: {
     flex: 1,
     fontSize: 13,
-    color: '#98989D',
+    color: '#A0A0A8',
     marginLeft: 8,
     lineHeight: 18,
   },
