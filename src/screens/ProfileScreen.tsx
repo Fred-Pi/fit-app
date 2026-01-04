@@ -13,8 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Card from '../components/Card';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { getUser, saveUser, clearAllData } from '../services/storage';
-import { User } from '../types';
+import { getUser, saveUser, clearAllData, getTemplates, deleteTemplate } from '../services/storage';
+import { User, WorkoutTemplate } from '../types';
 import { createSampleData } from '../utils/sampleData';
 
 const ProfileScreen = () => {
@@ -23,6 +23,7 @@ const ProfileScreen = () => {
   const [name, setName] = useState('');
   const [calorieTarget, setCalorieTarget] = useState('');
   const [stepGoal, setStepGoal] = useState('');
+  const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
   const [confirmDialog, setConfirmDialog] = useState<{
     visible: boolean;
     title: string;
@@ -48,13 +49,20 @@ const ProfileScreen = () => {
     }
   };
 
+  const loadTemplates = async () => {
+    const templateData = await getTemplates();
+    setTemplates(templateData);
+  };
+
   useEffect(() => {
     loadUser();
+    loadTemplates();
   }, []);
 
   useFocusEffect(
     React.useCallback(() => {
       loadUser();
+      loadTemplates();
     }, [])
   );
 
@@ -133,6 +141,23 @@ const ProfileScreen = () => {
     await clearAllData();
     setConfirmDialog({ ...confirmDialog, visible: false });
     Alert.alert('Success', 'All data has been reset');
+    loadTemplates(); // Reload templates after reset
+  };
+
+  const handleDeleteTemplate = async (templateId: string, templateName: string) => {
+    showConfirmDialog(
+      'Delete Template?',
+      `Are you sure you want to delete "${templateName}"? This cannot be undone.`,
+      async () => {
+        await deleteTemplate(templateId);
+        setConfirmDialog({ ...confirmDialog, visible: false });
+        loadTemplates();
+        Alert.alert('Success', 'Template deleted');
+      },
+      'Delete Template',
+      'document-text',
+      '#FF3B30'
+    );
   };
 
   if (!user) {
@@ -276,6 +301,42 @@ const ProfileScreen = () => {
             })}
           </Text>
         </View>
+      </Card>
+
+      {/* Workout Templates */}
+      <Card>
+        <Text style={styles.sectionTitle}>Workout Templates</Text>
+        {templates.length > 0 ? (
+          <>
+            <Text style={styles.templatesCount}>
+              {templates.length} {templates.length === 1 ? 'template' : 'templates'} saved
+            </Text>
+            {templates.map((template) => (
+              <View key={template.id} style={styles.templateItem}>
+                <View style={styles.templateInfo}>
+                  <Text style={styles.templateName}>{template.name}</Text>
+                  <Text style={styles.templateDetails}>
+                    {template.exercises.length} {template.exercises.length === 1 ? 'exercise' : 'exercises'}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleDeleteTemplate(template.id, template.name)}
+                  style={styles.deleteTemplateButton}
+                >
+                  <Ionicons name="trash-outline" size={20} color="#FF5E6D" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </>
+        ) : (
+          <View style={styles.emptyTemplates}>
+            <Ionicons name="document-text-outline" size={40} color="#A0A0A8" />
+            <Text style={styles.emptyTemplatesText}>No templates yet</Text>
+            <Text style={styles.emptyTemplatesSubtext}>
+              Create a workout and save it as a template to reuse it later
+            </Text>
+          </View>
+        )}
       </Card>
 
       {/* Testing */}
@@ -559,6 +620,58 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#A0A0A8',
     lineHeight: 18,
+  },
+  templatesCount: {
+    fontSize: 14,
+    color: '#A0A0A8',
+    marginBottom: 12,
+  },
+  templateItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    backgroundColor: '#2A2A30',
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#3A3A42',
+  },
+  templateInfo: {
+    flex: 1,
+  },
+  templateName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  templateDetails: {
+    fontSize: 13,
+    color: '#A0A0A8',
+  },
+  deleteTemplateButton: {
+    padding: 8,
+    backgroundColor: 'rgba(255, 94, 109, 0.1)',
+    borderRadius: 8,
+  },
+  emptyTemplates: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  emptyTemplatesText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#A0A0A8',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  emptyTemplatesSubtext: {
+    fontSize: 13,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 16,
   },
 });
 

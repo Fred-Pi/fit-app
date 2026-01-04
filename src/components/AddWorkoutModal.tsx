@@ -12,9 +12,10 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { WorkoutLog, ExerciseLog, SetLog } from '../types';
-import { generateId } from '../services/storage';
+import { WorkoutLog, ExerciseLog, SetLog, WorkoutTemplate, ExerciseTemplate } from '../types';
+import { generateId, saveTemplate } from '../services/storage';
 import ExercisePicker from './ExercisePicker';
+import TemplatePicker from './TemplatePicker';
 
 interface AddWorkoutModalProps {
   visible: boolean;
@@ -42,6 +43,9 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
 
   // Exercise picker
   const [showExercisePicker, setShowExercisePicker] = useState(false);
+
+  // Template picker
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
 
   const handleAddExercise = () => {
     if (!exerciseName.trim()) {
@@ -85,6 +89,77 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
       setReps(defaults.reps.toString());
     }
     setShowExercisePicker(false);
+  };
+
+  const handleSelectTemplate = (template: WorkoutTemplate) => {
+    // Populate workout name
+    setWorkoutName(template.name);
+
+    // Convert template exercises to ExerciseLog format
+    const exerciseLogs: ExerciseLog[] = template.exercises.map((exerciseTemplate) => {
+      const setsArray: SetLog[] = Array.from({ length: exerciseTemplate.targetSets }, () => ({
+        reps: exerciseTemplate.targetReps,
+        weight: exerciseTemplate.targetWeight || 0,
+        completed: true,
+      }));
+
+      return {
+        id: generateId(),
+        exerciseName: exerciseTemplate.exerciseName,
+        sets: setsArray,
+      };
+    });
+
+    setExercises(exerciseLogs);
+    setShowTemplatePicker(false);
+    Alert.alert('Template Loaded', `"${template.name}" has been loaded. You can modify it before saving.`);
+  };
+
+  const handleSaveAsTemplate = async () => {
+    if (!workoutName.trim() || exercises.length === 0) {
+      Alert.alert('Error', 'Cannot save empty workout as template');
+      return;
+    }
+
+    Alert.prompt(
+      'Save as Template',
+      'Enter a name for this template:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Save',
+          onPress: async (templateName?: string) => {
+            if (!templateName?.trim()) {
+              Alert.alert('Error', 'Please enter a template name');
+              return;
+            }
+
+            // Convert exercises to template format
+            const exerciseTemplates: ExerciseTemplate[] = exercises.map((exercise, index) => ({
+              id: generateId(),
+              exerciseName: exercise.exerciseName,
+              targetSets: exercise.sets.length,
+              targetReps: exercise.sets[0]?.reps || 10,
+              targetWeight: exercise.sets[0]?.weight > 0 ? exercise.sets[0].weight : undefined,
+              order: index,
+            }));
+
+            const template: WorkoutTemplate = {
+              id: generateId(),
+              userId,
+              name: templateName.trim(),
+              exercises: exerciseTemplates,
+              created: new Date().toISOString(),
+            };
+
+            await saveTemplate(template);
+            Alert.alert('Success', `Template "${templateName}" saved!`);
+          },
+        },
+      ],
+      'plain-text',
+      workoutName
+    );
   };
 
   const handleSave = () => {
@@ -163,6 +238,16 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Use Template Button */}
+          <TouchableOpacity
+            style={styles.templateButton}
+            onPress={() => setShowTemplatePicker(true)}
+          >
+            <Ionicons name="document-text-outline" size={20} color="#3A9BFF" />
+            <Text style={styles.templateButtonText}>Use Template</Text>
+            <Ionicons name="chevron-forward" size={20} color="#A0A0A8" />
+          </TouchableOpacity>
+
           {/* Workout Name */}
           <View style={styles.section}>
             <Text style={styles.label}>Workout Name *</Text>
@@ -284,6 +369,17 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
             </TouchableOpacity>
           </View>
 
+          {/* Save as Template Button */}
+          {exercises.length > 0 && (
+            <TouchableOpacity
+              style={styles.saveTemplateButton}
+              onPress={handleSaveAsTemplate}
+            >
+              <Ionicons name="bookmark-outline" size={20} color="#3A9BFF" />
+              <Text style={styles.saveTemplateButtonText}>Save as Template</Text>
+            </TouchableOpacity>
+          )}
+
           <View style={styles.helpSection}>
             <Ionicons name="information-circle-outline" size={20} color="#666" />
             <Text style={styles.helpText}>
@@ -292,6 +388,13 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Template Picker Modal */}
+      <TemplatePicker
+        visible={showTemplatePicker}
+        onClose={() => setShowTemplatePicker(false)}
+        onSelectTemplate={handleSelectTemplate}
+      />
 
       {/* Exercise Picker Modal */}
       <ExercisePicker
@@ -455,6 +558,41 @@ const styles = StyleSheet.create({
     color: '#A0A0A8',
     textAlign: 'center',
     marginBottom: 10,
+  },
+  templateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#2A2A30',
+    borderWidth: 1,
+    borderColor: '#3A9BFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  templateButtonText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#3A9BFF',
+    marginLeft: 10,
+  },
+  saveTemplateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2A2A30',
+    borderWidth: 1,
+    borderColor: '#3A9BFF',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    gap: 8,
+  },
+  saveTemplateButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#3A9BFF',
   },
 });
 

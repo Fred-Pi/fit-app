@@ -76,6 +76,7 @@ export interface ExerciseTemplate {
   exerciseName: string;
   targetSets: number;
   targetReps: number;
+  targetWeight?: number;
   order: number;
 }
 

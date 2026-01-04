@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, WeeklyStats } from '../types';
+import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, WeeklyStats, WorkoutTemplate } from '../types';
 import { isDateInRange } from '../utils/dateUtils';
 
 // Storage keys
@@ -8,6 +8,7 @@ const KEYS = {
   WORKOUTS: '@fit_app_workouts',
   NUTRITION: '@fit_app_nutrition',
   STEPS: '@fit_app_steps',
+  TEMPLATES: '@fit_app_templates',
 };
 
 // ============ USER ============
@@ -153,6 +154,50 @@ export const saveSteps = async (steps: DailySteps): Promise<void> => {
   }
 };
 
+// ============ WORKOUT TEMPLATES ============
+
+export const getTemplates = async (): Promise<WorkoutTemplate[]> => {
+  try {
+    const data = await AsyncStorage.getItem(KEYS.TEMPLATES);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error getting templates:', error);
+    return [];
+  }
+};
+
+export const saveTemplate = async (template: WorkoutTemplate): Promise<void> => {
+  try {
+    const templates = await getTemplates();
+    const existingIndex = templates.findIndex(t => t.id === template.id);
+
+    if (existingIndex >= 0) {
+      templates[existingIndex] = template;
+    } else {
+      templates.push(template);
+    }
+
+    await AsyncStorage.setItem(KEYS.TEMPLATES, JSON.stringify(templates));
+  } catch (error) {
+    console.error('Error saving template:', error);
+  }
+};
+
+export const deleteTemplate = async (templateId: string): Promise<void> => {
+  try {
+    const templates = await getTemplates();
+    const filtered = templates.filter(t => t.id !== templateId);
+    await AsyncStorage.setItem(KEYS.TEMPLATES, JSON.stringify(filtered));
+  } catch (error) {
+    console.error('Error deleting template:', error);
+  }
+};
+
+export const getTemplateById = async (templateId: string): Promise<WorkoutTemplate | null> => {
+  const templates = await getTemplates();
+  return templates.find(t => t.id === templateId) || null;
+};
+
 // ============ DATE RANGE QUERIES ============
 
 /**
@@ -272,6 +317,7 @@ export const clearAllData = async (): Promise<void> => {
       KEYS.WORKOUTS,
       KEYS.NUTRITION,
       KEYS.STEPS,
+      KEYS.TEMPLATES,
     ]);
   } catch (error) {
     console.error('Error clearing data:', error);
