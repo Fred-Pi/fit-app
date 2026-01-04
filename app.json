@@ -24,7 +24,14 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Fit App",
+      "shortName": "Fit App",
+      "description": "A unified fitness tracking app combining gym workouts, calorie tracking, and step counting",
+      "backgroundColor": "#0A0A0A",
+      "themeColor": "#0A84FF"
     }
   }
 }
