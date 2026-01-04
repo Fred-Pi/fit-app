@@ -292,6 +292,8 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#2A2A30',
   },
   completedBadge: {
     flexDirection: 'row',
