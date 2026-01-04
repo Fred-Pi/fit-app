@@ -1,29 +1,35 @@
-# Fitness Tracking App - MVP
+# Fitness Tracking App
 
-A simple, unified fitness tracking app that combines gym workouts, calorie tracking, and step counting in one cohesive mobile solution.
+A comprehensive, unified fitness tracking mobile app that combines gym workouts, calorie tracking, step counting, personal records, and workout templates in one cohesive solution.
 
 ## Overview
 
-This app replaces the need for separate gym, calorie, and step-counter apps by providing:
+This app provides an all-in-one fitness tracking experience with:
 
-- **Gym Tracking**: Log workouts, exercises, sets, reps, and weight
+- **Gym Tracking**: Log workouts with exercise database, sets, reps, and weight
+- **Personal Records**: Automatically track your strength gains and PRs
+- **Workout Templates**: Save and reuse your favorite workout routines
 - **Calorie & Nutrition**: Track daily meals with calories and macros
 - **Steps & Activity**: Monitor daily step count toward your goal
+- **Weekly Statistics**: Track progress with week-over-week comparisons
+- **Rest Timer**: Built-in countdown timer between sets
 - **Unified Daily View**: See your complete fitness snapshot in one place
 
 ## Target User
 
 Regular gym-goer trying to lose fat and/or gain muscle who:
 - Tracks workouts 3-5x per week
-- Wants awareness of calories and daily steps
+- Wants to track strength gains and personal bests
 - Prefers simplicity over complex features
+- Values seeing progress over time
 
 ## Tech Stack
 
-- **React Native** with Expo (TypeScript)
-- **React Navigation** (bottom tabs)
+- **React Native** with Expo SDK 54 (TypeScript)
+- **React Navigation** (bottom tabs + stack navigation)
 - **AsyncStorage** for local-first data persistence
 - **Expo Vector Icons** for UI
+- Compiled for **iOS, Android, and Web**
 
 ## Project Structure
 
@@ -36,15 +42,28 @@ src/
 ├── screens/            # Main app screens
 │   ├── TodayScreen.tsx
 │   ├── WorkoutsScreen.tsx
+│   ├── WorkoutDetailScreen.tsx
+│   ├── PRScreen.tsx
 │   ├── NutritionScreen.tsx
 │   └── ProfileScreen.tsx
 ├── components/         # Reusable UI components
 │   ├── Card.tsx
-│   └── ProgressBar.tsx
+│   ├── ProgressBar.tsx
+│   ├── ExercisePicker.tsx
+│   ├── TemplatePicker.tsx
+│   ├── RestTimer.tsx
+│   ├── AddWorkoutModal.tsx
+│   ├── EditWorkoutModal.tsx
+│   └── ...
 ├── navigation/         # Navigation setup
-│   └── AppNavigator.tsx
+│   ├── AppNavigator.tsx
+│   └── WorkoutsStack.tsx
+├── data/              # Static data and databases
+│   └── exercises.ts   # Exercise database (54 exercises)
 └── utils/             # Utilities and helpers
-    └── sampleData.ts
+    ├── dateUtils.ts   # Week calculation utilities
+    ├── sampleData.ts  # Sample data generator
+    └── theme.ts       # Color theme
 ```
 
 ## Getting Started
@@ -84,49 +103,111 @@ npm run android
 npm run web
 ```
 
+### Build for Production
+
+```bash
+# Web build
+npm run build:web
+```
+
 ## Features
 
-### Phase 1 (Completed MVP)
+### Core Features
 
-- ✅ **Dark mode UI** - Modern dark theme throughout the entire app
-- ✅ **Log workouts** - Interactive modal to add exercises with sets, reps, and weight
-  - Add multiple exercises per workout
-  - Track sets, reps, weight, and optional RPE
-  - View workout history sorted by date
-- ✅ **Log meals** - Quick meal entry with nutrition tracking
-  - Track calories and macros (protein, carbs, fats)
-  - Daily calorie target with progress bar
-  - View all meals for the day
-- ✅ **Update steps** - Manual step entry with bottom sheet modal
-  - Daily step goal tracking with progress bar
-  - Quick update from Today screen
-- ✅ **Unified daily view** - See everything at a glance
-  - Today's workout status
-  - Calorie progress vs target
-  - Step progress vs goal
-  - Pull to refresh
-- ✅ **User profile & settings**
-  - Edit daily calorie target
-  - Edit daily step goal
-  - Toggle weight units (lbs ↔ kg)
-  - Sample data generator for testing
-  - Reset all data option
+#### 🏋️ Workout Tracking
+- **Log workouts** with exercise name, sets, reps, and weight
+- **Exercise database** with 54 common exercises organized by muscle group:
+  - Chest (8 exercises)
+  - Back (10 exercises)
+  - Shoulders (7 exercises)
+  - Arms (8 exercises)
+  - Legs (10 exercises)
+  - Core (6 exercises)
+  - Cardio (5 exercises)
+- **Custom exercises** - Add exercises not in the database
+- **Edit workouts** - Modify past workouts
+- **Delete workouts** - Remove workouts with confirmation
+- **Workout history** - View all past workouts sorted by date
+- **Workout detail view** - See full exercise breakdown with sets and reps
 
-### Phase 2 (Planned)
+#### 🏆 Personal Records (PRs)
+- **Automatic PR tracking** - Detects new personal bests when logging workouts
+- **PR notifications** - Congratulatory alerts when you set new PRs
+- **PR screen** - Dedicated tab showing all personal records
+- **Categorized display** - PRs grouped by muscle group with color coding
+- **PR management** - View and delete personal records
+- Shows exercise name, weight, reps, and date achieved
 
-- Workout templates/routines
-- Saved meals (reusable)
-- Exercise progression charts
-- Weekly/monthly summary
-- Step API integration (HealthKit/Google Fit)
+#### 📋 Workout Templates
+- **Save workouts as templates** - Convert any workout into a reusable template
+- **Template library** - Browse all saved templates in Profile screen
+- **Quick workout creation** - Load templates to instantly populate exercises
+- **Template management** - Delete templates with confirmation
+- **Customizable** - Modify template before saving as workout
 
-### Phase 3 (Future)
+#### ⏱️ Rest Timer
+- **Built-in countdown timer** - Time your rest periods between sets
+- **Quick presets** - 30s, 60s, 90s, 120s, 180s buttons
+- **Visual progress** - Large circular timer with progress ring
+- **Vibration feedback** - Phone vibrates when timer completes
+- **Alert notification** - Pop-up when rest period is over
+- **Start/pause/reset controls** - Full timer management
 
-- User accounts + authentication
-- Cloud sync
-- Multi-device support
-- Export data
-- Body weight tracking
+#### 📊 Weekly Statistics
+- **Weekly overview** - See current week's progress at a glance
+- **Week-over-week comparison** - Compare to previous week with arrows and percentages
+- **Metrics tracked**:
+  - Total workouts completed
+  - Total/average calories vs target
+  - Total/average steps vs goal
+  - Days active
+- **Color-coded indicators** - Green for improvements, red for decreases
+- **Progress bars** - Visual completion percentage
+
+#### 🍽️ Nutrition Tracking
+- **Log meals** with calories and macros (protein, carbs, fats)
+- **Daily calorie target** with progress bar
+- **Macro breakdown** - Visual distribution of protein, carbs, and fats
+- **Meal history** - View all meals for the day
+- **Nutrition screen** - Dedicated tab for detailed nutrition view
+
+#### 👟 Step Tracking
+- **Manual step entry** - Update your daily step count
+- **Daily step goal** tracking with progress bar
+- **Quick update** from Today screen
+- **Step history** - Track steps over time
+
+#### 🎨 User Interface
+- **Modern dark theme** - Rich blue-gray backgrounds with vibrant accents
+- **Responsive design** - Works on iOS, Android, and Web
+- **Smooth animations** - Modal transitions and screen changes
+- **Consistent styling** - Rounded corners and cohesive design language
+- **Color coding**:
+  - 🟢 Green for Today/Steps
+  - 🔵 Blue for Workouts
+  - 🟡 Gold for Personal Records
+  - 🔴 Red for Nutrition
+  - 🟣 Purple for Profile
+
+#### ⚙️ User Profile & Settings
+- **Edit profile** - Name, calorie target, step goal
+- **Weight units** - Toggle between lbs and kg
+- **Template management** - View and delete workout templates
+- **Sample data** - Load test data for exploring the app
+- **Data management**:
+  - Delete workouts
+  - Delete nutrition data
+  - Delete steps
+  - Reset all data
+
+### Navigation
+
+Five-tab bottom navigation:
+1. **Today** - Daily overview dashboard
+2. **Workouts** - Exercise tracking and history
+3. **PRs** - Personal records
+4. **Nutrition** - Calorie & macro tracking
+5. **Profile** - Settings and preferences
 
 ## Data Models
 
@@ -135,156 +216,218 @@ npm run web
 - **User**: Profile with daily calorie target and step goal
 - **WorkoutLog**: Individual workout session with exercises
 - **ExerciseLog**: Exercise within a workout (sets, reps, weight)
+- **PersonalRecord**: Best performance for each exercise
+- **WorkoutTemplate**: Saved workout routine for reuse
 - **DailyNutrition**: Daily meal tracking with calorie target
 - **Meal**: Individual meal entry with macros
 - **DailySteps**: Daily step count and goal
+- **WeeklyStats**: Aggregated weekly statistics
+- **Exercise**: Exercise from the database
 
 All data is stored locally using AsyncStorage for a fast, offline-first experience.
 
-## Usage
+## Usage Guide
 
 ### Today Screen
 
 The main dashboard showing:
+- **Weekly statistics card** - Current week progress vs previous week
 - Current date
 - Today's workout (or option to log)
-- Calorie progress (consumed vs target)
-- Step progress (current vs goal)
+- Calorie progress with visual bar
+- Step progress with visual bar
 
 Pull down to refresh data.
 
+### Logging a Workout
+
+1. Tap "Log Workout" from Today screen
+2. (Optional) Tap "Use Template" to load a saved routine
+3. Enter workout name
+4. Add exercises:
+   - Tap "Select from exercise database" to browse 54+ exercises
+   - Or enter a custom exercise name
+   - Set number of sets, reps, and weight
+   - Tap "Add Exercise"
+5. Repeat for all exercises
+6. (Optional) Tap timer icon to start rest timer between sets
+7. (Optional) Tap "Save as Template" to reuse this workout
+8. Tap "Save" to log the workout
+9. If you set any PRs, you'll see a congratulatory alert!
+
+### Viewing Personal Records
+
+1. Navigate to **PRs** tab
+2. Browse records grouped by muscle group
+3. See your best weight and reps for each exercise
+4. Tap trash icon to delete a record
+
+### Using the Rest Timer
+
+1. While logging a workout, tap the timer icon in the header
+2. Select a preset time (30s, 60s, 90s, 120s, 180s)
+3. Tap "Start" to begin countdown
+4. Timer will vibrate and alert when complete
+5. Use "Pause" or "Reset" as needed
+
+### Creating Workout Templates
+
+1. Log a workout as usual
+2. After adding exercises, tap "Save as Template"
+3. Enter a template name
+4. Template is saved to your library
+
+### Using Templates
+
+1. When logging a workout, tap "Use Template"
+2. Select from your saved templates
+3. Exercises auto-populate with sets, reps, and weights
+4. Modify as needed before saving
+
 ### Workouts Screen
 
-- View workout history (sorted by date)
-- Tap workout to see details
-- FAB button to log new workout (future feature)
+- View workout history (sorted by newest first)
+- Tap any workout to see full details
+- Edit or delete workouts from detail screen
 
 ### Nutrition Screen
 
 - Daily calorie summary with progress
 - Macro breakdown (protein, carbs, fats)
-- List of logged meals
-- FAB button to add meal (future feature)
+- List of logged meals with totals
+- Add meals with "+" button
 
 ### Profile Screen
 
-- Edit name
-- Edit daily calorie target
-- Edit daily step goal
-- View app info
-- Reset all data (danger zone)
+- Edit your profile information
+- View workout templates
+- View app information
+- Load sample data for testing
+- Manage and delete your data
 
 ## Development
 
 ### Adding Sample Data
 
-To test the app with sample data, you can import and call the `createSampleData` function:
+To test the app with sample data:
 
-```typescript
-import { createSampleData } from './src/utils/sampleData';
+1. Go to Profile tab
+2. Scroll to "Testing" section
+3. Tap "Load Sample Data"
 
-// Call this from a button or during development
-await createSampleData();
-```
-
-This will create:
-- 3 sample workouts (today, yesterday, 2 days ago)
+This creates:
+- 7 sample workouts (past week)
 - Nutrition data with meals
 - Step count data
+- Some personal records
 
 ### Key Files to Modify
 
-- **Add a new screen**: Create in `src/screens/` and add to `AppNavigator.tsx`
+- **Add a new screen**: Create in `src/screens/` and add to navigation
 - **Add data models**: Update `src/types/index.ts`
 - **Add storage functions**: Update `src/services/storage.ts`
 - **Add reusable components**: Create in `src/components/`
+- **Add exercises**: Update `src/data/exercises.ts`
+
+### Available Scripts
+
+```bash
+npm start          # Start Expo dev server
+npm run ios        # Run on iOS simulator
+npm run android    # Run on Android emulator
+npm run web        # Run in web browser
+npm run build:web  # Build for web production
+npm test           # Run tests (if configured)
+```
 
 ## Design Decisions
 
 ### Local-First Architecture
 
-The app uses AsyncStorage for local data persistence without requiring a backend or authentication. This provides:
+The app uses AsyncStorage for local data persistence without requiring a backend. This provides:
 
 - **Fast performance**: No network latency
 - **Offline-first**: Works without internet
-- **Simple MVP**: No backend setup required
+- **Simple setup**: No backend required
+- **Privacy**: All data stays on device
 - **Easy to extend**: Cloud sync can be added later
 
-### Bottom Tab Navigation
+### Automatic PR Tracking
 
-Four main tabs provide quick access to all features:
-1. **Today**: Daily overview
-2. **Workouts**: Exercise tracking
-3. **Nutrition**: Calorie & macro tracking
-4. **Profile**: Settings and preferences
+PRs are detected automatically using this logic:
+1. When a workout is saved, check each exercise
+2. Find the best set (highest weight, then highest reps)
+3. Compare to existing PR for that exercise
+4. If better, save new PR and show notification
 
-### Minimal UI
+### Week Calculation
 
-Clean, card-based interface with:
-- Progress bars for visual feedback
-- Consistent color coding (blue for workouts, red for nutrition, green for steps)
-- FAB buttons for primary actions
-- Native iOS-style icons
+Weeks run Monday-Sunday (standard fitness week):
+- Current week stats calculated on-demand
+- Previous week comparison shown in weekly stats card
+- Week boundaries handled automatically
 
-## Future Enhancements
+### Exercise Categorization
 
-### Workout Logging Flow (Phase 2)
-
-1. Start workout → Enter name
-2. Add exercises (search from history or enter new)
-3. For each exercise:
-   - See previous performance
-   - Log sets with reps/weight/RPE
-4. Complete and save
-
-### Meal Logging Flow (Phase 2)
-
-1. Add meal → Enter name
-2. Input calories + macros
-3. Option to save as reusable meal
-4. Save to today's log
-
-### Cloud Sync (Phase 3)
-
-- User authentication (email/password or social)
-- REST API backend (Node.js + PostgreSQL)
-- Sync local data to cloud
-- Conflict resolution for multi-device
+Exercises are categorized by muscle group for easy browsing and PR organization. Custom exercises default to "Other" category.
 
 ## Troubleshooting
 
 ### Clear App Data
 
-If you need to reset the app:
+To reset the app:
 1. Go to Profile tab
-2. Scroll to "Danger Zone"
-3. Tap "Reset All Data"
-4. Restart the app
+2. Scroll to "Delete Data" section
+3. Choose what to delete:
+   - Delete All Workouts
+   - Delete All Nutrition
+   - Delete All Steps
+   - Reset All Data (deletes everything including templates and PRs)
 
 ### Common Issues
 
-- **App won't load**: Check that dependencies are installed (`npm install`)
-- **Data not persisting**: AsyncStorage may need permissions on some devices
-- **Navigation issues**: Make sure all screens are properly imported in AppNavigator
-
-## License
-
-This is a personal project for demonstration purposes.
+- **App won't load**: Run `npm install` and restart
+- **Data not persisting**: Check AsyncStorage permissions
+- **TypeScript errors**: Run `npx tsc --noEmit` to check
+- **Build fails**: Clear cache with `expo start -c`
 
 ## Future Enhancements
 
 Potential features for future development:
 
-1. **Workout detail view** - View and edit past workouts with full exercise history
-2. **Exercise progression charts** - Visual graphs showing weight and rep progress over time
-3. **Workout templates** - Save and reuse favorite workout routines
-4. **Saved meals** - Quick-add frequently eaten meals
-5. **Weekly/monthly summaries** - Aggregate view of fitness progress
-6. **HealthKit/Google Fit integration** - Automatic step syncing from device sensors
-7. **Cloud sync** - Backup data and sync across multiple devices
-8. **Body weight tracking** - Track weight changes over time
-9. **Export functionality** - Export workout and nutrition data to CSV
+1. **Body weight tracking** - Track weight changes over time with charts
+2. **Exercise progression charts** - Visual graphs showing weight/rep progress
+3. **Monthly statistics** - Extended time period analysis
+4. **Goal setting** - Custom fitness goals with tracking
+5. **HealthKit/Google Fit integration** - Automatic step syncing
+6. **Photo progress** - Before/after photos with timeline
+7. **Workout notes** - Add notes to individual workouts
+8. **Streak tracking** - Consecutive workout days
+9. **Export data** - CSV/JSON export for backup
+10. **Cloud sync** - Multi-device support with authentication
+
+## Version History
+
+### Current Version (v1.0.0)
+
+**Features:**
+- ✅ Workout logging with exercise database
+- ✅ Personal records tracking
+- ✅ Workout templates
+- ✅ Rest timer
+- ✅ Weekly statistics
+- ✅ Nutrition tracking
+- ✅ Step tracking
+- ✅ Edit/delete workouts
+- ✅ Dark mode UI
+- ✅ Web, iOS, and Android support
+
+## License
+
+This is a personal project for demonstration purposes.
 
 ---
 
 Built with React Native + Expo
+
+**Live Demo:** [https://fit-app-smoky.vercel.app/](https://fit-app-smoky.vercel.app/)

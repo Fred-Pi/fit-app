@@ -16,6 +16,7 @@ import { WorkoutLog, ExerciseLog, SetLog, WorkoutTemplate, ExerciseTemplate } fr
 import { generateId, saveTemplate } from '../services/storage';
 import ExercisePicker from './ExercisePicker';
 import TemplatePicker from './TemplatePicker';
+import RestTimer from './RestTimer';
 
 interface AddWorkoutModalProps {
   visible: boolean;
@@ -46,6 +47,9 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
 
   // Template picker
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+
+  // Rest timer
+  const [showRestTimer, setShowRestTimer] = useState(false);
 
   const handleAddExercise = () => {
     if (!exerciseName.trim()) {
@@ -231,7 +235,15 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
           <TouchableOpacity onPress={handleClose}>
             <Text style={styles.cancelButton}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Log Workout</Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.title}>Log Workout</Text>
+            <TouchableOpacity
+              style={styles.timerButton}
+              onPress={() => setShowRestTimer(true)}
+            >
+              <Ionicons name="timer-outline" size={20} color="#3A9BFF" />
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity onPress={handleSave}>
             <Text style={styles.saveButton}>Save</Text>
           </TouchableOpacity>
@@ -403,6 +415,12 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
         onSelectExercise={handleSelectExercise}
         currentExerciseName={exerciseName}
       />
+
+      {/* Rest Timer Modal */}
+      <RestTimer
+        visible={showRestTimer}
+        onClose={() => setShowRestTimer(false)}
+      />
     </Modal>
   );
 };
@@ -421,10 +439,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#3A3A42',
   },
+  headerCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   title: {
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  timerButton: {
+    padding: 6,
+    backgroundColor: '#2A2A30',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#3A9BFF',
   },
   cancelButton: {
     fontSize: 16,
