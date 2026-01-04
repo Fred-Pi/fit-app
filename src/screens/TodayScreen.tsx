@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Card from '../components/Card';
 import ProgressBar from '../components/ProgressBar';
 import UpdateStepsModal from '../components/UpdateStepsModal';
+import AddWorkoutModal from '../components/AddWorkoutModal';
+import AddMealModal from '../components/AddMealModal';
 import {
   getUser,
   getWorkoutsByDate,
@@ -21,8 +23,9 @@ import {
   generateId,
   saveNutrition,
   saveSteps,
+  saveWorkout,
 } from '../services/storage';
-import { User, WorkoutLog, DailyNutrition, DailySteps } from '../types';
+import { User, WorkoutLog, DailyNutrition, DailySteps, Meal } from '../types';
 
 const TodayScreen = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -33,6 +36,8 @@ const TodayScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showUpdateStepsModal, setShowUpdateStepsModal] = useState(false);
+  const [showAddWorkoutModal, setShowAddWorkoutModal] = useState(false);
+  const [showAddMealModal, setShowAddMealModal] = useState(false);
 
   const loadData = async () => {
     try {
@@ -103,6 +108,25 @@ const TodayScreen = () => {
     setSteps(updatedSteps);
   };
 
+  const handleAddWorkout = async (newWorkout: WorkoutLog) => {
+    await saveWorkout(newWorkout);
+    setWorkout(newWorkout);
+    setShowAddWorkoutModal(false);
+  };
+
+  const handleAddMeal = async (meal: Meal) => {
+    if (!nutrition) return;
+
+    const updatedNutrition: DailyNutrition = {
+      ...nutrition,
+      meals: [...nutrition.meals, meal],
+    };
+
+    await saveNutrition(updatedNutrition);
+    setNutrition(updatedNutrition);
+    setShowAddMealModal(false);
+  };
+
   const totalCalories = nutrition?.meals.reduce((sum, meal) => sum + meal.calories, 0) || 0;
 
   if (loading) {
@@ -146,7 +170,10 @@ const TodayScreen = () => {
             </Text>
           </View>
         ) : (
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowAddWorkoutModal(true)}
+          >
             <Text style={styles.addButtonText}>+ Log Workout</Text>
           </TouchableOpacity>
         )}
@@ -173,7 +200,10 @@ const TodayScreen = () => {
             <Text style={styles.mealsCount}>{nutrition.meals.length} meals logged</Text>
           </View>
         ) : (
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowAddMealModal(true)}
+          >
             <Text style={styles.addButtonText}>+ Add Meal</Text>
           </TouchableOpacity>
         )}
@@ -209,6 +239,22 @@ const TodayScreen = () => {
         onClose={() => setShowUpdateStepsModal(false)}
         onSave={handleUpdateSteps}
         currentSteps={steps?.steps || 0}
+      />
+
+      {user && (
+        <AddWorkoutModal
+          visible={showAddWorkoutModal}
+          onClose={() => setShowAddWorkoutModal(false)}
+          onSave={handleAddWorkout}
+          date={date}
+          userId={user.id}
+        />
+      )}
+
+      <AddMealModal
+        visible={showAddMealModal}
+        onClose={() => setShowAddMealModal(false)}
+        onSave={handleAddMeal}
       />
     </>
   );

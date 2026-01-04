@@ -14,7 +14,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   target,
   unit = '',
   color = '#007AFF',
-  height = 8,
+  height = 12,
 }) => {
   const percentage = Math.min((current / target) * 100, 100);
   const isOverTarget = current > target;
@@ -52,24 +52,28 @@ const styles = StyleSheet.create({
   },
   labelContainer: {
     flexDirection: 'row',
-    marginBottom: 6,
+    marginBottom: 10,
     alignItems: 'baseline',
+    gap: 6,
   },
   current: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   target: {
-    fontSize: 16,
-    color: '#666',
-    marginLeft: 4,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#98989D',
   },
   barContainer: {
     width: '100%',
-    backgroundColor: '#E5E5E5',
+    backgroundColor: '#2C2C2E',
     borderRadius: 999,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#38383A',
   },
   barFill: {
     height: '100%',

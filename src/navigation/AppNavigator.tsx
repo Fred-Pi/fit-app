@@ -37,20 +37,25 @@ const AppNavigator = () => {
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
             let iconName: keyof typeof Ionicons.glyphMap;
+            let iconColor = color;
 
             if (route.name === 'Today') {
               iconName = focused ? 'today' : 'today-outline';
+              iconColor = focused ? '#30D158' : color;
             } else if (route.name === 'Workouts') {
               iconName = focused ? 'barbell' : 'barbell-outline';
+              iconColor = focused ? '#0A84FF' : color;
             } else if (route.name === 'Nutrition') {
               iconName = focused ? 'nutrition' : 'nutrition-outline';
+              iconColor = focused ? '#FF453A' : color;
             } else {
               iconName = focused ? 'person' : 'person-outline';
+              iconColor = focused ? '#BF5AF2' : color;
             }
 
-            return <Ionicons name={iconName} size={size} color={color} />;
+            return <Ionicons name={iconName} size={size} color={iconColor} />;
           },
-          tabBarActiveTintColor: '#0A84FF',
+          tabBarActiveTintColor: '#FFFFFF',
           tabBarInactiveTintColor: '#98989D',
           headerShown: true,
           headerStyle: {
@@ -59,12 +64,23 @@ const AppNavigator = () => {
             borderBottomColor: '#38383A',
           },
           headerTitleStyle: {
-            fontWeight: '600',
+            fontWeight: '700',
+            fontSize: 18,
             color: '#FFFFFF',
+            letterSpacing: 0.2,
           },
           tabBarStyle: {
             backgroundColor: '#1C1C1E',
             borderTopColor: '#38383A',
+            borderTopWidth: 1,
+            paddingTop: 8,
+            paddingBottom: 8,
+            height: 65,
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '600',
+            marginTop: 4,
           },
         })}
       >
