@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState, User, WorkoutLog, DailyNutrition, DailySteps } from '../types';
+import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, WeeklyStats } from '../types';
+import { isDateInRange } from '../utils/dateUtils';
 
 // Storage keys
 const KEYS = {
@@ -150,6 +151,90 @@ export const saveSteps = async (steps: DailySteps): Promise<void> => {
   } catch (error) {
     console.error('Error saving steps:', error);
   }
+};
+
+// ============ DATE RANGE QUERIES ============
+
+/**
+ * Get all workouts within a date range (inclusive)
+ * @param startDate Start date in YYYY-MM-DD format
+ * @param endDate End date in YYYY-MM-DD format
+ * @returns Array of workouts within the range
+ */
+export const getWorkoutsInRange = async (startDate: string, endDate: string): Promise<WorkoutLog[]> => {
+  const workouts = await getWorkouts();
+  return workouts.filter(w => isDateInRange(w.date, startDate, endDate));
+};
+
+/**
+ * Get all nutrition data within a date range (inclusive)
+ * @param startDate Start date in YYYY-MM-DD format
+ * @param endDate End date in YYYY-MM-DD format
+ * @returns Array of nutrition data within the range
+ */
+export const getNutritionInRange = async (startDate: string, endDate: string): Promise<DailyNutrition[]> => {
+  const nutrition = await getNutrition();
+  return nutrition.filter(n => isDateInRange(n.date, startDate, endDate));
+};
+
+/**
+ * Get all steps data within a date range (inclusive)
+ * @param startDate Start date in YYYY-MM-DD format
+ * @param endDate End date in YYYY-MM-DD format
+ * @returns Array of steps data within the range
+ */
+export const getStepsInRange = async (startDate: string, endDate: string): Promise<DailySteps[]> => {
+  const steps = await getSteps();
+  return steps.filter(s => isDateInRange(s.date, startDate, endDate));
+};
+
+/**
+ * Calculate weekly statistics for a given week
+ * @param weekStart Start of week in YYYY-MM-DD format
+ * @param weekEnd End of week in YYYY-MM-DD format
+ * @param user User object for targets/goals
+ * @returns Weekly statistics object
+ */
+export const calculateWeeklyStats = async (
+  weekStart: string,
+  weekEnd: string,
+  user: User
+): Promise<WeeklyStats> => {
+  // Get data for the week
+  const workouts = await getWorkoutsInRange(weekStart, weekEnd);
+  const nutrition = await getNutritionInRange(weekStart, weekEnd);
+  const steps = await getStepsInRange(weekStart, weekEnd);
+
+  // Calculate workout stats
+  const totalWorkouts = workouts.filter(w => w.completed).length;
+  const uniqueWorkoutDates = new Set(workouts.map(w => w.date));
+  const daysActive = uniqueWorkoutDates.size;
+
+  // Calculate nutrition stats
+  const totalCalories = nutrition.reduce((sum, n) => {
+    const dailyTotal = n.meals.reduce((mealSum, meal) => mealSum + meal.calories, 0);
+    return sum + dailyTotal;
+  }, 0);
+  const avgCalories = nutrition.length > 0 ? Math.round(totalCalories / nutrition.length) : 0;
+  const calorieTarget = user.dailyCalorieTarget * 7;
+
+  // Calculate steps stats
+  const totalSteps = steps.reduce((sum, s) => sum + s.steps, 0);
+  const avgSteps = steps.length > 0 ? Math.round(totalSteps / steps.length) : 0;
+  const stepGoal = user.dailyStepGoal * 7;
+
+  return {
+    weekStart,
+    weekEnd,
+    totalWorkouts,
+    totalCalories,
+    avgCalories,
+    calorieTarget,
+    totalSteps,
+    avgSteps,
+    stepGoal,
+    daysActive,
+  };
 };
 
 // ============ UTILITIES ============

@@ -130,6 +130,30 @@ export interface DailySummary {
   steps: DailySteps;
 }
 
+// ============ WEEKLY STATISTICS ============
+
+export interface WeeklyStats {
+  weekStart: string; // YYYY-MM-DD
+  weekEnd: string; // YYYY-MM-DD
+  totalWorkouts: number; // Completed workouts
+  totalCalories: number; // Sum of all calories
+  avgCalories: number; // Average per day
+  calorieTarget: number; // Weekly target (daily * 7)
+  totalSteps: number; // Sum of all steps
+  avgSteps: number; // Average per day
+  stepGoal: number; // Weekly goal (daily * 7)
+  daysActive: number; // Unique days with workouts
+}
+
+export interface WeekComparison {
+  workouts: number; // Difference from last week
+  calories: number; // Difference from last week
+  steps: number; // Difference from last week
+  workoutsPercent: number; // % change
+  caloriesPercent: number; // % change
+  stepsPercent: number; // % change
+}
+
 // ============ APP STATE ============
 
 export interface AppState {

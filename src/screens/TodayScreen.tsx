@@ -14,6 +14,7 @@ import ProgressBar from '../components/ProgressBar';
 import UpdateStepsModal from '../components/UpdateStepsModal';
 import AddWorkoutModal from '../components/AddWorkoutModal';
 import AddMealModal from '../components/AddMealModal';
+import WeeklyStatsCard from '../components/WeeklyStatsCard';
 import {
   getUser,
   getWorkoutsByDate,
@@ -24,8 +25,10 @@ import {
   saveNutrition,
   saveSteps,
   saveWorkout,
+  calculateWeeklyStats,
 } from '../services/storage';
-import { User, WorkoutLog, DailyNutrition, DailySteps, Meal } from '../types';
+import { User, WorkoutLog, DailyNutrition, DailySteps, Meal, WeeklyStats, WeekComparison } from '../types';
+import { getWeekDates, getPreviousWeekDates, calculateDifference, calculatePercentageChange } from '../utils/dateUtils';
 
 const TodayScreen = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -33,16 +36,59 @@ const TodayScreen = () => {
   const [workout, setWorkout] = useState<WorkoutLog | null>(null);
   const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
   const [steps, setSteps] = useState<DailySteps | null>(null);
+  const [currentWeekStats, setCurrentWeekStats] = useState<WeeklyStats | null>(null);
+  const [previousWeekStats, setPreviousWeekStats] = useState<WeeklyStats | null>(null);
+  const [weekComparison, setWeekComparison] = useState<WeekComparison | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showUpdateStepsModal, setShowUpdateStepsModal] = useState(false);
   const [showAddWorkoutModal, setShowAddWorkoutModal] = useState(false);
   const [showAddMealModal, setShowAddMealModal] = useState(false);
 
+  const loadWeeklyStats = async (userData: User) => {
+    try {
+      // Get current week dates
+      const currentWeek = getWeekDates();
+      const currentStats = await calculateWeeklyStats(
+        currentWeek.start,
+        currentWeek.end,
+        userData
+      );
+      setCurrentWeekStats(currentStats);
+
+      // Get previous week dates
+      const previousWeek = getPreviousWeekDates();
+      const previousStats = await calculateWeeklyStats(
+        previousWeek.start,
+        previousWeek.end,
+        userData
+      );
+      setPreviousWeekStats(previousStats);
+
+      // Calculate comparison
+      const comparison: WeekComparison = {
+        workouts: calculateDifference(currentStats.totalWorkouts, previousStats.totalWorkouts),
+        calories: calculateDifference(currentStats.totalCalories, previousStats.totalCalories),
+        steps: calculateDifference(currentStats.totalSteps, previousStats.totalSteps),
+        workoutsPercent: calculatePercentageChange(currentStats.totalWorkouts, previousStats.totalWorkouts),
+        caloriesPercent: calculatePercentageChange(currentStats.totalCalories, previousStats.totalCalories),
+        stepsPercent: calculatePercentageChange(currentStats.totalSteps, previousStats.totalSteps),
+      };
+      setWeekComparison(comparison);
+    } catch (error) {
+      console.error('Error loading weekly stats:', error);
+    }
+  };
+
   const loadData = async () => {
     try {
       const userData = await getUser();
       setUser(userData);
+
+      if (userData) {
+        // Load weekly stats
+        await loadWeeklyStats(userData);
+      }
 
       const workouts = await getWorkoutsByDate(date);
       setWorkout(workouts.length > 0 ? workouts[0] : null);
@@ -144,6 +190,15 @@ const TodayScreen = () => {
         contentContainerStyle={styles.contentContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
+      {/* Weekly Stats Card */}
+      {currentWeekStats && (
+        <WeeklyStatsCard
+          currentWeek={currentWeekStats}
+          previousWeek={previousWeekStats || undefined}
+          comparison={weekComparison || undefined}
+        />
+      )}
+
       <View style={styles.dateContainer}>
         <Text style={styles.dateText}>
           {new Date(date).toLocaleDateString('en-US', {
