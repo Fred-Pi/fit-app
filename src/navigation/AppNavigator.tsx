@@ -6,12 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 // Screens
 import TodayScreen from '../screens/TodayScreen';
 import WorkoutsStack from './WorkoutsStack';
+import PRScreen from '../screens/PRScreen';
 import NutritionScreen from '../screens/NutritionScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 export type RootTabParamList = {
   Today: undefined;
   Workouts: undefined;
+  PRs: undefined;
   Nutrition: undefined;
   Profile: undefined;
 };
@@ -45,6 +47,9 @@ const AppNavigator = () => {
             } else if (route.name === 'Workouts') {
               iconName = focused ? 'barbell' : 'barbell-outline';
               iconColor = focused ? '#3A9BFF' : color;
+            } else if (route.name === 'PRs') {
+              iconName = focused ? 'trophy' : 'trophy-outline';
+              iconColor = focused ? '#FFD60A' : color;
             } else if (route.name === 'Nutrition') {
               iconName = focused ? 'nutrition' : 'nutrition-outline';
               iconColor = focused ? '#FF5E6D' : color;
@@ -93,6 +98,11 @@ const AppNavigator = () => {
           name="Workouts"
           component={WorkoutsStack}
           options={{ headerShown: false }}
+        />
+        <Tab.Screen
+          name="PRs"
+          component={PRScreen}
+          options={{ headerTitle: 'Personal Records' }}
         />
         <Tab.Screen
           name="Nutrition"

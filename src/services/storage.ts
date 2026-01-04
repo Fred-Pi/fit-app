@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, WeeklyStats, WorkoutTemplate } from '../types';
+import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, WeeklyStats, WorkoutTemplate, PersonalRecord } from '../types';
 import { isDateInRange } from '../utils/dateUtils';
 
 // Storage keys
@@ -9,6 +9,7 @@ const KEYS = {
   NUTRITION: '@fit_app_nutrition',
   STEPS: '@fit_app_steps',
   TEMPLATES: '@fit_app_templates',
+  PERSONAL_RECORDS: '@fit_app_personal_records',
 };
 
 // ============ USER ============
@@ -198,6 +199,98 @@ export const getTemplateById = async (templateId: string): Promise<WorkoutTempla
   return templates.find(t => t.id === templateId) || null;
 };
 
+// ============ PERSONAL RECORDS ============
+
+export const getPersonalRecords = async (): Promise<PersonalRecord[]> => {
+  try {
+    const data = await AsyncStorage.getItem(KEYS.PERSONAL_RECORDS);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error getting personal records:', error);
+    return [];
+  }
+};
+
+export const savePersonalRecord = async (pr: PersonalRecord): Promise<void> => {
+  try {
+    const records = await getPersonalRecords();
+    const existingIndex = records.findIndex(r => r.id === pr.id);
+
+    if (existingIndex >= 0) {
+      records[existingIndex] = pr;
+    } else {
+      records.push(pr);
+    }
+
+    await AsyncStorage.setItem(KEYS.PERSONAL_RECORDS, JSON.stringify(records));
+  } catch (error) {
+    console.error('Error saving personal record:', error);
+  }
+};
+
+export const deletePersonalRecord = async (prId: string): Promise<void> => {
+  try {
+    const records = await getPersonalRecords();
+    const filtered = records.filter(r => r.id !== prId);
+    await AsyncStorage.setItem(KEYS.PERSONAL_RECORDS, JSON.stringify(filtered));
+  } catch (error) {
+    console.error('Error deleting personal record:', error);
+  }
+};
+
+export const getPersonalRecordByExercise = async (exerciseName: string): Promise<PersonalRecord | null> => {
+  const records = await getPersonalRecords();
+  return records.find(r => r.exerciseName.toLowerCase() === exerciseName.toLowerCase()) || null;
+};
+
+/**
+ * Check if a workout contains any new personal records and update them
+ * @param workout The workout to check for PRs
+ * @returns Array of new PRs that were set
+ */
+export const checkAndUpdatePRs = async (workout: WorkoutLog): Promise<PersonalRecord[]> => {
+  const newPRs: PersonalRecord[] = [];
+  const existingPRs = await getPersonalRecords();
+
+  for (const exercise of workout.exercises) {
+    // Find the best set in this exercise (highest weight × reps product, or just highest weight)
+    let bestSet = exercise.sets[0];
+    for (const set of exercise.sets) {
+      if (set.weight > bestSet.weight ||
+          (set.weight === bestSet.weight && set.reps > bestSet.reps)) {
+        bestSet = set;
+      }
+    }
+
+    // Check if this is a PR
+    const existingPR = existingPRs.find(
+      pr => pr.exerciseName.toLowerCase() === exercise.exerciseName.toLowerCase()
+    );
+
+    const isNewPR = !existingPR ||
+                     bestSet.weight > existingPR.weight ||
+                     (bestSet.weight === existingPR.weight && bestSet.reps > existingPR.reps);
+
+    if (isNewPR && bestSet.weight > 0) {
+      const newPR: PersonalRecord = {
+        id: existingPR?.id || generateId(),
+        userId: workout.userId,
+        exerciseName: exercise.exerciseName,
+        weight: bestSet.weight,
+        reps: bestSet.reps,
+        date: workout.date,
+        workoutId: workout.id,
+        created: new Date().toISOString(),
+      };
+
+      await savePersonalRecord(newPR);
+      newPRs.push(newPR);
+    }
+  }
+
+  return newPRs;
+};
+
 // ============ DATE RANGE QUERIES ============
 
 /**
@@ -318,6 +411,7 @@ export const clearAllData = async (): Promise<void> => {
       KEYS.NUTRITION,
       KEYS.STEPS,
       KEYS.TEMPLATES,
+      KEYS.PERSONAL_RECORDS,
     ]);
   } catch (error) {
     console.error('Error clearing data:', error);

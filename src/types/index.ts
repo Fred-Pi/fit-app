@@ -131,6 +131,19 @@ export interface DailySummary {
   steps: DailySteps;
 }
 
+// ============ PERSONAL RECORDS ============
+
+export interface PersonalRecord {
+  id: string;
+  userId: string;
+  exerciseName: string;
+  weight: number; // Best weight lifted
+  reps: number; // Reps achieved at that weight
+  date: string; // ISO date string when PR was set
+  workoutId: string; // Reference to the workout where PR was achieved
+  created: string; // ISO date string
+}
+
 // ============ WEEKLY STATISTICS ============
 
 export interface WeeklyStats {

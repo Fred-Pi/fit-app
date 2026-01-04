@@ -13,7 +13,7 @@ import Card from '../components/Card';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditWorkoutModal from '../components/EditWorkoutModal';
 import { WorkoutLog, User } from '../types';
-import { getWorkouts, saveWorkout, deleteWorkout, getUser } from '../services/storage';
+import { getWorkouts, saveWorkout, deleteWorkout, getUser, checkAndUpdatePRs } from '../services/storage';
 
 type WorkoutDetailRouteProp = RouteProp<{ params: { workoutId: string } }, 'params'>;
 
@@ -49,8 +49,22 @@ const WorkoutDetailScreen = () => {
 
   const handleEdit = async (editedWorkout: WorkoutLog) => {
     await saveWorkout(editedWorkout);
+
+    // Check for new PRs
+    const newPRs = await checkAndUpdatePRs(editedWorkout);
+
     setWorkout(editedWorkout);
     setShowEditModal(false);
+
+    // Show PR notification if any were set
+    if (newPRs.length > 0) {
+      const prNames = newPRs.map(pr => pr.exerciseName).join(', ');
+      Alert.alert(
+        '🏆 New Personal Record!',
+        `Congratulations! You set a new PR for: ${prNames}`,
+        [{ text: 'Awesome!', style: 'default' }]
+      );
+    }
   };
 
   const handleDelete = async () => {

@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +27,7 @@ import {
   saveSteps,
   saveWorkout,
   calculateWeeklyStats,
+  checkAndUpdatePRs,
 } from '../services/storage';
 import { User, WorkoutLog, DailyNutrition, DailySteps, Meal, WeeklyStats, WeekComparison } from '../types';
 import { getWeekDates, getPreviousWeekDates, calculateDifference, calculatePercentageChange } from '../utils/dateUtils';
@@ -156,8 +158,22 @@ const TodayScreen = () => {
 
   const handleAddWorkout = async (newWorkout: WorkoutLog) => {
     await saveWorkout(newWorkout);
+
+    // Check for new PRs
+    const newPRs = await checkAndUpdatePRs(newWorkout);
+
     setWorkout(newWorkout);
     setShowAddWorkoutModal(false);
+
+    // Show PR notification if any were set
+    if (newPRs.length > 0) {
+      const prNames = newPRs.map(pr => pr.exerciseName).join(', ');
+      Alert.alert(
+        '🏆 New Personal Record!',
+        `Congratulations! You set a new PR for: ${prNames}`,
+        [{ text: 'Awesome!', style: 'default' }]
+      );
+    }
   };
 
   const handleAddMeal = async (meal: Meal) => {
