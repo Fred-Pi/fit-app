@@ -14,6 +14,7 @@ import Card from '../components/Card';
 import AddWorkoutModal from '../components/AddWorkoutModal';
 import EditWorkoutModal from '../components/EditWorkoutModal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import SwipeableRow from '../components/SwipeableRow';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, getTodayDate } from '../services/storage';
 import { WorkoutLog, User } from '../types';
 
@@ -88,13 +89,24 @@ const WorkoutsScreen = () => {
     });
 
     return (
-      <Card>
-        <View style={styles.workoutContainer}>
-          <TouchableOpacity
-            style={styles.workoutContent}
-            onPress={() => navigation.navigate('WorkoutDetail', { workoutId: item.id })}
-            activeOpacity={0.7}
-          >
+      <SwipeableRow
+        onEdit={() => {
+          setSelectedWorkout(item);
+          setShowEditWorkoutModal(true);
+        }}
+        onDelete={() =>
+          setConfirmDelete({
+            visible: true,
+            workoutId: item.id,
+            workoutName: item.name,
+          })
+        }
+      >
+        <TouchableOpacity
+          onPress={() => navigation.navigate('WorkoutDetail', { workoutId: item.id })}
+          activeOpacity={0.7}
+        >
+          <Card>
             <View style={styles.workoutHeader}>
               <Text style={styles.workoutName}>{item.name}</Text>
               <Text style={styles.workoutDate}>{formattedDate}</Text>
@@ -113,32 +125,9 @@ const WorkoutsScreen = () => {
                 <Text style={styles.completedText}>Completed</Text>
               </View>
             )}
-          </TouchableOpacity>
-          <View style={styles.workoutActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => {
-                setSelectedWorkout(item);
-                setShowEditWorkoutModal(true);
-              }}
-            >
-              <Ionicons name="pencil-outline" size={20} color="#007AFF" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() =>
-                setConfirmDelete({
-                  visible: true,
-                  workoutId: item.id,
-                  workoutName: item.name,
-                })
-              }
-            >
-              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Card>
+          </Card>
+        </TouchableOpacity>
+      </SwipeableRow>
     );
   };
 
@@ -221,22 +210,6 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: 20,
     paddingBottom: 80,
-  },
-  workoutContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  workoutContent: {
-    flex: 1,
-  },
-  workoutActions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginLeft: 12,
-  },
-  actionButton: {
-    padding: 8,
   },
   workoutHeader: {
     marginBottom: 10,

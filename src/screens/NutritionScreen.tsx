@@ -13,6 +13,7 @@ import ProgressBar from '../components/ProgressBar';
 import AddMealModal from '../components/AddMealModal';
 import EditMealModal from '../components/EditMealModal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import SwipeableRow from '../components/SwipeableRow';
 import {
   getNutritionByDate,
   getTodayDate,
@@ -166,50 +167,38 @@ const NutritionScreen = () => {
           </Card>
         ) : (
           nutrition?.meals.map((meal) => (
-            <Card key={meal.id}>
-              <View style={styles.mealContainer}>
-                <View style={styles.mealContent}>
-                  <View style={styles.mealHeader}>
-                    <Text style={styles.mealName}>{meal.name}</Text>
-                    <Text style={styles.mealTime}>
-                      {new Date(meal.time).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}
-                    </Text>
-                  </View>
-                  <View style={styles.mealMacros}>
-                    <Text style={styles.mealCalories}>{meal.calories} cal</Text>
-                    <Text style={styles.mealMacroDetail}>
-                      P: {meal.protein}g • C: {meal.carbs}g • F: {meal.fats}g
-                    </Text>
-                  </View>
+            <SwipeableRow
+              key={meal.id}
+              onEdit={() => {
+                setSelectedMeal(meal);
+                setShowEditMealModal(true);
+              }}
+              onDelete={() =>
+                setConfirmDelete({
+                  visible: true,
+                  mealId: meal.id,
+                  mealName: meal.name,
+                })
+              }
+            >
+              <Card>
+                <View style={styles.mealHeader}>
+                  <Text style={styles.mealName}>{meal.name}</Text>
+                  <Text style={styles.mealTime}>
+                    {new Date(meal.time).toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                  </Text>
                 </View>
-                <View style={styles.mealActions}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => {
-                      setSelectedMeal(meal);
-                      setShowEditMealModal(true);
-                    }}
-                  >
-                    <Ionicons name="pencil-outline" size={20} color="#007AFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() =>
-                      setConfirmDelete({
-                        visible: true,
-                        mealId: meal.id,
-                        mealName: meal.name,
-                      })
-                    }
-                  >
-                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                  </TouchableOpacity>
+                <View style={styles.mealMacros}>
+                  <Text style={styles.mealCalories}>{meal.calories} cal</Text>
+                  <Text style={styles.mealMacroDetail}>
+                    P: {meal.protein}g • C: {meal.carbs}g • F: {meal.fats}g
+                  </Text>
                 </View>
-              </View>
-            </Card>
+              </Card>
+            </SwipeableRow>
           ))
         )}
       </ScrollView>
@@ -343,22 +332,6 @@ const styles = StyleSheet.create({
   mealMacroDetail: {
     fontSize: 14,
     color: '#98989D',
-  },
-  mealContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  mealContent: {
-    flex: 1,
-  },
-  mealActions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginLeft: 12,
-  },
-  actionButton: {
-    padding: 8,
   },
   fab: {
     position: 'absolute',
