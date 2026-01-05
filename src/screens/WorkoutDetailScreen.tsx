@@ -203,6 +203,13 @@ const WorkoutDetailScreen = () => {
                   ` • ${exercise.sets[0].weight} ${user?.preferredWeightUnit || 'lbs'}`}
               </Text>
             </View>
+
+            {exercise.notes && (
+              <View style={styles.exerciseNotesContainer}>
+                <Ionicons name="document-text-outline" size={14} color="#A0A0A8" />
+                <Text style={styles.exerciseNotesText}>{exercise.notes}</Text>
+              </View>
+            )}
           </Card>
         ))}
 
@@ -451,6 +458,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#98989D',
     fontWeight: '500',
+  },
+  exerciseNotesContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    paddingTop: 8,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#38383A',
+  },
+  exerciseNotesText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#A0A0A8',
+    lineHeight: 18,
+    fontStyle: 'italic',
   },
   notesText: {
     fontSize: 15,

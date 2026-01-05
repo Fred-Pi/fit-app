@@ -28,6 +28,7 @@ export interface ExerciseLog {
   id: string;
   exerciseName: string;
   sets: SetLog[];
+  notes?: string;
 }
 
 export interface SetLog {
@@ -120,6 +121,18 @@ export interface DailySteps {
   steps: number;
   stepGoal: number;
   source: 'manual' | 'apple_health' | 'google_fit';
+}
+
+// ============ BODY WEIGHT TRACKING ============
+
+export interface DailyWeight {
+  id: string;
+  userId: string;
+  date: string; // ISO date string (YYYY-MM-DD)
+  weight: number; // in user's preferred unit
+  unit: 'kg' | 'lbs';
+  source: 'manual' | 'smart_scale';
+  created: string; // ISO date string
 }
 
 // ============ UNIFIED DAILY VIEW ============

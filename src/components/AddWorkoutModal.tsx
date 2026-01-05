@@ -13,10 +13,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutLog, ExerciseLog, SetLog, WorkoutTemplate, ExerciseTemplate } from '../types';
-import { generateId, saveTemplate } from '../services/storage';
+import { generateId, saveTemplate, getLastExercisePerformance } from '../services/storage';
 import ExercisePicker from './ExercisePicker';
 import TemplatePicker from './TemplatePicker';
 import RestTimer from './RestTimer';
+import ExerciseHistoryIndicator from './ExerciseHistoryIndicator';
 
 interface AddWorkoutModalProps {
   visible: boolean;
@@ -41,6 +42,20 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
   const [sets, setSets] = useState('3');
   const [reps, setReps] = useState('10');
   const [weight, setWeight] = useState('');
+
+  // Notes
+  const [workoutNotes, setWorkoutNotes] = useState('');
+  const [exerciseNotes, setExerciseNotes] = useState('');
+
+  // Exercise history
+  const [exerciseHistory, setExerciseHistory] = useState<{
+    date: string;
+    sets: number;
+    reps: number;
+    weight: number;
+    workoutName: string;
+  } | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   // Exercise picker
   const [showExercisePicker, setShowExercisePicker] = useState(false);
@@ -72,6 +87,7 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
       id: generateId(),
       exerciseName: exerciseName.trim(),
       sets: setsArray,
+      notes: exerciseNotes.trim() || undefined,
     };
 
     setExercises([...exercises, newExercise]);
@@ -79,6 +95,8 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
     // Reset exercise form
     setExerciseName('');
     setWeight('');
+    setExerciseNotes('');
+    setExerciseHistory(null);
     Alert.alert('Success', `${exerciseName} added to workout`);
   };
 
@@ -93,6 +111,19 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
       setReps(defaults.reps.toString());
     }
     setShowExercisePicker(false);
+    loadExerciseHistory(name);
+  };
+
+  const loadExerciseHistory = async (name: string) => {
+    if (!name.trim()) {
+      setExerciseHistory(null);
+      return;
+    }
+
+    setLoadingHistory(true);
+    const history = await getLastExercisePerformance(name.trim(), userId);
+    setExerciseHistory(history);
+    setLoadingHistory(false);
   };
 
   const handleSelectTemplate = (template: WorkoutTemplate) => {
@@ -183,6 +214,7 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
       date,
       name: workoutName.trim(),
       exercises,
+      notes: workoutNotes.trim() || undefined,
       completed: true,
       created: new Date().toISOString(),
     };
@@ -199,6 +231,8 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
     setSets('3');
     setReps('10');
     setWeight('');
+    setWorkoutNotes('');
+    setExerciseNotes('');
   };
 
   const handleClose = () => {
@@ -273,6 +307,21 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
             />
           </View>
 
+          {/* Workout Notes */}
+          <View style={styles.section}>
+            <Text style={styles.label}>Workout Notes (Optional)</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="How did you feel? Any adjustments needed?"
+              placeholderTextColor="#98989D"
+              value={workoutNotes}
+              onChangeText={setWorkoutNotes}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+          </View>
+
           {/* Exercises Added */}
           {exercises.length > 0 && (
             <View style={styles.exercisesList}>
@@ -289,6 +338,9 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
                       {exercise.sets.length} sets × {exercise.sets[0]?.reps} reps
                       {exercise.sets[0]?.weight > 0 && ` @ ${exercise.sets[0].weight} lbs`}
                     </Text>
+                    {exercise.notes && (
+                      <Text style={styles.exerciseItemNotes}>{exercise.notes}</Text>
+                    )}
                   </View>
                   <TouchableOpacity
                     onPress={() => handleRemoveExercise(exercise.id)}
@@ -330,8 +382,17 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
                 placeholderTextColor="#98989D"
                 value={exerciseName}
                 onChangeText={setExerciseName}
+                onBlur={() => loadExerciseHistory(exerciseName)}
                 autoCapitalize="words"
               />
+
+              {/* Exercise History */}
+              {exerciseName.trim() && (
+                <ExerciseHistoryIndicator
+                  lastPerformance={exerciseHistory}
+                  loading={loadingHistory}
+                />
+              )}
             </View>
 
             <View style={styles.row}>
@@ -370,6 +431,21 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
                   keyboardType="number-pad"
                 />
               </View>
+            </View>
+
+            {/* Exercise Notes */}
+            <View style={styles.section}>
+              <Text style={styles.label}>Exercise Notes (Optional)</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Form cues, adjustments, etc."
+                placeholderTextColor="#98989D"
+                value={exerciseNotes}
+                onChangeText={setExerciseNotes}
+                multiline
+                numberOfLines={2}
+                textAlignVertical="top"
+              />
             </View>
 
             <TouchableOpacity
@@ -525,6 +601,16 @@ const styles = StyleSheet.create({
   exerciseItemDetails: {
     fontSize: 14,
     color: '#A0A0A8',
+  },
+  exerciseItemNotes: {
+    fontSize: 13,
+    color: '#A0A0A8',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  textArea: {
+    height: 80,
+    paddingTop: 12,
   },
   addExerciseSection: {
     backgroundColor: '#2A2A30',

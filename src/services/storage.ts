@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, WeeklyStats, WorkoutTemplate, PersonalRecord } from '../types';
+import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, WeeklyStats, WorkoutTemplate, PersonalRecord } from '../types';
 import { isDateInRange } from '../utils/dateUtils';
 
 // Storage keys
@@ -10,6 +10,7 @@ const KEYS = {
   STEPS: '@fit_app_steps',
   TEMPLATES: '@fit_app_templates',
   PERSONAL_RECORDS: '@fit_app_personal_records',
+  WEIGHTS: '@fit_app_weights',
 };
 
 // ============ USER ============
@@ -155,6 +156,50 @@ export const saveSteps = async (steps: DailySteps): Promise<void> => {
   }
 };
 
+// ============ BODY WEIGHT ============
+
+export const getWeights = async (): Promise<DailyWeight[]> => {
+  try {
+    const data = await AsyncStorage.getItem(KEYS.WEIGHTS);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error getting weights:', error);
+    return [];
+  }
+};
+
+export const getWeightByDate = async (date: string): Promise<DailyWeight | null> => {
+  const allWeights = await getWeights();
+  return allWeights.find(w => w.date === date) || null;
+};
+
+export const saveWeight = async (weight: DailyWeight): Promise<void> => {
+  try {
+    const allWeights = await getWeights();
+    const existingIndex = allWeights.findIndex(w => w.date === weight.date);
+
+    if (existingIndex >= 0) {
+      allWeights[existingIndex] = weight;
+    } else {
+      allWeights.push(weight);
+    }
+
+    await AsyncStorage.setItem(KEYS.WEIGHTS, JSON.stringify(allWeights));
+  } catch (error) {
+    console.error('Error saving weight:', error);
+  }
+};
+
+export const deleteWeight = async (weightId: string): Promise<void> => {
+  try {
+    const weights = await getWeights();
+    const filtered = weights.filter(w => w.id !== weightId);
+    await AsyncStorage.setItem(KEYS.WEIGHTS, JSON.stringify(filtered));
+  } catch (error) {
+    console.error('Error deleting weight:', error);
+  }
+};
+
 // ============ WORKOUT TEMPLATES ============
 
 export const getTemplates = async (): Promise<WorkoutTemplate[]> => {
@@ -291,6 +336,62 @@ export const checkAndUpdatePRs = async (workout: WorkoutLog): Promise<PersonalRe
   return newPRs;
 };
 
+/**
+ * Find the last time an exercise was performed (excluding a specific workout)
+ * @param exerciseName Name of the exercise to search for
+ * @param userId User ID to filter by
+ * @param excludeWorkoutId Optional workout ID to exclude from search (for editing)
+ * @returns Last exercise performance data or null
+ */
+export const getLastExercisePerformance = async (
+  exerciseName: string,
+  userId: string,
+  excludeWorkoutId?: string
+): Promise<{
+  date: string;
+  sets: number;
+  reps: number;
+  weight: number;
+  workoutName: string;
+} | null> => {
+  try {
+    const allWorkouts = await getWorkouts();
+
+    // Filter by user and exclude current workout if provided
+    const userWorkouts = allWorkouts.filter(
+      w => w.userId === userId && w.id !== excludeWorkoutId
+    );
+
+    // Sort by date descending (most recent first)
+    const sortedWorkouts = userWorkouts.sort((a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    // Find the first workout containing this exercise
+    for (const workout of sortedWorkouts) {
+      const exercise = workout.exercises.find(
+        ex => ex.exerciseName.toLowerCase() === exerciseName.toLowerCase()
+      );
+
+      if (exercise && exercise.sets.length > 0) {
+        const firstSet = exercise.sets[0];
+        return {
+          date: workout.date,
+          sets: exercise.sets.length,
+          reps: firstSet.reps,
+          weight: firstSet.weight,
+          workoutName: workout.name,
+        };
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error getting last exercise performance:', error);
+    return null;
+  }
+};
+
 // ============ DATE RANGE QUERIES ============
 
 /**
@@ -324,6 +425,13 @@ export const getNutritionInRange = async (startDate: string, endDate: string): P
 export const getStepsInRange = async (startDate: string, endDate: string): Promise<DailySteps[]> => {
   const steps = await getSteps();
   return steps.filter(s => isDateInRange(s.date, startDate, endDate));
+};
+
+export const getWeightsInRange = async (startDate: string, endDate: string): Promise<DailyWeight[]> => {
+  const weights = await getWeights();
+  return weights
+    .filter(w => isDateInRange(w.date, startDate, endDate))
+    .sort((a, b) => a.date.localeCompare(b.date)); // Sort chronologically
 };
 
 /**
@@ -412,6 +520,7 @@ export const clearAllData = async (): Promise<void> => {
       KEYS.STEPS,
       KEYS.TEMPLATES,
       KEYS.PERSONAL_RECORDS,
+      KEYS.WEIGHTS,
     ]);
   } catch (error) {
     console.error('Error clearing data:', error);

@@ -13,23 +13,29 @@ import { Ionicons } from '@expo/vector-icons';
 import Card from '../components/Card';
 import ProgressBar from '../components/ProgressBar';
 import UpdateStepsModal from '../components/UpdateStepsModal';
+import UpdateWeightModal from '../components/UpdateWeightModal';
 import AddWorkoutModal from '../components/AddWorkoutModal';
 import AddMealModal from '../components/AddMealModal';
 import WeeklyStatsCard from '../components/WeeklyStatsCard';
+import WeightChart from '../components/WeightChart';
 import {
   getUser,
   getWorkoutsByDate,
   getNutritionByDate,
   getStepsByDate,
+  getWeightByDate,
+  getWeightsInRange,
   getTodayDate,
   generateId,
   saveNutrition,
   saveSteps,
+  saveWeight,
   saveWorkout,
   calculateWeeklyStats,
   checkAndUpdatePRs,
+  formatDate,
 } from '../services/storage';
-import { User, WorkoutLog, DailyNutrition, DailySteps, Meal, WeeklyStats, WeekComparison } from '../types';
+import { User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, Meal, WeeklyStats, WeekComparison } from '../types';
 import { getWeekDates, getPreviousWeekDates, calculateDifference, calculatePercentageChange } from '../utils/dateUtils';
 
 const TodayScreen = () => {
@@ -38,12 +44,15 @@ const TodayScreen = () => {
   const [workout, setWorkout] = useState<WorkoutLog | null>(null);
   const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
   const [steps, setSteps] = useState<DailySteps | null>(null);
+  const [weight, setWeight] = useState<DailyWeight | null>(null);
+  const [recentWeights, setRecentWeights] = useState<DailyWeight[]>([]);
   const [currentWeekStats, setCurrentWeekStats] = useState<WeeklyStats | null>(null);
   const [previousWeekStats, setPreviousWeekStats] = useState<WeeklyStats | null>(null);
   const [weekComparison, setWeekComparison] = useState<WeekComparison | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showUpdateStepsModal, setShowUpdateStepsModal] = useState(false);
+  const [showUpdateWeightModal, setShowUpdateWeightModal] = useState(false);
   const [showAddWorkoutModal, setShowAddWorkoutModal] = useState(false);
   const [showAddMealModal, setShowAddMealModal] = useState(false);
 
@@ -121,6 +130,29 @@ const TodayScreen = () => {
         await saveSteps(stepsData);
       }
       setSteps(stepsData);
+
+      // Load weight data
+      let weightData = await getWeightByDate(date);
+      if (!weightData && userData) {
+        weightData = {
+          id: generateId(),
+          userId: userData.id,
+          date,
+          weight: 0,
+          unit: userData.preferredWeightUnit,
+          source: 'manual',
+          created: new Date().toISOString(),
+        };
+        await saveWeight(weightData);
+      }
+      setWeight(weightData);
+
+      // Load last 30 days of weights for chart
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const startDate = formatDate(thirtyDaysAgo);
+      const weights = await getWeightsInRange(startDate, date);
+      setRecentWeights(weights);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -187,6 +219,25 @@ const TodayScreen = () => {
     await saveNutrition(updatedNutrition);
     setNutrition(updatedNutrition);
     setShowAddMealModal(false);
+  };
+
+  const handleUpdateWeight = async (newWeight: number) => {
+    if (!weight || !user) return;
+
+    const updatedWeight: DailyWeight = {
+      ...weight,
+      weight: newWeight,
+    };
+
+    await saveWeight(updatedWeight);
+    setWeight(updatedWeight);
+
+    // Reload recent weights for chart
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const startDate = formatDate(thirtyDaysAgo);
+    const weights = await getWeightsInRange(startDate, date);
+    setRecentWeights(weights);
   };
 
   const totalCalories = nutrition?.meals.reduce((sum, meal) => sum + meal.calories, 0) || 0;
@@ -303,6 +354,35 @@ const TodayScreen = () => {
           <Text style={styles.addButtonText}>Update Steps</Text>
         </TouchableOpacity>
       </Card>
+
+      {/* Weight Card */}
+      <Card>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderLeft}>
+            <Ionicons name="scale-outline" size={24} color="#FF9500" />
+            <Text style={styles.cardTitle}>Body Weight</Text>
+          </View>
+        </View>
+        {weight && weight.weight > 0 ? (
+          <View>
+            <View style={styles.weightDisplay}>
+              <Text style={styles.weightValue}>{weight.weight.toFixed(1)}</Text>
+              <Text style={styles.weightUnit}>{weight.unit}</Text>
+            </View>
+            <WeightChart weights={recentWeights} unit={weight.unit} />
+          </View>
+        ) : (
+          <View style={styles.emptyWeightState}>
+            <Text style={styles.emptyWeightText}>Track your weight to see trends</Text>
+          </View>
+        )}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setShowUpdateWeightModal(true)}
+        >
+          <Text style={styles.addButtonText}>Update Weight</Text>
+        </TouchableOpacity>
+      </Card>
       </ScrollView>
 
       <UpdateStepsModal
@@ -310,6 +390,14 @@ const TodayScreen = () => {
         onClose={() => setShowUpdateStepsModal(false)}
         onSave={handleUpdateSteps}
         currentSteps={steps?.steps || 0}
+      />
+
+      <UpdateWeightModal
+        visible={showUpdateWeightModal}
+        onClose={() => setShowUpdateWeightModal(false)}
+        onSave={handleUpdateWeight}
+        currentWeight={weight?.weight || 0}
+        unit={user?.preferredWeightUnit || 'lbs'}
       />
 
       {user && (
@@ -413,6 +501,31 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0A84FF',
     letterSpacing: 0.2,
+  },
+  weightDisplay: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  weightValue: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#FF9500',
+    marginRight: 8,
+  },
+  weightUnit: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#A0A0A8',
+  },
+  emptyWeightState: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  emptyWeightText: {
+    fontSize: 14,
+    color: '#A0A0A8',
+    textAlign: 'center',
   },
 });
 
