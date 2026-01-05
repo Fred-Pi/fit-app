@@ -12,6 +12,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../components/Card';
 import ConfirmDialog from '../components/ConfirmDialog';
+import SearchBar from '../components/SearchBar';
+import FilterChip from '../components/FilterChip';
 import { PersonalRecord, User } from '../types';
 import { getPersonalRecords, deletePersonalRecord, getUser } from '../services/storage';
 
@@ -20,6 +22,8 @@ const PRScreen = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [confirmDialog, setConfirmDialog] = useState<{
     visible: boolean;
     title: string;
@@ -128,6 +132,52 @@ const PRScreen = () => {
     return Object.entries(categories).filter(([_, records]) => records.length > 0);
   };
 
+  const getFilteredPRs = (): PersonalRecord[] => {
+    let filtered = prs;
+
+    // Apply category filter
+    if (selectedCategory !== 'All') {
+      const grouped = groupPRsByCategory();
+      const categoryGroup = grouped.find(([cat]) => cat === selectedCategory);
+      filtered = categoryGroup ? categoryGroup[1] : [];
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(pr =>
+        pr.exerciseName.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  };
+
+  const renderPRCard = (pr: PersonalRecord) => (
+    <Card key={pr.id}>
+      <View style={styles.prItem}>
+        <View style={styles.prInfo}>
+          <Text style={styles.exerciseName}>{pr.exerciseName}</Text>
+          <View style={styles.prDetails}>
+            <View style={styles.prStat}>
+              <Text style={styles.prValue}>
+                {pr.weight} {user?.preferredWeightUnit || 'lbs'}
+              </Text>
+              <Text style={styles.prLabel}>× {pr.reps} reps</Text>
+            </View>
+            <Text style={styles.prDate}>Set on {formatDate(pr.date)}</Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDeletePR(pr)}
+        >
+          <Ionicons name="trash-outline" size={20} color="#FF5E6D" />
+        </TouchableOpacity>
+      </View>
+    </Card>
+  );
+
   const categoryIcons: { [key: string]: string } = {
     Chest: 'fitness-outline',
     Back: 'body-outline',
@@ -157,6 +207,9 @@ const PRScreen = () => {
   }
 
   const groupedPRs = groupPRsByCategory();
+  const filteredPRs = getFilteredPRs();
+  const hasActiveFilters = selectedCategory !== 'All' || searchQuery.trim() !== '';
+  const shouldShowGrouped = !hasActiveFilters;
 
   return (
     <View style={styles.container}>
@@ -175,47 +228,89 @@ const PRScreen = () => {
           </Text>
         </View>
 
-        {prs.length > 0 ? (
-          <>
-            {groupedPRs.map(([category, records]) => (
-              <View key={category}>
-                <View style={styles.categoryHeader}>
-                  <Ionicons
-                    name={categoryIcons[category] as any}
-                    size={20}
-                    color={categoryColors[category]}
-                  />
-                  <Text style={styles.categoryTitle}>{category}</Text>
-                  <Text style={styles.categoryCount}>({records.length})</Text>
-                </View>
+        {/* Search Bar */}
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search exercises..."
+        />
 
-                {records.map((pr) => (
-                  <Card key={pr.id}>
-                    <View style={styles.prItem}>
-                      <View style={styles.prInfo}>
-                        <Text style={styles.exerciseName}>{pr.exerciseName}</Text>
-                        <View style={styles.prDetails}>
-                          <View style={styles.prStat}>
-                            <Text style={styles.prValue}>
-                              {pr.weight} {user?.preferredWeightUnit || 'lbs'}
-                            </Text>
-                            <Text style={styles.prLabel}>× {pr.reps} reps</Text>
-                          </View>
-                          <Text style={styles.prDate}>Set on {formatDate(pr.date)}</Text>
-                        </View>
-                      </View>
-                      <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={() => handleDeletePR(pr)}
-                      >
-                        <Ionicons name="trash-outline" size={20} color="#FF5E6D" />
-                      </TouchableOpacity>
-                    </View>
-                  </Card>
-                ))}
+        {/* Category Filter Chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterChipsContainer}
+        >
+          <FilterChip
+            label="All"
+            active={selectedCategory === 'All'}
+            onPress={() => setSelectedCategory('All')}
+          />
+          {Object.keys(categoryIcons).map(category => (
+            <FilterChip
+              key={category}
+              label={category}
+              icon={categoryIcons[category]}
+              color={categoryColors[category]}
+              active={selectedCategory === category}
+              onPress={() => setSelectedCategory(category)}
+            />
+          ))}
+        </ScrollView>
+
+        {/* Active Filter Indicator */}
+        {hasActiveFilters && (
+          <View style={styles.activeFilterBanner}>
+            <Text style={styles.filterResultText}>
+              {filteredPRs.length} {filteredPRs.length === 1 ? 'result' : 'results'}
+            </Text>
+            <TouchableOpacity onPress={() => {
+              setSearchQuery('');
+              setSelectedCategory('All');
+            }}>
+              <Text style={styles.clearFiltersText}>Clear Filters</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {prs.length > 0 ? (
+          shouldShowGrouped ? (
+            // Grouped view (current behavior)
+            <>
+              {groupedPRs.map(([category, records]) => (
+                <View key={category}>
+                  <View style={styles.categoryHeader}>
+                    <Ionicons
+                      name={categoryIcons[category] as any}
+                      size={20}
+                      color={categoryColors[category]}
+                    />
+                    <Text style={styles.categoryTitle}>{category}</Text>
+                    <Text style={styles.categoryCount}>({records.length})</Text>
+                  </View>
+                  {records.map(pr => renderPRCard(pr))}
+                </View>
+              ))}
+            </>
+          ) : (
+            // Filtered flat view
+            filteredPRs.length > 0 ? (
+              filteredPRs.map(pr => renderPRCard(pr))
+            ) : (
+              // Empty filter state
+              <View style={styles.emptyFilterState}>
+                <Ionicons name="search-outline" size={64} color="#A0A0A8" />
+                <Text style={styles.emptyFilterTitle}>No matching exercises</Text>
+                <Text style={styles.emptyFilterText}>
+                  {searchQuery && selectedCategory !== 'All'
+                    ? `No results for "${searchQuery}" in ${selectedCategory}`
+                    : searchQuery
+                    ? `No results for "${searchQuery}"`
+                    : `No PRs in ${selectedCategory}`}
+                </Text>
               </View>
-            ))}
-          </>
+            )
+          )
         ) : (
           <View style={styles.emptyState}>
             <Ionicons name="trophy-outline" size={80} color="#A0A0A8" />
@@ -379,6 +474,46 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#3A9BFF',
     lineHeight: 18,
+  },
+  filterChipsContainer: {
+    marginBottom: 16,
+  },
+  activeFilterBanner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#0F1A2E',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  filterResultText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  clearFiltersText: {
+    fontSize: 14,
+    color: '#3A9BFF',
+    fontWeight: '600',
+  },
+  emptyFilterState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 32,
+  },
+  emptyFilterTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  emptyFilterText: {
+    fontSize: 15,
+    color: '#A0A0A8',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
 

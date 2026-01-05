@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -25,6 +25,7 @@ interface AddWorkoutModalProps {
   onSave: (workout: WorkoutLog) => void;
   date: string;
   userId: string;
+  initialTemplate?: WorkoutTemplate | null;
 }
 
 const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
@@ -33,6 +34,7 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
   onSave,
   date,
   userId,
+  initialTemplate,
 }) => {
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState<ExerciseLog[]>([]);
@@ -65,6 +67,30 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
 
   // Rest timer
   const [showRestTimer, setShowRestTimer] = useState(false);
+
+  // Load initial template if provided
+  useEffect(() => {
+    if (visible && initialTemplate) {
+      // Load template using same logic as handleSelectTemplate
+      setWorkoutName(initialTemplate.name);
+
+      const exerciseLogs: ExerciseLog[] = initialTemplate.exercises.map((exerciseTemplate) => {
+        const setsArray: SetLog[] = Array.from({ length: exerciseTemplate.targetSets }, () => ({
+          reps: exerciseTemplate.targetReps,
+          weight: exerciseTemplate.targetWeight || 0,
+          completed: true,
+        }));
+
+        return {
+          id: generateId(),
+          exerciseName: exerciseTemplate.exerciseName,
+          sets: setsArray,
+        };
+      });
+
+      setExercises(exerciseLogs);
+    }
+  }, [visible, initialTemplate]);
 
   const handleAddExercise = () => {
     if (!exerciseName.trim()) {

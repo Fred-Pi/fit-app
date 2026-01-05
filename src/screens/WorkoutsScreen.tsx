@@ -15,8 +15,10 @@ import AddWorkoutModal from '../components/AddWorkoutModal';
 import EditWorkoutModal from '../components/EditWorkoutModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import SwipeableRow from '../components/SwipeableRow';
+import ExpandableFAB from '../components/ExpandableFAB';
+import TemplatePicker from '../components/TemplatePicker';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, getTodayDate } from '../services/storage';
-import { WorkoutLog, User } from '../types';
+import { WorkoutLog, User, WorkoutTemplate } from '../types';
 
 type WorkoutsScreenNavigationProp = StackNavigationProp<WorkoutsStackParamList, 'WorkoutsList'>;
 
@@ -33,6 +35,8 @@ const WorkoutsScreen = () => {
     workoutId: string;
     workoutName: string;
   }>({ visible: false, workoutId: '', workoutName: '' });
+  const [showTemplatePickerDirect, setShowTemplatePickerDirect] = useState(false);
+  const [templateToLoad, setTemplateToLoad] = useState<WorkoutTemplate | null>(null);
 
   const loadWorkouts = async () => {
     try {
@@ -79,6 +83,22 @@ const WorkoutsScreen = () => {
     setWorkouts(workouts.filter((w) => w.id !== confirmDelete.workoutId));
     setConfirmDelete({ visible: false, workoutId: '', workoutName: '' });
   };
+
+  const handleDirectTemplateSelect = (template: WorkoutTemplate) => {
+    setTemplateToLoad(template);
+    setShowTemplatePickerDirect(false);
+    setShowAddWorkoutModal(true);
+  };
+
+  // Clear template after modal opens
+  useEffect(() => {
+    if (showAddWorkoutModal && templateToLoad) {
+      // Template will be loaded by AddWorkoutModal
+      // Clear after delay to prevent re-loading
+      const timeout = setTimeout(() => setTemplateToLoad(null), 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [showAddWorkoutModal, templateToLoad]);
 
   const renderWorkoutItem = ({ item }: { item: WorkoutLog }) => {
     const totalSets = item.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
@@ -156,12 +176,20 @@ const WorkoutsScreen = () => {
           </View>
         }
       />
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setShowAddWorkoutModal(true)}
-      >
-        <Ionicons name="add" size={32} color="#fff" />
-      </TouchableOpacity>
+      <ExpandableFAB
+        actions={[
+          {
+            icon: 'add',
+            label: 'New Workout',
+            onPress: () => setShowAddWorkoutModal(true),
+          },
+          {
+            icon: 'document-text',
+            label: 'From Template',
+            onPress: () => setShowTemplatePickerDirect(true),
+          },
+        ]}
+      />
 
       {user && (
         <AddWorkoutModal
@@ -170,8 +198,15 @@ const WorkoutsScreen = () => {
           onSave={handleAddWorkout}
           date={getTodayDate()}
           userId={user.id}
+          initialTemplate={templateToLoad}
         />
       )}
+
+      <TemplatePicker
+        visible={showTemplatePickerDirect}
+        onClose={() => setShowTemplatePickerDirect(false)}
+        onSelectTemplate={handleDirectTemplateSelect}
+      />
 
       <EditWorkoutModal
         visible={showEditWorkoutModal}
