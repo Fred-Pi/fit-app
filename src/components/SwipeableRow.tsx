@@ -101,9 +101,11 @@ const styles = StyleSheet.create({
   },
   editAction: {
     backgroundColor: '#0A84FF',
+    borderRadius: 12,
   },
   deleteAction: {
     backgroundColor: '#FF3B30',
+    borderRadius: 12,
   },
   actionText: {
     color: '#FFFFFF',
