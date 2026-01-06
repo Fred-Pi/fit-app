@@ -23,6 +23,7 @@ const ProfileScreen = () => {
   const [name, setName] = useState('');
   const [calorieTarget, setCalorieTarget] = useState('');
   const [stepGoal, setStepGoal] = useState('');
+  const [goalWeight, setGoalWeight] = useState('');
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
   const [confirmDialog, setConfirmDialog] = useState<{
     visible: boolean;
@@ -46,6 +47,7 @@ const ProfileScreen = () => {
       setName(userData.name);
       setCalorieTarget(userData.dailyCalorieTarget.toString());
       setStepGoal(userData.dailyStepGoal.toString());
+      setGoalWeight(userData.goalWeight?.toString() || '');
     }
   };
 
@@ -74,6 +76,7 @@ const ProfileScreen = () => {
       name: name.trim() || 'User',
       dailyCalorieTarget: parseInt(calorieTarget) || 2200,
       dailyStepGoal: parseInt(stepGoal) || 10000,
+      goalWeight: parseFloat(goalWeight) || undefined,
     };
 
     await saveUser(updatedUser);
@@ -234,6 +237,24 @@ const ProfileScreen = () => {
             />
           ) : (
             <Text style={styles.value}>{user.dailyStepGoal.toLocaleString()} steps</Text>
+          )}
+        </View>
+
+        <View style={styles.settingItem}>
+          <Text style={styles.label}>Goal Weight ({user.preferredWeightUnit})</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.input}
+              value={goalWeight}
+              onChangeText={setGoalWeight}
+              keyboardType="decimal-pad"
+              placeholder="Optional"
+              placeholderTextColor="#98989D"
+            />
+          ) : (
+            <Text style={styles.value}>
+              {user.goalWeight ? `${user.goalWeight} ${user.preferredWeightUnit}` : 'Not set'}
+            </Text>
           )}
         </View>
 

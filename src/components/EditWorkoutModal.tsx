@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { WorkoutLog, ExerciseLog, SetLog } from '../types';
 import { generateId, getLastExercisePerformance } from '../services/storage';
 import ExercisePicker from './ExercisePicker';
+import WorkoutTimer from './WorkoutTimer';
 import ExerciseHistoryIndicator from './ExerciseHistoryIndicator';
 
 interface EditWorkoutModalProps {
@@ -56,11 +57,15 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
   // Exercise picker
   const [showExercisePicker, setShowExercisePicker] = useState(false);
 
+  // Workout duration
+  const [workoutDuration, setWorkoutDuration] = useState<number>(0); // in minutes
+
   useEffect(() => {
     if (workout) {
       setWorkoutName(workout.name);
       setExercises(workout.exercises);
       setWorkoutNotes(workout.notes || '');
+      setWorkoutDuration(workout.duration || 0);
     }
   }, [workout, visible]);
 
@@ -140,6 +145,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
     const updatedWorkout: WorkoutLog = {
       ...workout,
       name: workoutName.trim(),
+      duration: workoutDuration > 0 ? Math.round(workoutDuration * 10) / 10 : undefined,
       exercises,
       notes: workoutNotes.trim() || undefined,
     };
@@ -164,6 +170,10 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
             <Text style={styles.cancelButton}>Cancel</Text>
           </TouchableOpacity>
           <Text style={styles.title}>Edit Workout</Text>
+          <WorkoutTimer
+            onDurationChange={setWorkoutDuration}
+            initialDuration={workout?.duration}
+          />
           <TouchableOpacity onPress={handleSave}>
             <Text style={styles.saveButton}>Save</Text>
           </TouchableOpacity>

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, WeeklyStats, WorkoutTemplate, PersonalRecord } from '../types';
+import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, WeeklyStats, WorkoutTemplate, PersonalRecord, Exercise } from '../types';
 import { isDateInRange } from '../utils/dateUtils';
 
 // Storage keys
@@ -11,6 +11,7 @@ const KEYS = {
   TEMPLATES: '@fit_app_templates',
   PERSONAL_RECORDS: '@fit_app_personal_records',
   WEIGHTS: '@fit_app_weights',
+  CUSTOM_EXERCISES: '@fit_app_custom_exercises',
 };
 
 // ============ USER ============
@@ -483,6 +484,64 @@ export const calculateWeeklyStats = async (
   };
 };
 
+// ============ CUSTOM EXERCISES ============
+
+export const getCustomExercises = async (): Promise<Exercise[]> => {
+  try {
+    const data = await AsyncStorage.getItem(KEYS.CUSTOM_EXERCISES);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error getting custom exercises:', error);
+    return [];
+  }
+};
+
+export const saveCustomExercise = async (exercise: Exercise): Promise<void> => {
+  try {
+    const exercises = await getCustomExercises();
+    const existingIndex = exercises.findIndex(e => e.id === exercise.id);
+
+    if (existingIndex >= 0) {
+      exercises[existingIndex] = exercise;
+    } else {
+      exercises.push(exercise);
+    }
+
+    await AsyncStorage.setItem(KEYS.CUSTOM_EXERCISES, JSON.stringify(exercises));
+  } catch (error) {
+    console.error('Error saving custom exercise:', error);
+  }
+};
+
+export const updateCustomExercise = async (exercise: Exercise): Promise<void> => {
+  try {
+    const exercises = await getCustomExercises();
+    const index = exercises.findIndex(e => e.id === exercise.id);
+
+    if (index >= 0) {
+      exercises[index] = exercise;
+      await AsyncStorage.setItem(KEYS.CUSTOM_EXERCISES, JSON.stringify(exercises));
+    }
+  } catch (error) {
+    console.error('Error updating custom exercise:', error);
+  }
+};
+
+export const deleteCustomExercise = async (exerciseId: string): Promise<void> => {
+  try {
+    const exercises = await getCustomExercises();
+    const filtered = exercises.filter(e => e.id !== exerciseId);
+    await AsyncStorage.setItem(KEYS.CUSTOM_EXERCISES, JSON.stringify(filtered));
+  } catch (error) {
+    console.error('Error deleting custom exercise:', error);
+  }
+};
+
+export const getCustomExerciseById = async (id: string): Promise<Exercise | null> => {
+  const exercises = await getCustomExercises();
+  return exercises.find(e => e.id === id) || null;
+};
+
 // ============ UTILITIES ============
 
 export const generateId = (): string => {
@@ -521,6 +580,7 @@ export const clearAllData = async (): Promise<void> => {
       KEYS.TEMPLATES,
       KEYS.PERSONAL_RECORDS,
       KEYS.WEIGHTS,
+      KEYS.CUSTOM_EXERCISES,
     ]);
   } catch (error) {
     console.error('Error clearing data:', error);

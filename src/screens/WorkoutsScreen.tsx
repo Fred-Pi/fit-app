@@ -134,10 +134,8 @@ const WorkoutsScreen = () => {
             <View style={styles.workoutStats}>
               <Text style={styles.workoutDetail}>
                 {item.exercises.length} exercises • {totalSets} sets
+                {item.duration && ` • ${Math.round(item.duration)} min`}
               </Text>
-              {item.duration && (
-                <Text style={styles.workoutDetail}> • {item.duration} min</Text>
-              )}
             </View>
             {item.completed && (
               <View style={styles.completedBadge}>

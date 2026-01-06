@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -18,6 +18,8 @@ import {
   type Exercise,
   type MuscleGroup,
 } from '../data/exercises';
+import { getCustomExercises } from '../services/storage';
+import { getAllExercises, isCustomExercise } from '../utils/exerciseHelpers';
 
 interface ExercisePickerProps {
   visible: boolean;
@@ -42,14 +44,38 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customName, setCustomName] = useState('');
+  const [customExercises, setCustomExercises] = useState<Exercise[]>([]);
+
+  // Load custom exercises when modal opens
+  useEffect(() => {
+    if (visible) {
+      loadCustomExercises();
+    }
+  }, [visible]);
+
+  const loadCustomExercises = async () => {
+    try {
+      const exercises = await getCustomExercises();
+      setCustomExercises(exercises);
+    } catch (error) {
+      console.error('Error loading custom exercises:', error);
+    }
+  };
+
+  // Get all exercises (built-in + custom)
+  const allExercises = useMemo(() => {
+    return getAllExercises(customExercises);
+  }, [customExercises]);
 
   // Filter exercises based on search query
   const filteredExercises = useMemo(() => {
     if (!searchQuery.trim()) {
-      return EXERCISE_DATABASE;
+      return allExercises;
     }
-    return searchExercises(searchQuery);
-  }, [searchQuery]);
+    return allExercises.filter(ex =>
+      ex.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery, allExercises]);
 
   // Group exercises by category for SectionList
   const exerciseSections = useMemo<ExerciseSection[]>(() => {
@@ -101,25 +127,36 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
     onClose();
   };
 
-  const renderExerciseItem = ({ item }: { item: Exercise }) => (
-    <TouchableOpacity
-      style={[
-        styles.exerciseItem,
-        currentExerciseName === item.name && styles.exerciseItemSelected,
-      ]}
-      onPress={() => handleSelectFromDatabase(item)}
-    >
-      <View style={styles.exerciseInfo}>
-        <Text style={styles.exerciseName}>{item.name}</Text>
-        {item.defaultSets && item.defaultReps && (
-          <Text style={styles.exerciseDefaults}>
-            {item.defaultSets} sets × {item.defaultReps} reps
-          </Text>
-        )}
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="#A0A0A8" />
-    </TouchableOpacity>
-  );
+  const renderExerciseItem = ({ item }: { item: Exercise }) => {
+    const isCustom = isCustomExercise(item.id);
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.exerciseItem,
+          currentExerciseName === item.name && styles.exerciseItemSelected,
+        ]}
+        onPress={() => handleSelectFromDatabase(item)}
+      >
+        <View style={styles.exerciseInfo}>
+          <View style={styles.exerciseNameRow}>
+            <Text style={styles.exerciseName}>{item.name}</Text>
+            {isCustom && (
+              <View style={styles.customBadge}>
+                <Text style={styles.customBadgeText}>Custom</Text>
+              </View>
+            )}
+          </View>
+          {item.defaultSets && item.defaultReps && (
+            <Text style={styles.exerciseDefaults}>
+              {item.defaultSets} sets × {item.defaultReps} reps
+            </Text>
+          )}
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#A0A0A8" />
+      </TouchableOpacity>
+    );
+  };
 
   const renderSectionHeader = ({ section }: { section: ExerciseSection }) => (
     <View style={styles.sectionHeader}>
@@ -382,11 +419,28 @@ const styles = StyleSheet.create({
   exerciseInfo: {
     flex: 1,
   },
+  exerciseNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   exerciseName: {
     fontSize: 16,
     fontWeight: '500',
     color: '#FFFFFF',
-    marginBottom: 4,
+  },
+  customBadge: {
+    backgroundColor: '#A855F7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  customBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
   },
   exerciseDefaults: {
     fontSize: 13,

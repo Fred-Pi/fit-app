@@ -6,9 +6,10 @@ import { DailyWeight } from '../types';
 interface WeightChartProps {
   weights: DailyWeight[];
   unit: 'kg' | 'lbs';
+  goalWeight?: number;
 }
 
-const WeightChart: React.FC<WeightChartProps> = ({ weights, unit }) => {
+const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) => {
   const screenWidth = Dimensions.get('window').width;
 
   // Handle empty state
@@ -55,7 +56,13 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit }) => {
           datasets: [
             {
               data: weightValues,
+              color: (opacity = 1) => `rgba(255, 149, 0, ${opacity})`, // Orange for current
             },
+            ...(goalWeight ? [{
+              data: Array(weightValues.length).fill(goalWeight),
+              color: (opacity = 1) => `rgba(52, 199, 89, ${opacity})`, // Green for goal
+              withDots: false,
+            }] : []),
           ],
         }}
         width={screenWidth - 64}
@@ -92,6 +99,19 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit }) => {
         withDots={true}
       />
 
+      {goalWeight && (
+        <View style={styles.legendContainer}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#FF9500' }]} />
+            <Text style={styles.legendText}>Current Weight</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#34C759' }]} />
+            <Text style={styles.legendText}>Goal Weight</Text>
+          </View>
+        </View>
+      )}
+
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
           <Text style={styles.statLabel}>Current</Text>
@@ -123,6 +143,28 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit }) => {
             {weightChange > 0 ? '+' : ''}{weightChange.toFixed(1)} {unit}
           </Text>
         </View>
+
+        {goalWeight && (
+          <>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Goal</Text>
+              <Text style={[styles.statValue, styles.goalValue]}>
+                {goalWeight.toFixed(1)} {unit}
+              </Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>To Goal</Text>
+              <Text style={[
+                styles.statValue,
+                currentWeight > goalWeight ? styles.weightGain : styles.weightLoss
+              ]}>
+                {(currentWeight - goalWeight).toFixed(1)} {unit}
+              </Text>
+            </View>
+          </>
+        )}
       </View>
     </View>
   );
@@ -165,6 +207,32 @@ const styles = StyleSheet.create({
   },
   weightGain: {
     color: '#FF9500',
+  },
+  goalValue: {
+    color: '#34C759',
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#3A3A42',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 12,
+    color: '#A0A0A8',
   },
   emptyState: {
     paddingVertical: 32,

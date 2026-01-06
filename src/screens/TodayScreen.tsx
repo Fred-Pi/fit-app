@@ -288,7 +288,9 @@ const TodayScreen = () => {
           <View style={styles.workoutContent}>
             <Text style={styles.workoutName}>{workout.name}</Text>
             <Text style={styles.workoutDetails}>
-              {workout.exercises.length} exercises • {workout.completed ? 'Completed' : 'In Progress'}
+              {workout.exercises.length} exercises
+              {workout.duration && ` • ${Math.round(workout.duration)} min`}
+              {' • '}{workout.completed ? 'Completed' : 'In Progress'}
             </Text>
           </View>
         ) : (
@@ -369,7 +371,7 @@ const TodayScreen = () => {
               <Text style={styles.weightValue}>{weight.weight.toFixed(1)}</Text>
               <Text style={styles.weightUnit}>{weight.unit}</Text>
             </View>
-            <WeightChart weights={recentWeights} unit={weight.unit} />
+            <WeightChart weights={recentWeights} unit={weight.unit} goalWeight={user?.goalWeight} />
           </View>
         ) : (
           <View style={styles.emptyWeightState}>

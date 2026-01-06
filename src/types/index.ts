@@ -7,6 +7,7 @@ export interface User {
   dailyCalorieTarget: number;
   dailyStepGoal: number;
   preferredWeightUnit: 'kg' | 'lbs';
+  goalWeight?: number; // in user's preferred unit
   created: string; // ISO date string
 }
 
@@ -189,4 +190,40 @@ export interface AppState {
   nutrition: DailyNutrition[];
   steps: DailySteps[];
   // Future: templates, savedMeals, etc.
+}
+
+// ============ ANALYTICS ============
+
+export type DateRangeKey = '30D' | '3M' | '6M' | 'ALL'
+
+export interface DateRange {
+  start: string  // YYYY-MM-DD
+  end: string    // YYYY-MM-DD
+  days: number | null
+  label: string
+}
+
+export interface VolumeDataPoint {
+  date: string        // Week start date
+  volume: number      // Total volume in lbs or kg
+  workouts: number    // Number of workouts in this period
+}
+
+export interface StrengthDataPoint {
+  date: string
+  weight: number
+  reps: number
+  workoutName: string
+}
+
+export interface FrequencyDataPoint {
+  date: string
+  count: number       // Number of workouts on this day
+}
+
+export interface MuscleGroupData {
+  name: MuscleGroup
+  sets: number
+  percentage: number
+  color: string
 }

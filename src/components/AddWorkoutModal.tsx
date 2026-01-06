@@ -17,6 +17,7 @@ import { generateId, saveTemplate, getLastExercisePerformance } from '../service
 import ExercisePicker from './ExercisePicker';
 import TemplatePicker from './TemplatePicker';
 import RestTimer from './RestTimer';
+import WorkoutTimer from './WorkoutTimer';
 import ExerciseHistoryIndicator from './ExerciseHistoryIndicator';
 
 interface AddWorkoutModalProps {
@@ -67,6 +68,16 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
 
   // Rest timer
   const [showRestTimer, setShowRestTimer] = useState(false);
+
+  // Workout timer state
+  const [workoutDuration, setWorkoutDuration] = useState<number>(0); // in minutes
+  const [hasActiveTimer, setHasActiveTimer] = useState(false);
+
+  // Handle duration change from timer
+  const handleDurationChange = (durationInMinutes: number) => {
+    setWorkoutDuration(durationInMinutes);
+    setHasActiveTimer(durationInMinutes > 0);
+  };
 
   // Load initial template if provided
   useEffect(() => {
@@ -239,6 +250,7 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
       userId,
       date,
       name: workoutName.trim(),
+      duration: workoutDuration > 0 ? Math.round(workoutDuration * 10) / 10 : undefined,
       exercises,
       notes: workoutNotes.trim() || undefined,
       completed: true,
@@ -259,13 +271,19 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
     setWeight('');
     setWorkoutNotes('');
     setExerciseNotes('');
+    setWorkoutDuration(0);
+    setHasActiveTimer(false);
   };
 
   const handleClose = () => {
-    if (workoutName || exercises.length > 0) {
+    if (workoutName || exercises.length > 0 || hasActiveTimer) {
+      const message = hasActiveTimer
+        ? 'You have an active workout timer. Your progress will be lost if you close.'
+        : 'You have unsaved changes. Are you sure you want to close?';
+
       Alert.alert(
         'Discard Workout?',
-        'You have unsaved changes. Are you sure you want to close?',
+        message,
         [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Discard', style: 'destructive', onPress: () => {
@@ -295,13 +313,14 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
           <TouchableOpacity onPress={handleClose}>
             <Text style={styles.cancelButton}>Cancel</Text>
           </TouchableOpacity>
-          <View style={styles.headerCenter}>
-            <Text style={styles.title}>Log Workout</Text>
+          <Text style={styles.title}>Log Workout</Text>
+          <View style={styles.headerRight}>
+            <WorkoutTimer onDurationChange={handleDurationChange} />
             <TouchableOpacity
-              style={styles.timerButton}
+              style={styles.restTimerButton}
               onPress={() => setShowRestTimer(true)}
             >
-              <Ionicons name="timer-outline" size={20} color="#3A9BFF" />
+              <Ionicons name="hourglass-outline" size={18} color="#3A9BFF" />
             </TouchableOpacity>
           </View>
           <TouchableOpacity onPress={handleSave}>
@@ -541,22 +560,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#3A3A42',
   },
-  headerCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
   title: {
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
+    flex: 1,
+    textAlign: 'center',
   },
-  timerButton: {
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  restTimerButton: {
     padding: 6,
     backgroundColor: '#2A2A30',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#3A9BFF',
+    borderColor: '#3A3A42',
   },
   cancelButton: {
     fontSize: 16,

@@ -7,8 +7,10 @@ A comprehensive, unified fitness tracking mobile app that combines gym workouts,
 This app provides an all-in-one fitness tracking experience with:
 
 - **Gym Tracking**: Log workouts with exercise database, sets, reps, and weight
+- **Exercise Library**: Browse 54+ exercises and create custom exercises with full CRUD
 - **Personal Records**: Automatically track your strength gains and PRs
 - **Workout Templates**: Save and reuse your favorite workout routines
+- **Analytics Dashboard**: Visualize your progress with interactive charts and insights
 - **Calorie & Nutrition**: Track daily meals with calories and macros
 - **Steps & Activity**: Monitor daily step count toward your goal
 - **Weekly Statistics**: Track progress with week-over-week comparisons
@@ -43,6 +45,9 @@ src/
 │   ├── TodayScreen.tsx
 │   ├── WorkoutsScreen.tsx
 │   ├── WorkoutDetailScreen.tsx
+│   ├── ExerciseLibraryScreen.tsx
+│   ├── ExerciseDetailScreen.tsx
+│   ├── AnalyticsScreen.tsx
 │   ├── PRScreen.tsx
 │   ├── NutritionScreen.tsx
 │   └── ProfileScreen.tsx
@@ -50,19 +55,30 @@ src/
 │   ├── Card.tsx
 │   ├── ProgressBar.tsx
 │   ├── ExercisePicker.tsx
+│   ├── ExerciseCard.tsx
+│   ├── AddCustomExerciseModal.tsx
+│   ├── EditCustomExerciseModal.tsx
 │   ├── TemplatePicker.tsx
 │   ├── RestTimer.tsx
+│   ├── WorkoutTimer.tsx
 │   ├── AddWorkoutModal.tsx
 │   ├── EditWorkoutModal.tsx
+│   ├── analytics/      # Analytics chart components
 │   └── ...
 ├── navigation/         # Navigation setup
 │   ├── AppNavigator.tsx
-│   └── WorkoutsStack.tsx
+│   ├── WorkoutsStack.tsx
+│   └── ExercisesStack.tsx
+├── hooks/             # Custom React hooks
+│   └── useTimer.ts
 ├── data/              # Static data and databases
 │   └── exercises.ts   # Exercise database (54 exercises)
 └── utils/             # Utilities and helpers
     ├── dateUtils.ts   # Week calculation utilities
     ├── sampleData.ts  # Sample data generator
+    ├── exerciseHelpers.ts  # Exercise management utilities
+    ├── analyticsCalculations.ts  # Analytics data processing
+    ├── analyticsChartConfig.ts   # Chart configurations
     └── theme.ts       # Color theme
 ```
 
@@ -145,6 +161,28 @@ npm run build:web
 - **Template management** - Delete templates with confirmation
 - **Customizable** - Modify template before saving as workout
 
+#### 📚 Exercise Library
+- **Browse exercise database** - 54 built-in exercises organized by muscle group
+- **Custom exercises** - Create your own exercises with full CRUD operations
+- **Exercise details** - View exercise information, default sets/reps, usage statistics
+- **Workout history** - See all workouts that include a specific exercise
+- **Search and filter** - Find exercises by name or filter by category
+- **View toggles** - Filter by All, Built-in, or Custom exercises
+- **Swipeable actions** - Quick edit/delete for custom exercises
+- **Custom badges** - Visual indicators for user-created exercises
+- **Edit with workout updates** - Option to rename exercise across all workouts
+
+#### 📊 Analytics Dashboard
+- **Workout frequency chart** - Visualize workouts per week over time
+- **Volume progression** - Track total weight lifted with trend analysis
+- **Exercise distribution** - Pie chart showing muscle group balance
+- **Weight progression** - Line chart tracking strength gains per exercise
+- **Personal records timeline** - Chronological view of PRs achieved
+- **Summary statistics** - Total workouts, volume, PRs, and active days
+- **Interactive charts** - Touch to see detailed data points
+- **Time period filters** - View 1, 3, or 6 month analytics
+- **Trend indicators** - See if metrics are improving or declining
+
 #### ⏱️ Rest Timer
 - **Built-in countdown timer** - Time your rest periods between sets
 - **Quick presets** - 30s, 60s, 90s, 120s, 180s buttons
@@ -185,7 +223,9 @@ npm run build:web
 - **Color coding**:
   - 🟢 Green for Today/Steps
   - 🔵 Blue for Workouts
+  - 🟣 Purple for Exercises
   - 🟡 Gold for Personal Records
+  - 🟠 Orange for Analytics
   - 🔴 Red for Nutrition
   - 🟣 Purple for Profile
 
@@ -202,12 +242,14 @@ npm run build:web
 
 ### Navigation
 
-Five-tab bottom navigation:
+Seven-tab bottom navigation:
 1. **Today** - Daily overview dashboard
 2. **Workouts** - Exercise tracking and history
-3. **PRs** - Personal records
-4. **Nutrition** - Calorie & macro tracking
-5. **Profile** - Settings and preferences
+3. **Exercises** - Exercise library and custom exercise management
+4. **PRs** - Personal records
+5. **Analytics** - Charts and progress visualization
+6. **Nutrition** - Calorie & macro tracking
+7. **Profile** - Settings and preferences
 
 ## Data Models
 
@@ -412,8 +454,10 @@ Potential features for future development:
 
 **Features:**
 - ✅ Workout logging with exercise database
+- ✅ Exercise library with custom exercise CRUD
 - ✅ Personal records tracking
 - ✅ Workout templates
+- ✅ Analytics dashboard with interactive charts
 - ✅ Rest timer
 - ✅ Weekly statistics
 - ✅ Nutrition tracking
