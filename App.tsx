@@ -27,7 +27,7 @@ export default function App() {
   if (!isReady) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0A84FF" />
+        <ActivityIndicator size="large" color="#00D9FF" />
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
@@ -46,13 +46,13 @@ export default function App() {
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#0E0E14',
+    backgroundColor: '#0F1419',
     alignItems: 'center',
     justifyContent: 'center',
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#98989D',
+    color: '#B8C5D6',
   },
 });

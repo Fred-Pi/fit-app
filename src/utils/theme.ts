@@ -23,22 +23,22 @@ export interface Theme {
 export const darkTheme: Theme = {
   isDark: true,
   colors: {
-    background: '#0E0E14',     // Rich dark blue-gray instead of pure black
-    surface: '#1E1E22',        // Richer, slightly blue-tinted surface
-    surfaceAlt: '#2A2A30',     // More depth with subtle blue tone
+    background: '#0F1419',     // Deep blue-black for modern look
+    surface: '#1A1F2E',        // Rich navy blue surface
+    surfaceAlt: '#242B3D',     // Lighter navy for depth
     text: '#FFFFFF',
-    textSecondary: '#A0A0A8',  // Slightly brighter for better readability
-    border: '#3A3A42',         // Richer border color with blue undertone
-    primary: '#3A9BFF',        // Brighter, more vibrant blue
-    workout: '#3A9BFF',        // Vibrant blue for workouts
-    nutrition: '#FF5E6D',      // Warmer, more appealing red
-    steps: '#32D760',          // More vibrant green
-    success: '#32D760',
-    error: '#FF5E6D',
-    warning: '#FFD60A',
+    textSecondary: '#B8C5D6',  // Brighter secondary text
+    border: '#2D3548',         // Subtle blue-gray border
+    primary: '#00D9FF',        // Bright cyan - modern and cool
+    workout: '#00D9FF',        // Bright cyan for workouts
+    nutrition: '#FF6B9D',      // Vibrant pink
+    steps: '#00E676',          // Electric green
+    success: '#00E676',
+    error: '#FF5252',
+    warning: '#FFD740',
     modalOverlay: 'rgba(0, 0, 0, 0.7)',
-    input: '#1E1E22',
-    inputBorder: '#3A3A42',
+    input: '#1A1F2E',
+    inputBorder: '#2D3548',
   },
 };
 

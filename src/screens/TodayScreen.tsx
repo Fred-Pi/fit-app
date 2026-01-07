@@ -277,10 +277,10 @@ const TodayScreen = () => {
       </View>
 
       {/* Workout Card */}
-      <Card>
+      <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
-            <Ionicons name="barbell" size={24} color="#007AFF" />
+            <Ionicons name="barbell" size={24} color="#00D9FF" />
             <Text style={styles.cardTitle}>Workout</Text>
           </View>
         </View>
@@ -304,10 +304,10 @@ const TodayScreen = () => {
       </Card>
 
       {/* Nutrition Card */}
-      <Card>
+      <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
-            <Ionicons name="nutrition" size={24} color="#FF6B6B" />
+            <Ionicons name="nutrition" size={24} color="#FF6B9D" />
             <Text style={styles.cardTitle}>Calories</Text>
           </View>
         </View>
@@ -316,7 +316,7 @@ const TodayScreen = () => {
             current={totalCalories}
             target={nutrition?.calorieTarget || 2200}
             unit="cal"
-            color="#FF6B6B"
+            color="#FF6B9D"
           />
         </View>
         {nutrition && nutrition.meals.length > 0 ? (
@@ -334,10 +334,10 @@ const TodayScreen = () => {
       </Card>
 
       {/* Steps Card */}
-      <Card>
+      <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
-            <Ionicons name="footsteps" size={24} color="#4CAF50" />
+            <Ionicons name="footsteps" size={24} color="#00E676" />
             <Text style={styles.cardTitle}>Steps</Text>
           </View>
         </View>
@@ -346,7 +346,7 @@ const TodayScreen = () => {
             current={steps?.steps || 0}
             target={steps?.stepGoal || 10000}
             unit="steps"
-            color="#4CAF50"
+            color="#00E676"
           />
         </View>
         <TouchableOpacity
@@ -358,10 +358,10 @@ const TodayScreen = () => {
       </Card>
 
       {/* Weight Card */}
-      <Card>
+      <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
-            <Ionicons name="scale-outline" size={24} color="#FF9500" />
+            <Ionicons name="scale-outline" size={24} color="#FFD740" />
             <Text style={styles.cardTitle}>Body Weight</Text>
           </View>
         </View>
@@ -424,7 +424,7 @@ const TodayScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E0E14',
+    backgroundColor: '#0F1419',
   },
   contentContainer: {
     padding: 20,
@@ -438,14 +438,14 @@ const styles = StyleSheet.create({
   dateContainer: {
     marginBottom: 24,
     paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#38383A',
+    borderBottomWidth: 2,
+    borderBottomColor: '#2D3548',
   },
   dateText: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '800',
     color: '#FFFFFF',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   },
   workoutDetails: {
     fontSize: 14,
-    color: '#98989D',
+    color: '#B8C5D6',
   },
   progressContainer: {
     marginBottom: 12,
@@ -485,23 +485,23 @@ const styles = StyleSheet.create({
   },
   mealsCount: {
     fontSize: 14,
-    color: '#98989D',
+    color: '#B8C5D6',
   },
   addButton: {
     marginTop: 12,
     paddingVertical: 14,
     paddingHorizontal: 20,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: 'rgba(0, 217, 255, 0.08)',
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#38383A',
+    borderColor: 'rgba(0, 217, 255, 0.3)',
     borderStyle: 'dashed',
   },
   addButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0A84FF',
+    color: '#00D9FF',
     letterSpacing: 0.2,
   },
   weightDisplay: {
@@ -512,13 +512,13 @@ const styles = StyleSheet.create({
   weightValue: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#FF9500',
+    color: '#FFD740',
     marginRight: 8,
   },
   weightUnit: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#A0A0A8',
+    color: '#B8C5D6',
   },
   emptyWeightState: {
     paddingVertical: 20,
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   },
   emptyWeightText: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: '#B8C5D6',
     textAlign: 'center',
   },
 });
