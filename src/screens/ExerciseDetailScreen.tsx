@@ -27,15 +27,15 @@ import {
 } from '../utils/exerciseHelpers'
 import Card from '../components/Card'
 import EditCustomExerciseModal from '../components/EditCustomExerciseModal'
-import { ExercisesStackParamList } from '../navigation/ExercisesStack'
+import { WorkoutsStackParamList } from '../navigation/WorkoutsStack'
 
 type ExerciseDetailScreenRouteProp = RouteProp<
-  ExercisesStackParamList,
+  WorkoutsStackParamList,
   'ExerciseDetail'
 >
 
 type ExerciseDetailScreenNavigationProp = StackNavigationProp<
-  ExercisesStackParamList,
+  WorkoutsStackParamList,
   'ExerciseDetail'
 >
 

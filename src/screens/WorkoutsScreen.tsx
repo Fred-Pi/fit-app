@@ -186,6 +186,11 @@ const WorkoutsScreen = () => {
             label: 'From Template',
             onPress: () => setShowTemplatePickerDirect(true),
           },
+          {
+            icon: 'library-outline',
+            label: 'Browse Exercises',
+            onPress: () => navigation.navigate('ExerciseLibrary'),
+          },
         ]}
       />
 

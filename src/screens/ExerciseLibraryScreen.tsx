@@ -22,14 +22,10 @@ import AddCustomExerciseModal from '../components/AddCustomExerciseModal'
 import EditCustomExerciseModal from '../components/EditCustomExerciseModal'
 import SwipeableRow from '../components/SwipeableRow'
 import ExpandableFAB from '../components/ExpandableFAB'
-
-type ExercisesStackParamList = {
-  ExerciseLibrary: undefined
-  ExerciseDetail: { exerciseId: string }
-}
+import { WorkoutsStackParamList } from '../navigation/WorkoutsStack'
 
 type ExerciseLibraryScreenNavigationProp = StackNavigationProp<
-  ExercisesStackParamList,
+  WorkoutsStackParamList,
   'ExerciseLibrary'
 >
 

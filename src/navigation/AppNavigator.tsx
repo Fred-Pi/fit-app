@@ -1,13 +1,11 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 // Screens
 import TodayScreen from '../screens/TodayScreen';
 import WorkoutsStack from './WorkoutsStack';
-import ExercisesStack from './ExercisesStack';
-import PRScreen from '../screens/PRScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import NutritionScreen from '../screens/NutritionScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -15,8 +13,6 @@ import ProfileScreen from '../screens/ProfileScreen';
 export type RootTabParamList = {
   Today: undefined;
   Workouts: undefined;
-  Exercises: undefined;
-  PRs: undefined;
   Analytics: undefined;
   Nutrition: undefined;
   Profile: undefined;
@@ -51,12 +47,6 @@ const AppNavigator = () => {
             } else if (route.name === 'Workouts') {
               iconName = focused ? 'barbell' : 'barbell-outline';
               iconColor = focused ? '#3A9BFF' : color;
-            } else if (route.name === 'Exercises') {
-              iconName = focused ? 'library' : 'library-outline';
-              iconColor = focused ? '#A855F7' : color;
-            } else if (route.name === 'PRs') {
-              iconName = focused ? 'trophy' : 'trophy-outline';
-              iconColor = focused ? '#FFD60A' : color;
             } else if (route.name === 'Analytics') {
               iconName = focused ? 'analytics' : 'analytics-outline';
               iconColor = focused ? '#FF9500' : color;
@@ -108,16 +98,6 @@ const AppNavigator = () => {
           name="Workouts"
           component={WorkoutsStack}
           options={{ headerShown: false }}
-        />
-        <Tab.Screen
-          name="Exercises"
-          component={ExercisesStack}
-          options={{ headerShown: false }}
-        />
-        <Tab.Screen
-          name="PRs"
-          component={PRScreen}
-          options={{ headerTitle: 'Personal Records' }}
         />
         <Tab.Screen
           name="Analytics"
