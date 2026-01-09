@@ -272,11 +272,18 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
                 autoCapitalize="words"
               />
 
-              {/* Exercise History */}
+              {/* Exercise History & Progressive Overload Suggestion */}
               {exerciseName.trim() && (
                 <ExerciseHistoryIndicator
+                  exerciseName={exerciseName}
                   lastPerformance={exerciseHistory}
                   loading={loadingHistory}
+                  weightUnit="lbs"
+                  onApplySuggestion={(suggestedSets, suggestedReps, suggestedWeight) => {
+                    setSets(suggestedSets.toString());
+                    setReps(suggestedReps.toString());
+                    setWeight(suggestedWeight > 0 ? suggestedWeight.toString() : '');
+                  }}
                 />
               )}
             </View>
