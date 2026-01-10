@@ -24,10 +24,12 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import SearchBar from '../components/SearchBar'
 import FilterChip from '../components/FilterChip'
 import { colors } from '../utils/theme'
+import { useResponsive } from '../hooks/useResponsive'
 
 type TabType = 'charts' | 'prs' | 'strength'
 
 const AnalyticsScreen = () => {
+  const { contentMaxWidth } = useResponsive()
   const [user, setUser] = useState<User | null>(null)
   const [selectedRange, setSelectedRange] = useState<DateRangeKey>('3M')
   const [activeTab, setActiveTab] = useState<TabType>('charts')
@@ -308,12 +310,15 @@ const AnalyticsScreen = () => {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#3A9BFF"
+            tintColor={colors.primary}
           />
         }
       >

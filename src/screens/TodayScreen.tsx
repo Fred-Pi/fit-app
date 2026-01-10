@@ -41,8 +41,10 @@ import {
 import { User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, Meal, WeeklyStats, WeekComparison } from '../types';
 import { getWeekDates, getPreviousWeekDates, calculateDifference, calculatePercentageChange } from '../utils/dateUtils';
 import { colors } from '../utils/theme';
+import { useResponsive } from '../hooks/useResponsive';
 
 const TodayScreen = () => {
+  const { isDesktop, isTablet, contentMaxWidth, contentPadding } = useResponsive();
   const [user, setUser] = useState<User | null>(null);
   const [date] = useState(getTodayDate());
   const [workout, setWorkout] = useState<WorkoutLog | null>(null);
@@ -262,11 +264,16 @@ const TodayScreen = () => {
     );
   }
 
+  const isWideScreen = isDesktop || isTablet;
+
   return (
     <>
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
+        ]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
       {/* Weekly Stats Card */}
@@ -294,7 +301,10 @@ const TodayScreen = () => {
         </Text>
       </View>
 
+      {/* Cards Grid for tablet/desktop */}
+      <View style={isWideScreen ? styles.cardsGrid : undefined}>
       {/* Workout Card */}
+      <View style={isWideScreen ? styles.cardWrapper : undefined}>
       <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
@@ -320,8 +330,10 @@ const TodayScreen = () => {
           </TouchableOpacity>
         )}
       </Card>
+      </View>
 
       {/* Nutrition Card */}
+      <View style={isWideScreen ? styles.cardWrapper : undefined}>
       <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
@@ -350,8 +362,10 @@ const TodayScreen = () => {
           </TouchableOpacity>
         )}
       </Card>
+      </View>
 
       {/* Steps Card */}
+      <View style={isWideScreen ? styles.cardWrapper : undefined}>
       <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
@@ -374,8 +388,10 @@ const TodayScreen = () => {
           <Text style={styles.addButtonText}>Update Steps</Text>
         </TouchableOpacity>
       </Card>
+      </View>
 
       {/* Weight Card */}
+      <View style={isWideScreen ? styles.cardWrapper : undefined}>
       <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
@@ -403,6 +419,8 @@ const TodayScreen = () => {
           <Text style={styles.addButtonText}>Update Weight</Text>
         </TouchableOpacity>
       </Card>
+      </View>
+      </View>
       </ScrollView>
 
       <UpdateStepsModal
@@ -546,6 +564,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  cardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    justifyContent: 'space-between',
+  },
+  cardWrapper: {
+    width: '48%',
   },
 });
 
