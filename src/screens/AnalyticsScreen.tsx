@@ -19,6 +19,7 @@ import DateRangeSelector from '../components/analytics/DateRangeSelector'
 import TrainingVolumeChart from '../components/analytics/TrainingVolumeChart'
 import WorkoutFrequencyChart from '../components/analytics/WorkoutFrequencyChart'
 import StrengthCalculator from '../components/analytics/StrengthCalculator'
+import ExerciseProgressionChart from '../components/analytics/ExerciseProgressionChart'
 import Card from '../components/Card'
 import ConfirmDialog from '../components/ConfirmDialog'
 import SearchBar from '../components/SearchBar'
@@ -519,7 +520,29 @@ const AnalyticsScreen = () => {
         )}
 
         {activeTab === 'strength' && (
-          <StrengthCalculator user={user} />
+          <>
+            {/* Strength Header */}
+            <View style={styles.header}>
+              <View style={styles.headerContent}>
+                <Ionicons name="barbell" size={32} color={colors.primary} />
+                <View style={styles.headerText}>
+                  <Text style={styles.title}>Strength Analysis</Text>
+                  <Text style={styles.subtitle}>
+                    Track your progress and calculate your strength levels
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Exercise Progression Chart */}
+            <ExerciseProgressionChart
+              workouts={workouts}
+              unit={user?.preferredWeightUnit || 'lbs'}
+            />
+
+            {/* 1RM Calculator & Strength Standards */}
+            <StrengthCalculator user={user} />
+          </>
         )}
       </ScrollView>
 
