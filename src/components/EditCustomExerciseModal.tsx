@@ -11,6 +11,7 @@ import {
   Platform,
   Alert,
 } from 'react-native'
+import { colors } from '../utils/theme'
 import { Picker } from '@react-native-picker/picker'
 import { Exercise, MuscleGroup, WorkoutLog } from '../types'
 import { EXERCISE_CATEGORIES } from '../data/exercises'
@@ -273,16 +274,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   cancelButton: {
     fontSize: 16,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   saveButton: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#3A9BFF',
+    color: colors.primary,
   },
   content: {
     flex: 1,
@@ -296,18 +297,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 8,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginBottom: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 8,
   },
   required: {
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: '#2A2A30',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   pickerContainer: {
     borderWidth: 1,
@@ -330,10 +331,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   picker: {
-    color: '#FFFFFF',
+    color: colors.text,
   },
   pickerItem: {
-    color: '#FFFFFF',
+    color: colors.text,
   },
   row: {
     flexDirection: 'row',

@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
-} from 'react-native';
+} from 'react-native'
+import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 interface ConfirmDialogProps {
@@ -102,13 +103,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 12,
     textAlign: 'center',
   },
   message: {
     fontSize: 15,
-    color: '#98989D',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   confirmButton: {
     backgroundColor: '#FF3B30',
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
 });
 

@@ -10,7 +10,8 @@ import {
   Platform,
   ScrollView,
   Alert,
-} from 'react-native';
+} from 'react-native'
+import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Meal } from '../types';
 
@@ -181,15 +182,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   cancelButton: {
     fontSize: 16,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   saveButton: {
     fontSize: 16,
-    color: '#3A9BFF',
+    color: colors.primary,
     fontWeight: '600',
   },
   content: {
@@ -202,13 +203,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 12,
   },
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 8,
   },
   input: {
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: '#2A2A30',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   macrosSection: {
     marginBottom: 24,
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
   helpText: {
     flex: 1,
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginLeft: 8,
     lineHeight: 18,
   },

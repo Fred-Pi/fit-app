@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { calculateProgression, formatSuggestion } from '../utils/progressiveOverload';
 
@@ -122,16 +123,16 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   noHistoryText: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     fontStyle: 'italic',
   },
   historyText: {
     fontSize: 13,
-    color: '#3A9BFF',
+    color: colors.primary,
     fontWeight: '500',
     flex: 1,
   },
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: 13,
-    color: '#32D760',
+    color: colors.success,
     fontWeight: '600',
     flex: 1,
   },
@@ -160,11 +161,11 @@ const styles = StyleSheet.create({
   },
   increaseText: {
     fontSize: 11,
-    color: '#32D760',
+    color: colors.success,
     fontWeight: '700',
   },
   applyButton: {
-    backgroundColor: '#32D760',
+    backgroundColor: colors.success,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 4,

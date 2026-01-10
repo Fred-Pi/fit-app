@@ -9,7 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-} from 'react-native';
+} from 'react-native'
+import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 interface UpdateStepsModalProps {
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   content: {
     padding: 20,
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 8,
   },
   input: {
@@ -163,11 +164,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     backgroundColor: '#2A2A30',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   hint: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 8,
   },
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   saveButton: {
     backgroundColor: '#4CAF50',

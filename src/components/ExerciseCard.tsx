@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { colors } from '../utils/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { Exercise } from '../types'
 import { EXERCISE_CATEGORIES } from '../data/exercises'
@@ -23,7 +24,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, onPress }) => {
             <Ionicons
               name={category?.icon as any || 'barbell'}
               size={24}
-              color={category?.color || '#A0A0A8'}
+              color={category?.color || colors.textSecondary}
             />
           </View>
 
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     flex: 1,
   },
   customBadge: {
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
   customBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     textTransform: 'uppercase',
   },
   metaRow: {
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
   },
   category: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   separator: {
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
   },
   defaults: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
 })
 

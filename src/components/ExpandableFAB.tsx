@@ -6,7 +6,8 @@ import {
   StyleSheet,
   Animated,
   TouchableWithoutFeedback,
-} from 'react-native';
+} from 'react-native'
+import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 export interface FABAction {
@@ -140,7 +141,7 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
                 <Ionicons
                   name={action.icon as any}
                   size={20}
-                  color={action.color || '#FFFFFF'}
+                  color={action.color || colors.text}
                 />
                 <Text style={styles.actionLabel}>{action.label}</Text>
               </TouchableOpacity>
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: 0.2,
   },
   fab: {

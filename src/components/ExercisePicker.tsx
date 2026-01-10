@@ -8,7 +8,8 @@ import {
   StyleSheet,
   SectionList,
   Alert,
-} from 'react-native';
+} from 'react-native'
+import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import {
   EXERCISE_DATABASE,
@@ -288,11 +289,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   cancelButton: {
     fontSize: 16,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   placeholder: {
     width: 60,
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.text,
   },
   customSection: {
     marginHorizontal: 16,
@@ -329,13 +330,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#3A9BFF',
+    borderColor: colors.primary,
     borderStyle: 'dashed',
   },
   customButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#3A9BFF',
+    color: colors.primary,
     marginLeft: 8,
   },
   customInputContainer: {
@@ -347,7 +348,7 @@ const styles = StyleSheet.create({
   },
   customInput: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.text,
     paddingVertical: 8,
     marginBottom: 12,
   },
@@ -362,18 +363,18 @@ const styles = StyleSheet.create({
   },
   customCancelText: {
     fontSize: 15,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   customSaveButton: {
-    backgroundColor: '#3A9BFF',
+    backgroundColor: colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
   },
   customSaveText: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: colors.text,
     fontWeight: '600',
   },
   listContent: {
@@ -392,12 +393,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     flex: 1,
   },
   sectionCount: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   exerciseItem: {
     flexDirection: 'row',
@@ -413,7 +414,7 @@ const styles = StyleSheet.create({
     borderColor: '#3A3A42',
   },
   exerciseItemSelected: {
-    borderColor: '#3A9BFF',
+    borderColor: colors.primary,
     backgroundColor: '#2A3340',
   },
   exerciseInfo: {
@@ -428,7 +429,7 @@ const styles = StyleSheet.create({
   exerciseName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   customBadge: {
     backgroundColor: '#A855F7',
@@ -439,12 +440,12 @@ const styles = StyleSheet.create({
   customBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     textTransform: 'uppercase',
   },
   exerciseDefaults: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   emptyState: {
     flex: 1,
@@ -455,13 +456,13 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginTop: 16,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },

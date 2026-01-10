@@ -107,7 +107,7 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) 
             <Text style={styles.legendText}>Current Weight</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#34C759' }]} />
+            <View style={[styles.legendDot, { backgroundColor: colors.success }]} />
             <Text style={styles.legendText}>Goal Weight</Text>
           </View>
         </View>
@@ -204,13 +204,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.borderLight,
   },
   weightLoss: {
-    color: '#34C759',
+    color: colors.success,
   },
   weightGain: {
     color: '#FF9500',
   },
   goalValue: {
-    color: '#34C759',
+    color: colors.success,
   },
   legendContainer: {
     flexDirection: 'row',

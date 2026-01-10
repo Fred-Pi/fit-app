@@ -7,7 +7,8 @@ import {
   StyleSheet,
   Vibration,
   Alert,
-} from 'react-native';
+} from 'react-native'
+import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 interface RestTimerProps {
@@ -151,7 +152,7 @@ const RestTimer: React.FC<RestTimerProps> = ({ visible, onClose }) => {
                   styles.progressFill,
                   {
                     height: `${getProgressPercentage()}%`,
-                    backgroundColor: isCompleted ? '#32D760' : '#3A9BFF'
+                    backgroundColor: isCompleted ? colors.success : colors.primary
                   }
                 ]}
               />
@@ -241,11 +242,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   closeButton: {
     fontSize: 16,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   placeholder: {
     width: 60,
@@ -271,21 +272,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timerCircleComplete: {
-    borderColor: '#32D760',
+    borderColor: colors.success,
     backgroundColor: '#1A2E1F',
   },
   timerText: {
     fontSize: 64,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 8,
   },
   timerTextComplete: {
-    color: '#32D760',
+    color: colors.success,
   },
   timerLabel: {
     fontSize: 16,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   progressRing: {
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
   presetsLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -330,16 +331,16 @@ const styles = StyleSheet.create({
     borderColor: '#3A3A42',
   },
   presetButtonActive: {
-    backgroundColor: '#3A9BFF',
-    borderColor: '#3A9BFF',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   presetButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   presetButtonTextActive: {
-    color: '#FFFFFF',
+    color: colors.text,
   },
   controls: {
     flexDirection: 'row',
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   startButton: {
-    backgroundColor: '#32D760',
+    backgroundColor: colors.success,
   },
   pauseButton: {
     backgroundColor: '#FFD60A',
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
   controlButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   tipContainer: {
     flexDirection: 'row',
@@ -379,7 +380,7 @@ const styles = StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 13,
-    color: '#3A9BFF',
+    color: colors.primary,
     lineHeight: 18,
   },
 });

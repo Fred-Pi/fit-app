@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 interface WorkoutTimerProps {
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
   },
   startButtonText: {
     fontSize: 14,
-    color: '#32D760',
+    color: colors.success,
     fontWeight: '600',
   },
   timerContainer: {
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2A2A30',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#3A9BFF',
+    borderColor: colors.primary,
     gap: 6,
   },
   timeDisplayPaused: {
@@ -151,11 +152,11 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#3A9BFF',
+    color: colors.primary,
     fontVariant: ['tabular-nums'],
   },
   timeTextPaused: {
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   controls: {
     flexDirection: 'row',

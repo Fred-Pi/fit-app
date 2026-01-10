@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
+import { colors } from '../../utils/theme'
 import { DateRangeKey } from '../../types'
 import { DATE_RANGES } from '../../utils/analyticsChartConfig'
 
@@ -54,16 +55,16 @@ const styles = StyleSheet.create({
     borderColor: '#3A3A42',
   },
   chipSelected: {
-    backgroundColor: '#3A9BFF',
-    borderColor: '#3A9BFF',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   chipText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   chipTextSelected: {
-    color: '#FFFFFF',
+    color: colors.text,
   },
 })
 

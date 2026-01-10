@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, Dimensions } from 'react-native'
+import { colors } from '../../utils/theme'
 import { ContributionGraph } from 'react-native-chart-kit'
 import { FrequencyDataPoint } from '../../types'
 import { ANALYTICS_CHART_CONFIG, CHART_COLORS } from '../../utils/analyticsChartConfig'
@@ -103,12 +104,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: 0.2,
   },
   subtitle: {
     fontSize: 14,
-    color: '#98989D',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   chart: {
@@ -130,15 +131,15 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3A9BFF',
+    color: colors.primary,
     marginBottom: 4,
   },
   streakValue: {
-    color: '#34C759',
+    color: colors.success,
   },
   statLabel: {
     fontSize: 12,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   statDivider: {
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1C3A2E',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#34C759',
+    borderColor: colors.success,
   },
   streakEmoji: {
     fontSize: 16,
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
   streakText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#34C759',
+    color: colors.success,
   },
   emptyState: {
     paddingVertical: 40,
@@ -173,12 +174,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#98989D',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
 })

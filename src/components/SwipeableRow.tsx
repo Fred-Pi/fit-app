@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native'
+import { colors } from '../utils/theme';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   actionText: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '700',
     marginTop: 4,

@@ -7,7 +7,8 @@ import {
   StyleSheet,
   FlatList,
   Alert,
-} from 'react-native';
+} from 'react-native'
+import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutTemplate } from '../types';
 import { getTemplates, deleteTemplate } from '../services/storage';
@@ -158,11 +159,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   cancelButton: {
     fontSize: 16,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   placeholder: {
     width: 60,
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   listContent: {
     padding: 16,
@@ -199,12 +200,12 @@ const styles = StyleSheet.create({
   templateName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 4,
   },
   templateDetails: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   exercisePreview: {
@@ -232,13 +233,13 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginTop: 16,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },
