@@ -20,11 +20,13 @@ import TemplatePicker from '../components/TemplatePicker';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, getTodayDate } from '../services/storage';
 import { WorkoutLog, User, WorkoutTemplate } from '../types'
 import { colors } from '../utils/theme';
+import { useResponsive } from '../hooks/useResponsive';
 
 type WorkoutsScreenNavigationProp = StackNavigationProp<WorkoutsStackParamList, 'WorkoutsList'>;
 
 const WorkoutsScreen = () => {
   const navigation = useNavigation<WorkoutsScreenNavigationProp>();
+  const { contentMaxWidth } = useResponsive();
   const [workouts, setWorkouts] = useState<WorkoutLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddWorkoutModal, setShowAddWorkoutModal] = useState(false);
@@ -164,7 +166,10 @@ const WorkoutsScreen = () => {
         data={workouts}
         renderItem={renderWorkoutItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={[
+          styles.listContainer,
+          { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
+        ]}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="barbell-outline" size={64} color="#CCC" />

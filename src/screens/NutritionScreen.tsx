@@ -23,8 +23,10 @@ import {
 } from '../services/storage';
 import { DailyNutrition, User, Meal } from '../types'
 import { colors } from '../utils/theme';
+import { useResponsive } from '../hooks/useResponsive';
 
 const NutritionScreen = () => {
+  const { contentMaxWidth } = useResponsive();
   const [user, setUser] = useState<User | null>(null);
   const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
   const [loading, setLoading] = useState(true);
@@ -126,7 +128,10 @@ const NutritionScreen = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      <ScrollView contentContainerStyle={[
+        styles.contentContainer,
+        { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
+      ]}>
         {/* Daily Summary */}
         <Card>
           <Text style={styles.sectionTitle}>Today's Summary</Text>
