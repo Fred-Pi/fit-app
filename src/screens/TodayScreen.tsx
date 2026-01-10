@@ -18,8 +18,11 @@ import AddWorkoutModal from '../components/AddWorkoutModal';
 import AddMealModal from '../components/AddMealModal';
 import WeeklyStatsCard from '../components/WeeklyStatsCard';
 import WeightChart from '../components/WeightChart';
+import StreakCard from '../components/StreakCard';
+import { calculateWorkoutStreak } from '../utils/analyticsCalculations';
 import {
   getUser,
+  getWorkouts,
   getWorkoutsByDate,
   getNutritionByDate,
   getStepsByDate,
@@ -49,6 +52,8 @@ const TodayScreen = () => {
   const [currentWeekStats, setCurrentWeekStats] = useState<WeeklyStats | null>(null);
   const [previousWeekStats, setPreviousWeekStats] = useState<WeeklyStats | null>(null);
   const [weekComparison, setWeekComparison] = useState<WeekComparison | null>(null);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [longestStreak, setLongestStreak] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showUpdateStepsModal, setShowUpdateStepsModal] = useState(false);
@@ -100,6 +105,12 @@ const TodayScreen = () => {
         // Load weekly stats
         await loadWeeklyStats(userData);
       }
+
+      // Load all workouts for streak calculation
+      const allWorkouts = await getWorkouts();
+      const streakData = calculateWorkoutStreak(allWorkouts);
+      setCurrentStreak(streakData.current);
+      setLongestStreak(streakData.longest);
 
       const workouts = await getWorkoutsByDate(date);
       setWorkout(workouts.length > 0 ? workouts[0] : null);
@@ -265,6 +276,12 @@ const TodayScreen = () => {
           comparison={weekComparison || undefined}
         />
       )}
+
+      {/* Streak Card */}
+      <StreakCard
+        currentStreak={currentStreak}
+        longestStreak={longestStreak}
+      />
 
       <View style={styles.dateContainer}>
         <Text style={styles.dateText}>
