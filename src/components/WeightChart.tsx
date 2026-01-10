@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { colors } from '../utils/theme'
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { DailyWeight } from '../types';
 
@@ -11,7 +11,12 @@ interface WeightChartProps {
 }
 
 const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) => {
-  const screenWidth = Dimensions.get('window').width;
+  const [chartWidth, setChartWidth] = useState(300);
+
+  const onLayout = (event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout;
+    setChartWidth(width);
+  };
 
   // Handle empty state
   if (weights.length < 2) {
@@ -51,23 +56,24 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) 
 
   return (
     <View style={styles.container}>
-      <LineChart
-        data={{
-          labels,
-          datasets: [
-            {
-              data: weightValues,
-              color: (opacity = 1) => `rgba(255, 149, 0, ${opacity})`, // Orange for current
-            },
-            ...(goalWeight ? [{
-              data: Array(weightValues.length).fill(goalWeight),
-              color: (opacity = 1) => `rgba(52, 199, 89, ${opacity})`, // Green for goal
-              withDots: false,
-            }] : []),
-          ],
-        }}
-        width={screenWidth - 64}
-        height={180}
+      <View onLayout={onLayout} style={styles.chartContainer}>
+        <LineChart
+          data={{
+            labels,
+            datasets: [
+              {
+                data: weightValues,
+                color: (opacity = 1) => `rgba(255, 149, 0, ${opacity})`, // Orange for current
+              },
+              ...(goalWeight ? [{
+                data: Array(weightValues.length).fill(goalWeight),
+                color: (opacity = 1) => `rgba(52, 199, 89, ${opacity})`, // Green for goal
+                withDots: false,
+              }] : []),
+            ],
+          }}
+          width={chartWidth}
+          height={180}
         chartConfig={{
           backgroundColor: '#2A2A30',
           backgroundGradientFrom: '#2A2A30',
@@ -98,7 +104,8 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) 
         withVerticalLabels={true}
         withHorizontalLabels={true}
         withDots={true}
-      />
+        />
+      </View>
 
       {goalWeight && (
         <View style={styles.legendContainer}>
@@ -174,6 +181,9 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) 
 const styles = StyleSheet.create({
   container: {
     marginTop: 12,
+  },
+  chartContainer: {
+    overflow: 'hidden',
   },
   chart: {
     borderRadius: 12,
