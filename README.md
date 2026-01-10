@@ -11,6 +11,7 @@ This app provides an all-in-one fitness tracking experience with:
 - **Personal Records**: Automatically track your strength gains and PRs
 - **Workout Templates**: Save and reuse your favorite workout routines
 - **Analytics Dashboard**: Visualize your progress with interactive charts and insights
+- **1RM Calculator**: Calculate your one rep max and compare to strength standards
 - **Calorie & Nutrition**: Track daily meals with calories and macros
 - **Steps & Activity**: Monitor daily step count toward your goal
 - **Weekly Statistics**: Track progress with week-over-week comparisons
@@ -63,7 +64,8 @@ src/
 │   ├── WorkoutTimer.tsx
 │   ├── AddWorkoutModal.tsx
 │   ├── EditWorkoutModal.tsx
-│   ├── analytics/      # Analytics chart components
+│   ├── analytics/      # Analytics and strength components
+│   │   └── StrengthCalculator.tsx
 │   └── ...
 ├── navigation/         # Navigation setup
 │   ├── AppNavigator.tsx
@@ -79,6 +81,8 @@ src/
     ├── exerciseHelpers.ts  # Exercise management utilities
     ├── analyticsCalculations.ts  # Analytics data processing
     ├── analyticsChartConfig.ts   # Chart configurations
+    ├── oneRepMax.ts   # 1RM calculation formulas
+    ├── strengthStandards.ts  # Strength level standards
     └── theme.ts       # Color theme
 ```
 
@@ -182,6 +186,16 @@ npm run build:web
 - **Interactive charts** - Touch to see detailed data points
 - **Time period filters** - View 1, 3, or 6 month analytics
 - **Trend indicators** - See if metrics are improving or declining
+
+#### 💪 1RM Calculator & Strength Standards
+- **One Rep Max calculator** - Estimate your 1RM from any weight/rep combination
+- **Multiple formulas** - Uses Epley, Brzycki, Lander, and Lombardi formulas with averaged result
+- **Strength standards** - Compare your lifts to population benchmarks (Beginner to Elite)
+- **Supported lifts** - Bench Press, Squat, Deadlift, Overhead Press, Barbell Row
+- **Body weight ratios** - Standards based on your logged body weight
+- **Gender-specific** - Toggle between male and female strength standards
+- **Progress tracking** - See your progress percentage toward the next strength level
+- **Training weights table** - Shows recommended weights for different rep ranges based on your 1RM
 
 #### ⏱️ Rest Timer
 - **Built-in countdown timer** - Time your rest periods between sets
@@ -450,7 +464,7 @@ Potential features for future development:
 
 ## Version History
 
-### Current Version (v1.0.0)
+### Current Version (v1.1.0)
 
 **Features:**
 - ✅ Workout logging with exercise database
@@ -458,6 +472,8 @@ Potential features for future development:
 - ✅ Personal records tracking
 - ✅ Workout templates
 - ✅ Analytics dashboard with interactive charts
+- ✅ 1RM calculator with multiple formulas
+- ✅ Strength standards comparison (Beginner to Elite)
 - ✅ Rest timer
 - ✅ Weekly statistics
 - ✅ Nutrition tracking

@@ -18,12 +18,13 @@ import { useWorkoutFrequency } from '../hooks/useWorkoutFrequency'
 import DateRangeSelector from '../components/analytics/DateRangeSelector'
 import TrainingVolumeChart from '../components/analytics/TrainingVolumeChart'
 import WorkoutFrequencyChart from '../components/analytics/WorkoutFrequencyChart'
+import StrengthCalculator from '../components/analytics/StrengthCalculator'
 import Card from '../components/Card'
 import ConfirmDialog from '../components/ConfirmDialog'
 import SearchBar from '../components/SearchBar'
 import FilterChip from '../components/FilterChip'
 
-type TabType = 'charts' | 'prs'
+type TabType = 'charts' | 'prs' | 'strength'
 
 const AnalyticsScreen = () => {
   const [user, setUser] = useState<User | null>(null)
@@ -278,7 +279,28 @@ const AnalyticsScreen = () => {
               activeTab === 'prs' && styles.segmentTextActive,
             ]}
           >
-            Personal Records
+            PRs
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.segmentButton,
+            activeTab === 'strength' && styles.segmentButtonActive,
+          ]}
+          onPress={() => setActiveTab('strength')}
+        >
+          <Ionicons
+            name="barbell"
+            size={18}
+            color={activeTab === 'strength' ? '#FFFFFF' : '#98989D'}
+          />
+          <Text
+            style={[
+              styles.segmentText,
+              activeTab === 'strength' && styles.segmentTextActive,
+            ]}
+          >
+            Strength
           </Text>
         </TouchableOpacity>
       </View>
@@ -294,7 +316,7 @@ const AnalyticsScreen = () => {
           />
         }
       >
-        {activeTab === 'charts' ? (
+        {activeTab === 'charts' && (
           <>
             {/* Charts Header */}
             <View style={styles.header}>
@@ -377,7 +399,9 @@ const AnalyticsScreen = () => {
               </>
             )}
           </>
-        ) : (
+        )}
+
+        {activeTab === 'prs' && (
           <>
             {/* PRs Header */}
             <View style={styles.prsHeaderSection}>
@@ -486,6 +510,10 @@ const AnalyticsScreen = () => {
               </View>
             )}
           </>
+        )}
+
+        {activeTab === 'strength' && (
+          <StrengthCalculator user={user} />
         )}
       </ScrollView>
 
