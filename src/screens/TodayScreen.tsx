@@ -40,6 +40,7 @@ import {
 } from '../services/storage';
 import { User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, Meal, WeeklyStats, WeekComparison } from '../types';
 import { getWeekDates, getPreviousWeekDates, calculateDifference, calculatePercentageChange } from '../utils/dateUtils';
+import { colors } from '../utils/theme';
 
 const TodayScreen = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -297,7 +298,7 @@ const TodayScreen = () => {
       <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
-            <Ionicons name="barbell" size={24} color="#00D9FF" />
+            <Ionicons name="barbell" size={24} color={colors.workout} />
             <Text style={styles.cardTitle}>Workout</Text>
           </View>
         </View>
@@ -324,7 +325,7 @@ const TodayScreen = () => {
       <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
-            <Ionicons name="nutrition" size={24} color="#FF6B9D" />
+            <Ionicons name="nutrition" size={24} color={colors.nutrition} />
             <Text style={styles.cardTitle}>Calories</Text>
           </View>
         </View>
@@ -333,7 +334,7 @@ const TodayScreen = () => {
             current={totalCalories}
             target={nutrition?.calorieTarget || 2200}
             unit="cal"
-            color="#FF6B9D"
+            color={colors.nutrition}
           />
         </View>
         {nutrition && nutrition.meals.length > 0 ? (
@@ -354,7 +355,7 @@ const TodayScreen = () => {
       <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
-            <Ionicons name="footsteps" size={24} color="#00E676" />
+            <Ionicons name="footsteps" size={24} color={colors.steps} />
             <Text style={styles.cardTitle}>Steps</Text>
           </View>
         </View>
@@ -363,7 +364,7 @@ const TodayScreen = () => {
             current={steps?.steps || 0}
             target={steps?.stepGoal || 10000}
             unit="steps"
-            color="#00E676"
+            color={colors.steps}
           />
         </View>
         <TouchableOpacity
@@ -378,7 +379,7 @@ const TodayScreen = () => {
       <Card gradient>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
-            <Ionicons name="scale-outline" size={24} color="#FFD740" />
+            <Ionicons name="scale-outline" size={24} color={colors.gold} />
             <Text style={styles.cardTitle}>Body Weight</Text>
           </View>
         </View>
@@ -441,7 +442,7 @@ const TodayScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F1419',
+    backgroundColor: colors.background,
   },
   contentContainer: {
     padding: 20,
@@ -456,12 +457,12 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingBottom: 12,
     borderBottomWidth: 2,
-    borderBottomColor: '#2D3548',
+    borderBottomColor: colors.border,
   },
   dateText: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: 0.5,
   },
   cardHeader: {
@@ -478,7 +479,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: 0.2,
   },
   workoutContent: {
@@ -487,12 +488,12 @@ const styles = StyleSheet.create({
   workoutName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 4,
   },
   workoutDetails: {
     fontSize: 14,
-    color: '#B8C5D6',
+    color: colors.textSecondary,
   },
   progressContainer: {
     marginBottom: 12,
@@ -502,23 +503,23 @@ const styles = StyleSheet.create({
   },
   mealsCount: {
     fontSize: 14,
-    color: '#B8C5D6',
+    color: colors.textSecondary,
   },
   addButton: {
     marginTop: 12,
     paddingVertical: 14,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(0, 217, 255, 0.08)',
+    backgroundColor: colors.primaryMuted,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(0, 217, 255, 0.3)',
+    borderColor: `${colors.primary}50`,
     borderStyle: 'dashed',
   },
   addButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#00D9FF',
+    color: colors.primary,
     letterSpacing: 0.2,
   },
   weightDisplay: {
@@ -529,13 +530,13 @@ const styles = StyleSheet.create({
   weightValue: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#FFD740',
+    color: colors.gold,
     marginRight: 8,
   },
   weightUnit: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#B8C5D6',
+    color: colors.textSecondary,
   },
   emptyWeightState: {
     paddingVertical: 20,
@@ -543,7 +544,7 @@ const styles = StyleSheet.create({
   },
   emptyWeightText: {
     fontSize: 14,
-    color: '#B8C5D6',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
 });

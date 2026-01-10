@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { colors } from '../utils/theme'
 import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#2A2A30',
     borderWidth: 1,
-    borderColor: '#3A3A42',
+    borderColor: colors.borderLight,
     borderRadius: 8,
     paddingHorizontal: 12,
     marginBottom: 16,
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.text,
     paddingVertical: 12,
   },
   clearButton: {

@@ -23,6 +23,7 @@ import Card from '../components/Card'
 import ConfirmDialog from '../components/ConfirmDialog'
 import SearchBar from '../components/SearchBar'
 import FilterChip from '../components/FilterChip'
+import { colors } from '../utils/theme'
 
 type TabType = 'charts' | 'prs' | 'strength'
 
@@ -190,7 +191,7 @@ const AnalyticsScreen = () => {
     Arms: '#F38181',
     Legs: '#FFE66D',
     Core: '#A8DADC',
-    Other: '#3A9BFF',
+    Other: colors.primary,
   }
 
   const renderPRCard = (pr: PersonalRecord) => (
@@ -250,7 +251,7 @@ const AnalyticsScreen = () => {
           <Ionicons
             name="analytics"
             size={18}
-            color={activeTab === 'charts' ? '#FFFFFF' : '#98989D'}
+            color={activeTab === 'charts' ? colors.text : colors.textSecondary}
           />
           <Text
             style={[
@@ -271,7 +272,7 @@ const AnalyticsScreen = () => {
           <Ionicons
             name="trophy"
             size={18}
-            color={activeTab === 'prs' ? '#FFFFFF' : '#98989D'}
+            color={activeTab === 'prs' ? colors.text : colors.textSecondary}
           />
           <Text
             style={[
@@ -292,7 +293,7 @@ const AnalyticsScreen = () => {
           <Ionicons
             name="barbell"
             size={18}
-            color={activeTab === 'strength' ? '#FFFFFF' : '#98989D'}
+            color={activeTab === 'strength' ? colors.text : colors.textSecondary}
           />
           <Text
             style={[
@@ -534,7 +535,7 @@ const AnalyticsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E0E14',
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -547,16 +548,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0E0E14',
+    backgroundColor: colors.background,
   },
   loadingText: {
     fontSize: 16,
-    color: '#98989D',
+    color: colors.textSecondary,
   },
   // Segmented Control
   segmentedControl: {
     flexDirection: 'row',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: colors.surface,
     marginHorizontal: 20,
     marginTop: 16,
     marginBottom: 8,
@@ -573,15 +574,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   segmentButtonActive: {
-    backgroundColor: '#3A9BFF',
+    backgroundColor: colors.primary,
   },
   segmentText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#98989D',
+    color: colors.textSecondary,
   },
   segmentTextActive: {
-    color: '#FFFFFF',
+    color: colors.text,
   },
   // Charts styles
   header: {
@@ -598,13 +599,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: 0.3,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 15,
-    color: '#98989D',
+    color: colors.textSecondary,
     lineHeight: 20,
   },
   emptyContainer: {
@@ -616,28 +617,28 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginTop: 24,
     marginBottom: 12,
   },
   emptyText: {
     fontSize: 16,
-    color: '#98989D',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },
   summaryCard: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#2C2C2E',
+    borderColor: colors.surfaceElevated,
   },
   summaryTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 16,
   },
   summaryGrid: {
@@ -648,7 +649,7 @@ const styles = StyleSheet.create({
   summaryItem: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#2C2C2E',
+    backgroundColor: colors.surfaceElevated,
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -656,12 +657,12 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#3A9BFF',
+    color: colors.primary,
     marginBottom: 6,
   },
   summaryLabel: {
     fontSize: 12,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -671,7 +672,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#3A3A42',
+    borderBottomColor: colors.borderLight,
   },
   prsHeaderIcon: {
     marginBottom: 12,
@@ -679,13 +680,13 @@ const styles = StyleSheet.create({
   prsHeaderTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 6,
     letterSpacing: 0.3,
   },
   prsHeaderSubtitle: {
     fontSize: 15,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   filterChipsContainer: {
@@ -702,12 +703,12 @@ const styles = StyleSheet.create({
   },
   filterResultText: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.text,
     fontWeight: '600',
   },
   clearFiltersText: {
     fontSize: 14,
-    color: '#3A9BFF',
+    color: colors.primary,
     fontWeight: '600',
   },
   categoryHeader: {
@@ -720,12 +721,12 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: 0.2,
   },
   categoryCount: {
     fontSize: 15,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   prItem: {
     flexDirection: 'row',
@@ -738,7 +739,7 @@ const styles = StyleSheet.create({
   exerciseName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 8,
     letterSpacing: 0.2,
   },
@@ -753,11 +754,11 @@ const styles = StyleSheet.create({
   prValue: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#FFD60A',
+    color: colors.gold,
   },
   prLabel: {
     fontSize: 15,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   prDate: {
@@ -777,13 +778,13 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginTop: 20,
     marginBottom: 12,
   },
   emptyStateText: {
     fontSize: 15,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -799,7 +800,7 @@ const styles = StyleSheet.create({
   emptyTipText: {
     flex: 1,
     fontSize: 13,
-    color: '#3A9BFF',
+    color: colors.primary,
     lineHeight: 18,
   },
   emptyFilterState: {
@@ -810,13 +811,13 @@ const styles = StyleSheet.create({
   emptyFilterTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginTop: 20,
     marginBottom: 12,
   },
   emptyFilterText: {
     fontSize: 15,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },

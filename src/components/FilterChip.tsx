@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../utils/theme'
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -15,7 +16,7 @@ const FilterChip: React.FC<FilterChipProps> = ({
   active,
   onPress,
   icon,
-  color = '#3A9BFF',
+  color = colors.primary,
 }) => {
   return (
     <TouchableOpacity
@@ -30,7 +31,7 @@ const FilterChip: React.FC<FilterChipProps> = ({
         <Ionicons
           name={icon as any}
           size={16}
-          color={active ? '#FFFFFF' : '#A0A0A8'}
+          color={active ? colors.text : colors.textSecondary}
           style={styles.icon}
         />
       )}
@@ -66,11 +67,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   activeLabel: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontWeight: '700',
   },
   inactiveLabel: {
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
 });

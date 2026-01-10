@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../utils/theme'
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -96,12 +97,12 @@ const StreakCard: React.FC<StreakCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1E1E22',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#3A3A42',
+    borderColor: colors.borderLight,
   },
   header: {
     flexDirection: 'row',
@@ -118,15 +119,15 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   motivationText: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   recordBadge: {
-    backgroundColor: '#FFD60A',
+    backgroundColor: colors.gold,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -157,36 +158,36 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   statValueActive: {
     color: '#FF9500',
   },
   statLabel: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   divider: {
     width: 1,
     height: 40,
-    backgroundColor: '#3A3A42',
+    backgroundColor: colors.borderLight,
   },
   progressSection: {
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#3A3A42',
+    borderTopColor: colors.borderLight,
   },
   progressText: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginBottom: 8,
     textAlign: 'center',
   },
   progressBar: {
     height: 6,
-    backgroundColor: '#3A3A42',
+    backgroundColor: colors.borderLight,
     borderRadius: 3,
     overflow: 'hidden',
   },

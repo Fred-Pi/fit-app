@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../utils/theme'
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WeeklyStats, WeekComparison } from '../types';
@@ -35,7 +36,7 @@ const WeeklyStatsCard: React.FC<WeeklyStatsCardProps> = ({
 
     const isPositive = value > 0;
     const isNegative = value < 0;
-    const color = isPositive ? '#32D760' : isNegative ? '#FF5E6D' : '#A0A0A8';
+    const color = isPositive ? colors.success : isNegative ? '#FF5E6D' : colors.textSecondary;
     const icon = isPositive ? 'arrow-up' : isNegative ? 'arrow-down' : 'remove';
     const sign = isPositive ? '+' : '';
 
@@ -145,12 +146,12 @@ const WeeklyStatsCard: React.FC<WeeklyStatsCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1E1E22',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#3A3A42',
+    borderColor: colors.borderLight,
   },
   header: {
     flexDirection: 'row',
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#3A3A42',
+    borderBottomColor: colors.borderLight,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -169,12 +170,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   weekRange: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   section: {
     marginBottom: 16,
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   workoutStats: {
     flexDirection: 'row',
@@ -199,11 +200,11 @@ const styles = StyleSheet.create({
   workoutCount: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   daysActive: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   statsRow: {
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
   },
   avgText: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   comparisonContainer: {
     flexDirection: 'row',
@@ -237,7 +238,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   emptySubtext: {
     fontSize: 13,

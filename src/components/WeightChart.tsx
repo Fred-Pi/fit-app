@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../utils/theme'
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { DailyWeight } from '../types';
@@ -84,7 +85,7 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) 
           },
           propsForBackgroundLines: {
             strokeDasharray: '',
-            stroke: '#3A3A42',
+            stroke: colors.borderLight,
             strokeWidth: 1,
           },
         }}
@@ -183,24 +184,24 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#3A3A42',
+    borderTopColor: colors.borderLight,
   },
   statItem: {
     alignItems: 'center',
   },
   statLabel: {
     fontSize: 12,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#3A3A42',
+    backgroundColor: colors.borderLight,
   },
   weightLoss: {
     color: '#34C759',
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#3A3A42',
+    borderTopColor: colors.borderLight,
   },
   legendItem: {
     flexDirection: 'row',
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   emptyState: {
     paddingVertical: 32,
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
 });

@@ -14,7 +14,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Card from '../components/Card';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { getUser, saveUser, clearAllData, getTemplates, deleteTemplate } from '../services/storage';
-import { User, WorkoutTemplate } from '../types';
+import { User, WorkoutTemplate } from '../types'
+import { colors } from '../utils/theme';
 import { createSampleData } from '../utils/sampleData';
 
 const ProfileScreen = () => {
@@ -109,7 +110,7 @@ const ProfileScreen = () => {
     onConfirm: () => void,
     confirmText: string = 'Delete',
     icon: keyof typeof Ionicons.glyphMap = 'alert-circle',
-    iconColor: string = '#FF3B30'
+    iconColor: string = colors.error
   ) => {
     setConfirmDialog({
       visible: true,
@@ -159,7 +160,7 @@ const ProfileScreen = () => {
       },
       'Delete Template',
       'document-text',
-      '#FF3B30'
+      colors.error
     );
   };
 
@@ -391,7 +392,7 @@ const ProfileScreen = () => {
               handleDeleteWorkouts,
               'Delete Workouts',
               'barbell',
-              '#FF3B30'
+              colors.error
             )
           }
         >
@@ -408,7 +409,7 @@ const ProfileScreen = () => {
               handleDeleteNutrition,
               'Delete Nutrition',
               'nutrition',
-              '#FF3B30'
+              colors.error
             )
           }
         >
@@ -425,7 +426,7 @@ const ProfileScreen = () => {
               handleDeleteSteps,
               'Delete Steps',
               'footsteps',
-              '#FF3B30'
+              colors.error
             )
           }
         >
@@ -444,7 +445,7 @@ const ProfileScreen = () => {
               handleResetAll,
               'Reset Everything',
               'warning',
-              '#FF3B30'
+              colors.error
             )
           }
         >
@@ -472,7 +473,7 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E0E14',
+    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
@@ -492,12 +493,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: 0.2,
   },
   editButton: {
     fontSize: 16,
-    color: '#3A9BFF',
+    color: colors.primary,
     fontWeight: '600',
   },
   editActions: {
@@ -510,7 +511,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 16,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   saveButton: {
     paddingHorizontal: 12,
@@ -518,7 +519,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 16,
-    color: '#3A9BFF',
+    color: colors.primary,
     fontWeight: '600',
   },
   settingItem: {
@@ -526,22 +527,22 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   value: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.text,
     fontWeight: '500',
   },
   input: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.text,
     borderWidth: 1,
-    borderColor: '#3A3A42',
+    borderColor: colors.borderLight,
     borderRadius: 8,
     padding: 10,
-    backgroundColor: '#2A2A30',
+    backgroundColor: colors.surfaceElevated,
   },
   infoItem: {
     flexDirection: 'row',
@@ -550,11 +551,11 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 15,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   infoValue: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: colors.text,
   },
   unitToggle: {
     flexDirection: 'row',
@@ -564,37 +565,37 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
-    backgroundColor: '#2A2A30',
+    backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
-    borderColor: '#3A3A42',
+    borderColor: colors.borderLight,
   },
   unitButtonActive: {
-    backgroundColor: '#3A9BFF',
-    borderColor: '#3A9BFF',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   unitButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   unitButtonTextActive: {
-    color: '#FFFFFF',
+    color: colors.text,
   },
   dangerCard: {
     marginTop: 8,
-    borderColor: '#FF3B30',
+    borderColor: colors.error,
     borderWidth: 1,
   },
   dangerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FF3B30',
+    color: colors.error,
     marginBottom: 10,
     letterSpacing: 0.2,
   },
   dangerSubtitle: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginBottom: 16,
     lineHeight: 18,
   },
@@ -608,19 +609,19 @@ const styles = StyleSheet.create({
   },
   dangerButtonText: {
     fontSize: 15,
-    color: '#FF3B30',
+    color: colors.error,
     marginLeft: 8,
     fontWeight: '500',
   },
   dangerButtonCritical: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.error,
   },
   dangerButtonTextCritical: {
-    color: '#FFFFFF',
+    color: colors.text,
   },
   divider: {
     height: 1,
-    backgroundColor: '#3A3A42',
+    backgroundColor: colors.borderLight,
     marginVertical: 12,
   },
   testButton: {
@@ -633,18 +634,18 @@ const styles = StyleSheet.create({
   },
   testButtonText: {
     fontSize: 15,
-    color: '#3A9BFF',
+    color: colors.primary,
     marginLeft: 8,
     fontWeight: '500',
   },
   testDescription: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     lineHeight: 18,
   },
   templatesCount: {
     fontSize: 14,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginBottom: 12,
   },
   templateItem: {
@@ -652,11 +653,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 12,
-    backgroundColor: '#2A2A30',
+    backgroundColor: colors.surfaceElevated,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#3A3A42',
+    borderColor: colors.borderLight,
   },
   templateInfo: {
     flex: 1,
@@ -664,12 +665,12 @@ const styles = StyleSheet.create({
   templateName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 2,
   },
   templateDetails: {
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
   },
   deleteTemplateButton: {
     padding: 8,
@@ -683,7 +684,7 @@ const styles = StyleSheet.create({
   emptyTemplatesText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     marginTop: 12,
     marginBottom: 6,
   },

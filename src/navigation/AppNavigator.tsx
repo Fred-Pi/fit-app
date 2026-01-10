@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../utils/theme';
 
 // Screens
 import TodayScreen from '../screens/TodayScreen';
@@ -24,11 +25,11 @@ const CustomDarkTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    primary: '#3A9BFF',
-    background: '#0E0E14',
-    card: '#1E1E22',
-    text: '#FFFFFF',
-    border: '#3A3A42',
+    primary: colors.primary,
+    background: colors.background,
+    card: colors.surface,
+    text: colors.text,
+    border: colors.border,
   },
 };
 
@@ -43,40 +44,40 @@ const AppNavigator = () => {
 
             if (route.name === 'Today') {
               iconName = focused ? 'today' : 'today-outline';
-              iconColor = focused ? '#32D760' : color;
+              iconColor = focused ? colors.success : color;
             } else if (route.name === 'Workouts') {
               iconName = focused ? 'barbell' : 'barbell-outline';
-              iconColor = focused ? '#3A9BFF' : color;
+              iconColor = focused ? colors.workout : color;
             } else if (route.name === 'Analytics') {
               iconName = focused ? 'analytics' : 'analytics-outline';
-              iconColor = focused ? '#FF9500' : color;
+              iconColor = focused ? colors.analytics : color;
             } else if (route.name === 'Nutrition') {
               iconName = focused ? 'nutrition' : 'nutrition-outline';
-              iconColor = focused ? '#FF5E6D' : color;
+              iconColor = focused ? colors.nutrition : color;
             } else {
               iconName = focused ? 'person' : 'person-outline';
-              iconColor = focused ? '#BF5AF2' : color;
+              iconColor = focused ? colors.textSecondary : color;
             }
 
             return <Ionicons name={iconName} size={size} color={iconColor} />;
           },
-          tabBarActiveTintColor: '#FFFFFF',
-          tabBarInactiveTintColor: '#A0A0A8',
+          tabBarActiveTintColor: colors.text,
+          tabBarInactiveTintColor: colors.textTertiary,
           headerShown: true,
           headerStyle: {
-            backgroundColor: '#1E1E22',
+            backgroundColor: colors.surface,
             borderBottomWidth: 1,
-            borderBottomColor: '#3A3A42',
+            borderBottomColor: colors.border,
           },
           headerTitleStyle: {
             fontWeight: '700',
             fontSize: 18,
-            color: '#FFFFFF',
+            color: colors.text,
             letterSpacing: 0.2,
           },
           tabBarStyle: {
-            backgroundColor: '#1E1E22',
-            borderTopColor: '#3A3A42',
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
             borderTopWidth: 1,
             paddingTop: 8,
             paddingBottom: 8,

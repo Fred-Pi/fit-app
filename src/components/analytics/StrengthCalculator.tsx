@@ -20,6 +20,7 @@ import {
   StrengthLevel,
 } from '../../utils/strengthStandards'
 import Card from '../Card'
+import { colors } from '../../utils/theme'
 
 interface StrengthCalculatorProps {
   user: User | null
@@ -98,7 +99,7 @@ const StrengthCalculator: React.FC<StrengthCalculatorProps> = ({ user }) => {
               {exercise}
             </Text>
             {selectedExercise === exercise && (
-              <Ionicons name="checkmark" size={20} color="#3A9BFF" />
+              <Ionicons name="checkmark" size={20} color={colors.primary} />
             )}
           </TouchableOpacity>
         ))}
@@ -123,7 +124,7 @@ const StrengthCalculator: React.FC<StrengthCalculatorProps> = ({ user }) => {
                 key={level}
                 style={[
                   styles.levelSegment,
-                  { backgroundColor: isActive ? STRENGTH_LEVEL_COLORS[level] : '#2C2C2E' },
+                  { backgroundColor: isActive ? STRENGTH_LEVEL_COLORS[level] : colors.surfaceElevated },
                   isCurrent && styles.levelSegmentCurrent,
                 ]}
               />
@@ -151,7 +152,7 @@ const StrengthCalculator: React.FC<StrengthCalculatorProps> = ({ user }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Ionicons name="barbell" size={32} color="#3A9BFF" />
+        <Ionicons name="barbell" size={32} color={colors.primary} />
         <View style={styles.headerText}>
           <Text style={styles.title}>Strength Calculator</Text>
           <Text style={styles.subtitle}>Calculate your 1RM and strength level</Text>
@@ -181,14 +182,14 @@ const StrengthCalculator: React.FC<StrengthCalculatorProps> = ({ user }) => {
       {/* Body Weight Display */}
       {bodyWeight ? (
         <View style={styles.bodyWeightBanner}>
-          <Ionicons name="body-outline" size={18} color="#3A9BFF" />
+          <Ionicons name="body-outline" size={18} color={colors.primary} />
           <Text style={styles.bodyWeightText}>
             Using body weight: <Text style={styles.bodyWeightValue}>{bodyWeight} {unit}</Text>
           </Text>
         </View>
       ) : (
         <View style={styles.warningBanner}>
-          <Ionicons name="warning-outline" size={18} color="#FFD60A" />
+          <Ionicons name="warning-outline" size={18} color={colors.gold} />
           <Text style={styles.warningText}>
             Log your body weight to see strength standards
           </Text>
@@ -203,7 +204,7 @@ const StrengthCalculator: React.FC<StrengthCalculatorProps> = ({ user }) => {
         <Text style={styles.exerciseSelectorLabel}>Exercise</Text>
         <View style={styles.exerciseSelectorValue}>
           <Text style={styles.exerciseSelectorText}>{selectedExercise}</Text>
-          <Ionicons name="chevron-down" size={20} color="#98989D" />
+          <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
         </View>
       </TouchableOpacity>
 
@@ -237,7 +238,7 @@ const StrengthCalculator: React.FC<StrengthCalculatorProps> = ({ user }) => {
       {oneRepMaxResult && (
         <Card>
           <View style={styles.resultHeader}>
-            <Ionicons name="trophy" size={24} color="#FFD60A" />
+            <Ionicons name="trophy" size={24} color={colors.gold} />
             <Text style={styles.resultTitle}>Estimated 1RM</Text>
           </View>
           <Text style={styles.resultValue}>
@@ -346,7 +347,7 @@ const StrengthCalculator: React.FC<StrengthCalculatorProps> = ({ user }) => {
           <Ionicons
             name={showRepTable ? 'chevron-up' : 'chevron-down'}
             size={20}
-            color="#3A9BFF"
+            color={colors.primary}
           />
         </TouchableOpacity>
       )}
@@ -395,16 +396,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 15,
-    color: '#98989D',
+    color: colors.textSecondary,
   },
   genderToggle: {
     flexDirection: 'row',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: colors.surface,
     borderRadius: 10,
     padding: 4,
     marginBottom: 16,
@@ -416,31 +417,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   genderButtonActive: {
-    backgroundColor: '#3A9BFF',
+    backgroundColor: colors.primary,
   },
   genderButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#98989D',
+    color: colors.textSecondary,
   },
   genderButtonTextActive: {
-    color: '#FFFFFF',
+    color: colors.text,
   },
   bodyWeightBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#0F1A2E',
+    backgroundColor: colors.primaryMuted,
     padding: 12,
     borderRadius: 10,
     marginBottom: 16,
   },
   bodyWeightText: {
     fontSize: 14,
-    color: '#98989D',
+    color: colors.textSecondary,
   },
   bodyWeightValue: {
-    color: '#3A9BFF',
+    color: colors.primary,
     fontWeight: '600',
   },
   warningBanner: {
@@ -454,17 +455,17 @@ const styles = StyleSheet.create({
   },
   warningText: {
     fontSize: 14,
-    color: '#FFD60A',
+    color: colors.gold,
   },
   exerciseSelector: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
   },
   exerciseSelectorLabel: {
     fontSize: 12,
-    color: '#98989D',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   exerciseSelectorValue: {
@@ -475,7 +476,7 @@ const styles = StyleSheet.create({
   exerciseSelectorText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   inputRow: {
     flexDirection: 'row',
@@ -487,16 +488,16 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 12,
-    color: '#98989D',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     textAlign: 'center',
   },
   resultHeader: {
@@ -508,25 +509,25 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   resultValue: {
     fontSize: 48,
     fontWeight: '800',
-    color: '#FFD60A',
+    color: colors.gold,
     textAlign: 'center',
     marginBottom: 16,
   },
   resultUnit: {
     fontSize: 24,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   formulaResults: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     borderTopWidth: 1,
-    borderTopColor: '#2C2C2E',
+    borderTopColor: colors.surfaceElevated,
     paddingTop: 16,
   },
   formulaItem: {
@@ -534,13 +535,13 @@ const styles = StyleSheet.create({
   },
   formulaLabel: {
     fontSize: 11,
-    color: '#98989D',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   formulaValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   strengthHeader: {
     marginBottom: 16,
@@ -554,7 +555,7 @@ const styles = StyleSheet.create({
   strengthTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   levelBadge: {
     paddingHorizontal: 12,
@@ -568,7 +569,7 @@ const styles = StyleSheet.create({
   },
   ratioText: {
     fontSize: 14,
-    color: '#98989D',
+    color: colors.textSecondary,
   },
   levelBarContainer: {
     marginBottom: 16,
@@ -594,50 +595,50 @@ const styles = StyleSheet.create({
   },
   levelLabel: {
     fontSize: 10,
-    color: '#666',
+    color: colors.textTertiary,
     fontWeight: '500',
   },
   levelLabelActive: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontWeight: '700',
   },
   levelDescription: {
     fontSize: 14,
-    color: '#98989D',
+    color: colors.textSecondary,
     lineHeight: 20,
     marginBottom: 16,
   },
   nextLevelContainer: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: colors.surfaceElevated,
     padding: 12,
     borderRadius: 10,
   },
   progressBar: {
     height: 6,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: colors.surface,
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 8,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3A9BFF',
+    backgroundColor: colors.primary,
     borderRadius: 3,
   },
   nextLevelText: {
     fontSize: 13,
-    color: '#98989D',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   targetsTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 4,
   },
   targetsSubtitle: {
     fontSize: 13,
-    color: '#98989D',
+    color: colors.textSecondary,
     marginBottom: 16,
   },
   targetsList: {
@@ -660,12 +661,12 @@ const styles = StyleSheet.create({
   },
   targetLabel: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: colors.text,
     fontWeight: '500',
   },
   targetValue: {
     fontSize: 15,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   repTableToggle: {
@@ -677,31 +678,31 @@ const styles = StyleSheet.create({
   },
   repTableToggleText: {
     fontSize: 14,
-    color: '#3A9BFF',
+    color: colors.primary,
     fontWeight: '600',
   },
   repTableTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 4,
   },
   repTableSubtitle: {
     fontSize: 13,
-    color: '#98989D',
+    color: colors.textSecondary,
     marginBottom: 16,
   },
   repTableHeader: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: colors.surfaceElevated,
     paddingBottom: 8,
     marginBottom: 8,
   },
   repTableHeaderText: {
     flex: 1,
     fontSize: 12,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -709,18 +710,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C1C1E',
+    borderBottomColor: colors.surface,
   },
   repTableCell: {
     flex: 1,
     fontSize: 14,
-    color: '#98989D',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   repTableCellWeight: {
     flex: 1,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.text,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -737,7 +738,7 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   pickerContainer: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
     maxHeight: '80%',
@@ -749,12 +750,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: colors.surfaceElevated,
   },
   pickerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   pickerOption: {
     flexDirection: 'row',
@@ -762,7 +763,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: colors.surfaceElevated,
   },
   pickerOptionSelected: {
     backgroundColor: 'rgba(58, 155, 255, 0.1)',
@@ -771,10 +772,10 @@ const styles = StyleSheet.create({
   },
   pickerOptionText: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: colors.text,
   },
   pickerOptionTextSelected: {
-    color: '#3A9BFF',
+    color: colors.primary,
     fontWeight: '600',
   },
 })

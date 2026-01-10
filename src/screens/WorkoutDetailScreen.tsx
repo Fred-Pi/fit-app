@@ -12,7 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Card from '../components/Card';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditWorkoutModal from '../components/EditWorkoutModal';
-import { WorkoutLog, User } from '../types';
+import { WorkoutLog, User } from '../types'
+import { colors } from '../utils/theme';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, checkAndUpdatePRs } from '../services/storage';
 
 type WorkoutDetailRouteProp = RouteProp<{ params: { workoutId: string } }, 'params'>;
@@ -252,23 +253,23 @@ const WorkoutDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E0E14',
+    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0E0E14',
+    backgroundColor: colors.background,
   },
   loadingText: {
     fontSize: 16,
-    color: '#98989D',
+    color: colors.textSecondary,
     marginTop: 12,
   },
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#98989D',
+    color: colors.textSecondary,
     marginTop: 16,
   },
   contentContainer: {
@@ -287,14 +288,14 @@ const styles = StyleSheet.create({
   workoutName: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 8,
     letterSpacing: 0.3,
   },
   workoutDate: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#98989D',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   durationContainer: {
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
   },
   durationText: {
     fontSize: 15,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   headerActions: {
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
   headerButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: '#2A2A30',
+    backgroundColor: colors.surfaceElevated,
   },
   completedBadge: {
     flexDirection: 'row',
@@ -356,7 +357,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 13,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   sectionHeader: {
@@ -369,7 +370,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: 0.2,
   },
   exerciseHeader: {
@@ -389,12 +390,12 @@ const styles = StyleSheet.create({
   exerciseNumberText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   exerciseName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     flex: 1,
     letterSpacing: 0.2,
   },
@@ -405,7 +406,7 @@ const styles = StyleSheet.create({
   setRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2C2C2E',
+    backgroundColor: colors.surfaceElevated,
     padding: 12,
     borderRadius: 10,
     gap: 12,
@@ -421,7 +422,7 @@ const styles = StyleSheet.create({
   setNumberText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#98989D',
+    color: colors.textSecondary,
   },
   setDetails: {
     flex: 1,
@@ -436,17 +437,17 @@ const styles = StyleSheet.create({
   },
   setDetailLabel: {
     fontSize: 13,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   setDetailValue: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   setDetailSeparator: {
     fontSize: 16,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   exerciseSummary: {
@@ -456,7 +457,7 @@ const styles = StyleSheet.create({
   },
   exerciseSummaryText: {
     fontSize: 14,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   exerciseNotesContainer: {
@@ -471,13 +472,13 @@ const styles = StyleSheet.create({
   exerciseNotesText: {
     flex: 1,
     fontSize: 13,
-    color: '#A0A0A8',
+    color: colors.textSecondary,
     lineHeight: 18,
     fontStyle: 'italic',
   },
   notesText: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: colors.text,
     lineHeight: 22,
   },
 });

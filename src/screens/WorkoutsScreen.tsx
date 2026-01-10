@@ -18,7 +18,8 @@ import SwipeableRow from '../components/SwipeableRow';
 import ExpandableFAB from '../components/ExpandableFAB';
 import TemplatePicker from '../components/TemplatePicker';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, getTodayDate } from '../services/storage';
-import { WorkoutLog, User, WorkoutTemplate } from '../types';
+import { WorkoutLog, User, WorkoutTemplate } from '../types'
+import { colors } from '../utils/theme';
 
 type WorkoutsScreenNavigationProp = StackNavigationProp<WorkoutsStackParamList, 'WorkoutsList'>;
 
@@ -238,7 +239,7 @@ const WorkoutsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E0E14',
+    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
@@ -255,13 +256,13 @@ const styles = StyleSheet.create({
   workoutName: {
     fontSize: 19,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 6,
     letterSpacing: 0.2,
   },
   workoutDate: {
     fontSize: 15,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   workoutStats: {
@@ -270,7 +271,7 @@ const styles = StyleSheet.create({
   },
   workoutDetail: {
     fontSize: 14,
-    color: '#98989D',
+    color: colors.textSecondary,
   },
   completedBadge: {
     flexDirection: 'row',
@@ -292,13 +293,13 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginTop: 20,
     letterSpacing: 0.2,
   },
   emptySubtext: {
     fontSize: 15,
-    color: '#98989D',
+    color: colors.textSecondary,
     marginTop: 12,
     textAlign: 'center',
     lineHeight: 22,

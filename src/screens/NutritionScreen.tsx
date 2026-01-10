@@ -21,7 +21,8 @@ import {
   generateId,
   saveNutrition,
 } from '../services/storage';
-import { DailyNutrition, User, Meal } from '../types';
+import { DailyNutrition, User, Meal } from '../types'
+import { colors } from '../utils/theme';
 
 const NutritionScreen = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -243,7 +244,7 @@ const NutritionScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E0E14',
+    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 18,
     letterSpacing: 0.2,
   },
@@ -277,12 +278,12 @@ const styles = StyleSheet.create({
   macroValue: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 4,
   },
   macroLabel: {
     fontSize: 13,
-    color: '#98989D',
+    color: colors.textSecondary,
   },
   mealsHeader: {
     marginVertical: 16,
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
   mealsTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: 0.2,
   },
   emptyContainer: {
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 17,
-    color: '#98989D',
+    color: colors.textSecondary,
     marginTop: 16,
     fontWeight: '500',
   },
@@ -312,12 +313,12 @@ const styles = StyleSheet.create({
   mealName: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: 0.2,
   },
   mealTime: {
     fontSize: 14,
-    color: '#98989D',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   mealMacros: {
@@ -331,7 +332,7 @@ const styles = StyleSheet.create({
   },
   mealMacroDetail: {
     fontSize: 14,
-    color: '#98989D',
+    color: colors.textSecondary,
   },
   fab: {
     position: 'absolute',

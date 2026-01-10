@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../utils/ThemeContext';
+import { colors } from '../utils/theme';
 
 interface CardProps {
   children: React.ReactNode;
@@ -10,21 +10,13 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({ children, style, gradient = false }) => {
-  const { theme } = useTheme();
-
   if (gradient) {
     return (
       <LinearGradient
-        colors={['#1A1F2E', '#242B3D']}
+        colors={[colors.surface, colors.surfaceElevated]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[
-          styles.card,
-          {
-            borderColor: theme.colors.border,
-          },
-          style,
-        ]}
+        style={[styles.card, style]}
       >
         {children}
       </LinearGradient>
@@ -32,16 +24,7 @@ const Card: React.FC<CardProps> = ({ children, style, gradient = false }) => {
   }
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: theme.colors.surface,
-          borderColor: theme.colors.border,
-        },
-        style,
-      ]}
-    >
+    <View style={[styles.card, styles.cardSolid, style]}>
       {children}
     </View>
   );
@@ -49,15 +32,14 @@ const Card: React.FC<CardProps> = ({ children, style, gradient = false }) => {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 18,
+    borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    shadowColor: '#00D9FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    borderColor: colors.border,
+  },
+  cardSolid: {
+    backgroundColor: colors.surface,
   },
 });
 
