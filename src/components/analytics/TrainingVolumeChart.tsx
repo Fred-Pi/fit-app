@@ -1,5 +1,5 @@
-import React from 'react'
-import { View, Text, StyleSheet, Dimensions } from 'react-native'
+import React, { useState } from 'react'
+import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native'
 import { colors } from '../../utils/theme'
 import { BarChart } from 'react-native-chart-kit'
 import { VolumeDataPoint } from '../../types'
@@ -23,7 +23,12 @@ const TrainingVolumeChart: React.FC<TrainingVolumeChartProps> = ({
   stats,
   unit
 }) => {
-  const screenWidth = Dimensions.get('window').width
+  const [chartWidth, setChartWidth] = useState(300)
+
+  const onLayout = (event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout
+    setChartWidth(width)
+  }
 
   if (volumeData.length === 0) {
     return (
@@ -67,18 +72,20 @@ const TrainingVolumeChart: React.FC<TrainingVolumeChartProps> = ({
         </View>
       </View>
 
-      <BarChart
-        data={chartData}
-        width={screenWidth - 60}
-        height={220}
-        chartConfig={ANALYTICS_CHART_CONFIG}
-        style={styles.chart}
-        yAxisLabel=""
-        yAxisSuffix=""
-        fromZero
-        showBarTops={false}
-        withInnerLines={true}
-      />
+      <View onLayout={onLayout} style={styles.chartContainer}>
+        <BarChart
+          data={chartData}
+          width={chartWidth}
+          height={220}
+          chartConfig={ANALYTICS_CHART_CONFIG}
+          style={styles.chart}
+          yAxisLabel=""
+          yAxisSuffix=""
+          fromZero
+          showBarTops={false}
+          withInnerLines={true}
+        />
+      </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
@@ -115,9 +122,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 4,
   },
+  chartContainer: {
+    overflow: 'hidden',
+  },
   chart: {
     marginVertical: 8,
     borderRadius: 12,
+    marginLeft: -16,
   },
   statsContainer: {
     flexDirection: 'row',
