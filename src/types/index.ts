@@ -227,3 +227,21 @@ export interface MuscleGroupData {
   percentage: number
   color: string
 }
+
+export interface MuscleGroupScore {
+  name: MuscleGroup
+  sets: number
+  volume: number
+  daysTrained: number
+  score: number  // 0-100 normalized
+  intensity: 'none' | 'low' | 'medium' | 'high'
+  lastTrained: string | null
+}
+
+export interface MuscleGroupHeatmapData {
+  scores: MuscleGroupScore[]
+  mostTrained: MuscleGroup | null
+  needsAttention: MuscleGroup[]
+  totalSets: number
+  daysActive: number
+}

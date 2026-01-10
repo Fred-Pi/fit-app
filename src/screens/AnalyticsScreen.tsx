@@ -20,6 +20,8 @@ import TrainingVolumeChart from '../components/analytics/TrainingVolumeChart'
 import WorkoutFrequencyChart from '../components/analytics/WorkoutFrequencyChart'
 import StrengthCalculator from '../components/analytics/StrengthCalculator'
 import ExerciseProgressionChart from '../components/analytics/ExerciseProgressionChart'
+import MuscleGroupHeatmap from '../components/analytics/MuscleGroupHeatmap'
+import { useMuscleGroupData } from '../hooks/useMuscleGroupData'
 import Card from '../components/Card'
 import ConfirmDialog from '../components/ConfirmDialog'
 import SearchBar from '../components/SearchBar'
@@ -27,7 +29,7 @@ import FilterChip from '../components/FilterChip'
 import { colors } from '../utils/theme'
 import { useResponsive } from '../hooks/useResponsive'
 
-type TabType = 'charts' | 'prs' | 'strength'
+type TabType = 'charts' | 'prs' | 'strength' | 'muscle'
 
 const AnalyticsScreen = () => {
   const { contentMaxWidth } = useResponsive()
@@ -39,6 +41,7 @@ const AnalyticsScreen = () => {
   const { workouts, loading: chartsLoading, refreshing: chartsRefreshing, refresh: refreshCharts } = useAnalyticsData(selectedRange)
   const { volumeData, stats: volumeStats } = useTrainingVolume(workouts)
   const { frequencyData, stats: frequencyStats } = useWorkoutFrequency(workouts)
+  const muscleData = useMuscleGroupData(workouts, 7)
 
   // PRs state
   const [prs, setPRs] = useState<PersonalRecord[]>([])
@@ -307,6 +310,27 @@ const AnalyticsScreen = () => {
             Strength
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.segmentButton,
+            activeTab === 'muscle' && styles.segmentButtonActive,
+          ]}
+          onPress={() => setActiveTab('muscle')}
+        >
+          <Ionicons
+            name="body"
+            size={18}
+            color={activeTab === 'muscle' ? colors.text : colors.textSecondary}
+          />
+          <Text
+            style={[
+              styles.segmentText,
+              activeTab === 'muscle' && styles.segmentTextActive,
+            ]}
+          >
+            Muscle
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -542,6 +566,26 @@ const AnalyticsScreen = () => {
 
             {/* 1RM Calculator & Strength Standards */}
             <StrengthCalculator user={user} />
+          </>
+        )}
+
+        {activeTab === 'muscle' && (
+          <>
+            {/* Muscle Header */}
+            <View style={styles.header}>
+              <View style={styles.headerContent}>
+                <Ionicons name="body" size={32} color={colors.success} />
+                <View style={styles.headerText}>
+                  <Text style={styles.title}>Muscle Balance</Text>
+                  <Text style={styles.subtitle}>
+                    Track which muscle groups need more attention
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Muscle Group Heatmap */}
+            <MuscleGroupHeatmap data={muscleData} />
           </>
         )}
       </ScrollView>
