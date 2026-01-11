@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#3A3A42',
+    borderTopColor: colors.borderLight,
   },
   statItem: {
     alignItems: 'center',
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#3A3A42',
+    backgroundColor: colors.borderLight,
   },
   streakBadge: {
     flexDirection: 'row',
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#1C3A2E',
+    backgroundColor: colors.successMuted,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: colors.success,

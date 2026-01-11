@@ -1,32 +1,33 @@
 import { ChartConfig } from 'react-native-chart-kit/dist/HelperTypes'
 import { DateRangeKey, DateRange } from '../types'
+import { colors } from './theme'
 
 export const ANALYTICS_CHART_CONFIG: ChartConfig = {
-  backgroundColor: '#2A2A30',
-  backgroundGradientFrom: '#2A2A30',
-  backgroundGradientTo: '#2A2A30',
+  backgroundColor: 'transparent',
+  backgroundGradientFrom: colors.surface,
+  backgroundGradientTo: colors.surface,
   decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(58, 155, 255, ${opacity})`, // Blue
-  labelColor: (opacity = 1) => `rgba(160, 160, 168, ${opacity})`,
+  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // colors.primary
+  labelColor: (opacity = 1) => `rgba(161, 161, 170, ${opacity})`, // colors.textSecondary
   style: {
     borderRadius: 12,
   },
   propsForBackgroundLines: {
-    stroke: '#3A3A42',
+    stroke: colors.borderLight,
     strokeWidth: 1,
   },
   barPercentage: 0.7,
-  fillShadowGradient: '#3A9BFF',
+  fillShadowGradient: colors.primary,
   fillShadowGradientOpacity: 1,
 }
 
 export const CHART_COLORS = {
-  orange: '#FF9500',
-  blue: '#3A9BFF',
-  green: '#34C759',
+  orange: colors.warning,
+  blue: colors.primary,
+  green: colors.success,
   yellow: '#FFD60A',
-  red: '#FF453A',
-  purple: '#BF5AF2',
+  red: colors.error,
+  purple: colors.analytics,
 }
 
 export const DATE_RANGES: Record<DateRangeKey, DateRange> = {

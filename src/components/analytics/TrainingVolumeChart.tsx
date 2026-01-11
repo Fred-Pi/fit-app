@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#3A3A42',
+    borderTopColor: colors.borderLight,
   },
   statItem: {
     alignItems: 'center',
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#3A3A42',
+    backgroundColor: colors.borderLight,
   },
   emptyState: {
     paddingVertical: 40,

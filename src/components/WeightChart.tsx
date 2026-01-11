@@ -63,11 +63,11 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) 
             datasets: [
               {
                 data: weightValues,
-                color: (opacity = 1) => `rgba(255, 149, 0, ${opacity})`, // Orange for current
+                color: (opacity = 1) => `rgba(245, 158, 11, ${opacity})`, // colors.warning
               },
               ...(goalWeight ? [{
                 data: Array(weightValues.length).fill(goalWeight),
-                color: (opacity = 1) => `rgba(52, 199, 89, ${opacity})`, // Green for goal
+                color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`, // colors.success
                 withDots: false,
               }] : []),
             ],
@@ -75,19 +75,19 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) 
           width={chartWidth}
           height={180}
         chartConfig={{
-          backgroundColor: '#2A2A30',
-          backgroundGradientFrom: '#2A2A30',
-          backgroundGradientTo: '#2A2A30',
+          backgroundColor: 'transparent',
+          backgroundGradientFrom: colors.surface,
+          backgroundGradientTo: colors.surface,
           decimalPlaces: 1,
-          color: (opacity = 1) => `rgba(255, 149, 0, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(160, 160, 168, ${opacity})`,
+          color: (opacity = 1) => `rgba(245, 158, 11, ${opacity})`, // colors.warning
+          labelColor: (opacity = 1) => `rgba(161, 161, 170, ${opacity})`, // colors.textSecondary
           style: {
             borderRadius: 12,
           },
           propsForDots: {
             r: '4',
             strokeWidth: '2',
-            stroke: '#FF9500',
+            stroke: colors.warning,
           },
           propsForBackgroundLines: {
             strokeDasharray: '',
@@ -110,7 +110,7 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) 
       {goalWeight && (
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#FF9500' }]} />
+            <View style={[styles.legendDot, { backgroundColor: colors.warning }]} />
             <Text style={styles.legendText}>Current Weight</Text>
           </View>
           <View style={styles.legendItem}>
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     color: colors.success,
   },
   weightGain: {
-    color: '#FF9500',
+    color: colors.warning,
   },
   goalValue: {
     color: colors.success,
