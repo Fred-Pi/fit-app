@@ -40,7 +40,7 @@ import {
   checkAndUpdatePRs,
   formatDate,
 } from '../services/storage';
-import { User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, Meal, WeeklyStats, WeekComparison } from '../types';
+import { User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, Meal, WeeklyStats, WeekComparison, WorkoutTemplate } from '../types';
 import { getWeekDates, getPreviousWeekDates, calculateDifference, calculatePercentageChange } from '../utils/dateUtils';
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
@@ -60,6 +60,8 @@ const TodayScreen = () => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [suggestions, setSuggestions] = useState<SuggestionData | null>(null);
+  const [recentWorkouts, setRecentWorkouts] = useState<WorkoutLog[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<WorkoutTemplate | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showUpdateStepsModal, setShowUpdateStepsModal] = useState(false);
@@ -121,6 +123,14 @@ const TodayScreen = () => {
       // Calculate workout suggestions
       const suggestionData = calculateWorkoutSuggestions(allWorkouts);
       setSuggestions(suggestionData);
+
+      // Get recent unique workouts for quick repeat
+      const recentUnique = allWorkouts
+        .filter(w => w.date !== date && w.completed)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .filter((w, i, arr) => arr.findIndex(x => x.name === w.name) === i)
+        .slice(0, 3);
+      setRecentWorkouts(recentUnique);
 
       const workouts = await getWorkoutsByDate(date);
       setWorkout(workouts.length > 0 ? workouts[0] : null);
@@ -217,6 +227,7 @@ const TodayScreen = () => {
 
     setWorkout(newWorkout);
     setShowAddWorkoutModal(false);
+    setSelectedTemplate(null);
 
     // Show PR notification if any were set
     if (newPRs.length > 0) {
@@ -227,6 +238,36 @@ const TodayScreen = () => {
         [{ text: 'Awesome!', style: 'default' }]
       );
     }
+  };
+
+  const daysAgo = (dateStr: string): string => {
+    const days = Math.floor(
+      (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    return `${days} days ago`;
+  };
+
+  const workoutToTemplate = (workout: WorkoutLog): WorkoutTemplate => ({
+    id: generateId(),
+    userId: workout.userId,
+    name: workout.name,
+    exercises: workout.exercises.map((ex, index) => ({
+      id: generateId(),
+      exerciseName: ex.exerciseName,
+      targetSets: ex.sets.length,
+      targetReps: ex.sets[0]?.reps || 10,
+      targetWeight: ex.sets[0]?.weight || 0,
+      order: index,
+    })),
+    created: new Date().toISOString(),
+  });
+
+  const handleQuickRepeat = (workoutToRepeat: WorkoutLog) => {
+    const template = workoutToTemplate(workoutToRepeat);
+    setSelectedTemplate(template);
+    setShowAddWorkoutModal(true);
   };
 
   const handleAddMeal = async (meal: Meal) => {
@@ -334,12 +375,35 @@ const TodayScreen = () => {
             </Text>
           </View>
         ) : (
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setShowAddWorkoutModal(true)}
-          >
-            <Text style={styles.addButtonText}>+ Log Workout</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setShowAddWorkoutModal(true)}
+            >
+              <Text style={styles.addButtonText}>+ Log Workout</Text>
+            </TouchableOpacity>
+            {/* Quick Repeat Section */}
+            {recentWorkouts.length > 0 && (
+              <View style={styles.quickRepeatSection}>
+                <Text style={styles.quickRepeatTitle}>Quick Repeat</Text>
+                {recentWorkouts.map(w => (
+                  <TouchableOpacity
+                    key={w.id}
+                    style={styles.quickRepeatItem}
+                    onPress={() => handleQuickRepeat(w)}
+                  >
+                    <Ionicons name="refresh" size={16} color={colors.primary} />
+                    <View style={styles.quickRepeatInfo}>
+                      <Text style={styles.quickRepeatName}>{w.name}</Text>
+                      <Text style={styles.quickRepeatMeta}>
+                        {w.exercises.length} exercises • {daysAgo(w.date)}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </>
         )}
       </Card>
       </View>
@@ -453,10 +517,14 @@ const TodayScreen = () => {
       {user && (
         <AddWorkoutModal
           visible={showAddWorkoutModal}
-          onClose={() => setShowAddWorkoutModal(false)}
+          onClose={() => {
+            setShowAddWorkoutModal(false);
+            setSelectedTemplate(null);
+          }}
           onSave={handleAddWorkout}
           date={date}
           userId={user.id}
+          initialTemplate={selectedTemplate}
         />
       )}
 
@@ -585,6 +653,42 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     width: '48%',
+  },
+  quickRepeatSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  quickRepeatTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  quickRepeatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: 10,
+    marginBottom: 8,
+    gap: 12,
+  },
+  quickRepeatInfo: {
+    flex: 1,
+  },
+  quickRepeatName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  quickRepeatMeta: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 });
 
