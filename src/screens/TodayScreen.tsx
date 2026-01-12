@@ -19,7 +19,9 @@ import AddMealModal from '../components/AddMealModal';
 import WeeklyStatsCard from '../components/WeeklyStatsCard';
 import WeightChart from '../components/WeightChart';
 import StreakCard from '../components/StreakCard';
+import WorkoutSuggestionsCard from '../components/WorkoutSuggestionsCard';
 import { calculateWorkoutStreak } from '../utils/analyticsCalculations';
+import { calculateWorkoutSuggestions, SuggestionData } from '../utils/workoutSuggestions';
 import {
   getUser,
   getWorkouts,
@@ -57,6 +59,7 @@ const TodayScreen = () => {
   const [weekComparison, setWeekComparison] = useState<WeekComparison | null>(null);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
+  const [suggestions, setSuggestions] = useState<SuggestionData | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showUpdateStepsModal, setShowUpdateStepsModal] = useState(false);
@@ -109,11 +112,15 @@ const TodayScreen = () => {
         await loadWeeklyStats(userData);
       }
 
-      // Load all workouts for streak calculation
+      // Load all workouts for streak calculation and suggestions
       const allWorkouts = await getWorkouts();
       const streakData = calculateWorkoutStreak(allWorkouts);
       setCurrentStreak(streakData.current);
       setLongestStreak(streakData.longest);
+
+      // Calculate workout suggestions
+      const suggestionData = calculateWorkoutSuggestions(allWorkouts);
+      setSuggestions(suggestionData);
 
       const workouts = await getWorkoutsByDate(date);
       setWorkout(workouts.length > 0 ? workouts[0] : null);
@@ -290,6 +297,11 @@ const TodayScreen = () => {
         currentStreak={currentStreak}
         longestStreak={longestStreak}
       />
+
+      {/* Workout Suggestions Card */}
+      {suggestions && suggestions.hasEnoughData && (
+        <WorkoutSuggestionsCard suggestions={suggestions} />
+      )}
 
       <View style={styles.dateContainer}>
         <Text style={styles.dateText}>
