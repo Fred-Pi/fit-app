@@ -9,6 +9,7 @@ import TodayScreen from '../screens/TodayScreen';
 import WorkoutsStack from './WorkoutsStack';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import NutritionScreen from '../screens/NutritionScreen';
+import AchievementsScreen from '../screens/AchievementsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 export type RootTabParamList = {
@@ -16,6 +17,7 @@ export type RootTabParamList = {
   Workouts: undefined;
   Analytics: undefined;
   Nutrition: undefined;
+  Achievements: undefined;
   Profile: undefined;
 };
 
@@ -54,6 +56,9 @@ const AppNavigator = () => {
             } else if (route.name === 'Nutrition') {
               iconName = focused ? 'nutrition' : 'nutrition-outline';
               iconColor = focused ? colors.nutrition : color;
+            } else if (route.name === 'Achievements') {
+              iconName = focused ? 'trophy' : 'trophy-outline';
+              iconColor = focused ? colors.gold : color;
             } else {
               iconName = focused ? 'person' : 'person-outline';
               iconColor = focused ? colors.textSecondary : color;
@@ -109,6 +114,11 @@ const AppNavigator = () => {
           name="Nutrition"
           component={NutritionScreen}
           options={{ headerTitle: 'Nutrition' }}
+        />
+        <Tab.Screen
+          name="Achievements"
+          component={AchievementsScreen}
+          options={{ headerTitle: 'Achievements' }}
         />
         <Tab.Screen
           name="Profile"

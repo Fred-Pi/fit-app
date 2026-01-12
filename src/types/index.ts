@@ -245,3 +245,28 @@ export interface MuscleGroupHeatmapData {
   totalSets: number
   daysActive: number
 }
+
+// ============ ACHIEVEMENTS ============
+
+export type AchievementCategory = 'Workouts' | 'Streaks' | 'Strength' | 'Consistency' | 'Variety';
+
+export interface AchievementDefinition {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: AchievementCategory;
+  targetValue: number;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: AchievementCategory;
+  targetValue: number;
+  currentValue: number;
+  isUnlocked: boolean;
+  unlockedDate?: string;
+}

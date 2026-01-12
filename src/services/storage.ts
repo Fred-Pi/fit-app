@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, WeeklyStats, WorkoutTemplate, PersonalRecord, Exercise } from '../types';
-import { isDateInRange } from '../utils/dateUtils';
+import { AppState, User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, WeeklyStats, WorkoutTemplate, PersonalRecord, Exercise, Achievement, MuscleGroup } from '../types';
+import { isDateInRange, getWeekDates, formatDateToISO } from '../utils/dateUtils';
+import { achievementDefinitions } from '../data/achievements';
+import { calculateWorkoutStreak } from '../utils/analyticsCalculations';
 
 // Storage keys
 const KEYS = {
@@ -12,6 +14,7 @@ const KEYS = {
   PERSONAL_RECORDS: '@fit_app_personal_records',
   WEIGHTS: '@fit_app_weights',
   CUSTOM_EXERCISES: '@fit_app_custom_exercises',
+  ACHIEVEMENTS: '@fit_app_achievements',
 };
 
 // ============ USER ============
@@ -569,6 +572,132 @@ export const initializeApp = async (): Promise<User> => {
   return user;
 };
 
+// ============ ACHIEVEMENTS ============
+
+export const getAchievements = async (): Promise<Achievement[]> => {
+  try {
+    const data = await AsyncStorage.getItem(KEYS.ACHIEVEMENTS);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error getting achievements:', error);
+    return [];
+  }
+};
+
+export const saveAchievements = async (achievements: Achievement[]): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(KEYS.ACHIEVEMENTS, JSON.stringify(achievements));
+  } catch (error) {
+    console.error('Error saving achievements:', error);
+  }
+};
+
+export const initializeAchievements = async (): Promise<Achievement[]> => {
+  const existing = await getAchievements();
+  if (existing.length > 0) {
+    return existing;
+  }
+
+  const achievements: Achievement[] = achievementDefinitions.map(def => ({
+    ...def,
+    currentValue: 0,
+    isUnlocked: false,
+  }));
+
+  await saveAchievements(achievements);
+  return achievements;
+};
+
+/**
+ * Check and update all achievements based on current data
+ * Returns list of newly unlocked achievements
+ */
+export const checkAndUpdateAchievements = async (): Promise<Achievement[]> => {
+  const achievements = await initializeAchievements();
+  const newlyUnlocked: Achievement[] = [];
+
+  // Get all data needed for checking
+  const workouts = await getWorkouts();
+  const prs = await getPersonalRecords();
+  const steps = await getSteps();
+  const nutrition = await getNutrition();
+
+  // Calculate metrics
+  const totalWorkouts = workouts.filter(w => w.completed).length;
+  const streak = calculateWorkoutStreak(workouts);
+  const totalPRs = prs.length;
+
+  // Count days where step goal was met
+  const daysStepGoalMet = steps.filter(s => s.steps >= s.stepGoal).length;
+
+  // Count days with nutrition logged
+  const daysNutritionLogged = nutrition.filter(n => n.meals.length > 0).length;
+
+  // Check muscle groups trained this week
+  const { start: weekStart, end: weekEnd } = getWeekDates(new Date());
+  const weekWorkouts = workouts.filter(w => isDateInRange(w.date, weekStart, weekEnd));
+  const muscleGroupsTrained = new Set<MuscleGroup>();
+
+  // We need to map exercises to muscle groups - import exercises data
+  const { EXERCISE_DATABASE } = await import('../data/exercises');
+  const customExercises = await getCustomExercises();
+  const allExercises = [...EXERCISE_DATABASE, ...customExercises];
+
+  weekWorkouts.forEach(workout => {
+    workout.exercises.forEach(ex => {
+      const exerciseInfo = allExercises.find(
+        e => e.name.toLowerCase() === ex.exerciseName.toLowerCase()
+      );
+      if (exerciseInfo) {
+        muscleGroupsTrained.add(exerciseInfo.category);
+      }
+    });
+  });
+
+  // Update each achievement
+  for (const achievement of achievements) {
+    if (achievement.isUnlocked) continue;
+
+    let newValue = 0;
+
+    switch (achievement.id) {
+      case 'first_workout':
+      case 'dedicated_10':
+      case 'warrior_50':
+        newValue = totalWorkouts;
+        break;
+      case 'streak_7':
+      case 'streak_30':
+        newValue = streak.longest;
+        break;
+      case 'pr_5':
+      case 'pr_25':
+        newValue = totalPRs;
+        break;
+      case 'steps_7_days':
+        newValue = daysStepGoalMet;
+        break;
+      case 'nutrition_7_days':
+        newValue = daysNutritionLogged;
+        break;
+      case 'well_rounded':
+        newValue = muscleGroupsTrained.size;
+        break;
+    }
+
+    achievement.currentValue = newValue;
+
+    if (newValue >= achievement.targetValue && !achievement.isUnlocked) {
+      achievement.isUnlocked = true;
+      achievement.unlockedDate = new Date().toISOString();
+      newlyUnlocked.push(achievement);
+    }
+  }
+
+  await saveAchievements(achievements);
+  return newlyUnlocked;
+};
+
 // Clear all data (for testing/reset)
 export const clearAllData = async (): Promise<void> => {
   try {
@@ -581,6 +710,7 @@ export const clearAllData = async (): Promise<void> => {
       KEYS.PERSONAL_RECORDS,
       KEYS.WEIGHTS,
       KEYS.CUSTOM_EXERCISES,
+      KEYS.ACHIEVEMENTS,
     ]);
   } catch (error) {
     console.error('Error clearing data:', error);
