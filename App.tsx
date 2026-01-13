@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/utils/ThemeContext';
+import { initializeDatabase, migrateFromAsyncStorage } from './src/services/database';
 import { initializeApp } from './src/services/storage';
 
 export default function App() {
@@ -12,6 +13,10 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
+        // Initialize SQLite database and run migration from AsyncStorage
+        await initializeDatabase();
+        await migrateFromAsyncStorage();
+
         // Initialize app (create default user if needed)
         await initializeApp();
       } catch (error) {

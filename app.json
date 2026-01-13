@@ -32,6 +32,9 @@
       "description": "A unified fitness tracking app combining gym workouts, calorie tracking, and step counting",
       "backgroundColor": "#0E0E14",
       "themeColor": "#3A9BFF"
-    }
+    },
+    "plugins": [
+      "expo-sqlite"
+    ]
   }
 }
