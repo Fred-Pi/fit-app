@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Card from '../components/Card';
@@ -17,6 +16,7 @@ import { getUser, saveUser, clearAllData, getTemplates, deleteTemplate } from '.
 import { User, WorkoutTemplate } from '../types'
 import { colors } from '../utils/theme';
 import { createSampleData } from '../utils/sampleData';
+import { useScreenData } from '../hooks/useScreenData';
 
 const ProfileScreen = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -41,7 +41,7 @@ const ProfileScreen = () => {
     onConfirm: () => {},
   });
 
-  const loadUser = async () => {
+  const fetchData = useCallback(async () => {
     const userData = await getUser();
     if (userData) {
       setUser(userData);
@@ -50,24 +50,11 @@ const ProfileScreen = () => {
       setStepGoal(userData.dailyStepGoal.toString());
       setGoalWeight(userData.goalWeight?.toString() || '');
     }
-  };
-
-  const loadTemplates = async () => {
     const templateData = await getTemplates();
     setTemplates(templateData);
-  };
-
-  useEffect(() => {
-    loadUser();
-    loadTemplates();
   }, []);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      loadUser();
-      loadTemplates();
-    }, [])
-  );
+  const { reload } = useScreenData(fetchData);
 
   const handleSave = async () => {
     if (!user) return;
@@ -145,7 +132,7 @@ const ProfileScreen = () => {
     await clearAllData();
     setConfirmDialog({ ...confirmDialog, visible: false });
     Alert.alert('Success', 'All data has been reset');
-    loadTemplates(); // Reload templates after reset
+    reload(); // Reload data after reset
   };
 
   const handleDeleteTemplate = async (templateId: string, templateName: string) => {
@@ -155,7 +142,7 @@ const ProfileScreen = () => {
       async () => {
         await deleteTemplate(templateId);
         setConfirmDialog({ ...confirmDialog, visible: false });
-        loadTemplates();
+        reload();
         Alert.alert('Success', 'Template deleted');
       },
       'Delete Template',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack';
@@ -21,6 +21,7 @@ import { getWorkouts, saveWorkout, deleteWorkout, getUser, getTodayDate } from '
 import { WorkoutLog, User, WorkoutTemplate } from '../types'
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useScreenData } from '../hooks/useScreenData';
 
 type WorkoutsScreenNavigationProp = StackNavigationProp<WorkoutsStackParamList, 'WorkoutsList'>;
 
@@ -28,7 +29,6 @@ const WorkoutsScreen = () => {
   const navigation = useNavigation<WorkoutsScreenNavigationProp>();
   const { contentMaxWidth } = useResponsive();
   const [workouts, setWorkouts] = useState<WorkoutLog[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showAddWorkoutModal, setShowAddWorkoutModal] = useState(false);
   const [showEditWorkoutModal, setShowEditWorkoutModal] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutLog | null>(null);
@@ -41,33 +41,14 @@ const WorkoutsScreen = () => {
   const [showTemplatePickerDirect, setShowTemplatePickerDirect] = useState(false);
   const [templateToLoad, setTemplateToLoad] = useState<WorkoutTemplate | null>(null);
 
-  const loadWorkouts = async () => {
-    try {
-      const userData = await getUser();
-      setUser(userData);
-
-      const data = await getWorkouts();
-      // Sort by date descending
-      const sorted = data.sort((a, b) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-      setWorkouts(sorted);
-    } catch (error) {
-      console.error('Error loading workouts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadWorkouts();
+  const fetchData = useCallback(async () => {
+    const userData = await getUser();
+    setUser(userData);
+    const data = await getWorkouts();
+    setWorkouts(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
   }, []);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      loadWorkouts();
-    }, [])
-  );
+  const { loading } = useScreenData(fetchData);
 
   const handleAddWorkout = async (workout: WorkoutLog) => {
     await saveWorkout(workout);

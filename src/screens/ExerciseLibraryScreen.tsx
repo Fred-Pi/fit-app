@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native'
-import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { Ionicons } from '@expo/vector-icons'
 import { Exercise, MuscleGroup } from '../types'
@@ -23,6 +23,7 @@ import EditCustomExerciseModal from '../components/EditCustomExerciseModal'
 import SwipeableRow from '../components/SwipeableRow'
 import ExpandableFAB from '../components/ExpandableFAB'
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack'
+import { useScreenData } from '../hooks/useScreenData'
 
 type ExerciseLibraryScreenNavigationProp = StackNavigationProp<
   WorkoutsStackParamList,
@@ -45,38 +46,16 @@ const ExerciseLibraryScreen = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<MuscleGroup | 'All'>('All')
   const [viewFilter, setViewFilter] = useState<ViewFilter>('all')
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
 
-  const loadCustomExercises = async () => {
-    try {
-      const exercises = await getCustomExercises()
-      setCustomExercises(exercises)
-    } catch (error) {
-      console.error('Error loading custom exercises:', error)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }
-
-  useEffect(() => {
-    loadCustomExercises()
+  const fetchData = useCallback(async () => {
+    const exercises = await getCustomExercises()
+    setCustomExercises(exercises)
   }, [])
 
-  useFocusEffect(
-    useCallback(() => {
-      loadCustomExercises()
-    }, [])
-  )
-
-  const onRefresh = () => {
-    setRefreshing(true)
-    loadCustomExercises()
-  }
+  const { loading, refreshing, onRefresh, reload } = useScreenData(fetchData)
 
   // Get all exercises (built-in + custom)
   const allExercises = useMemo(() => {
@@ -134,7 +113,7 @@ const ExerciseLibraryScreen = () => {
 
   const handleAddExercise = async (exercise: Exercise) => {
     await saveCustomExercise(exercise)
-    await loadCustomExercises()
+    reload()
   }
 
   const handleEditExercise = async (
@@ -159,7 +138,7 @@ const ExerciseLibraryScreen = () => {
       }
     }
 
-    await loadCustomExercises()
+    reload()
     setSelectedExercise(null)
   }
 
@@ -179,7 +158,7 @@ const ExerciseLibraryScreen = () => {
         style: 'destructive',
         onPress: async () => {
           await deleteCustomExercise(exercise.id)
-          await loadCustomExercises()
+          reload()
         },
       },
     ])

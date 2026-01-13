@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../components/Card';
 import ProgressBar from '../components/ProgressBar';
@@ -24,12 +23,12 @@ import {
 import { DailyNutrition, User, Meal } from '../types'
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useScreenData } from '../hooks/useScreenData';
 
 const NutritionScreen = () => {
   const { contentMaxWidth } = useResponsive();
   const [user, setUser] = useState<User | null>(null);
   const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
-  const [loading, setLoading] = useState(true);
   const [showAddMealModal, setShowAddMealModal] = useState(false);
   const [showEditMealModal, setShowEditMealModal] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
@@ -40,39 +39,25 @@ const NutritionScreen = () => {
   }>({ visible: false, mealId: '', mealName: '' });
   const date = getTodayDate();
 
-  const loadData = async () => {
-    try {
-      const userData = await getUser();
-      setUser(userData);
+  const fetchData = useCallback(async () => {
+    const userData = await getUser();
+    setUser(userData);
 
-      let nutritionData = await getNutritionByDate(date);
-      if (!nutritionData && userData) {
-        nutritionData = {
-          id: generateId(),
-          userId: userData.id,
-          date,
-          calorieTarget: userData.dailyCalorieTarget,
-          meals: [],
-        };
-        await saveNutrition(nutritionData);
-      }
-      setNutrition(nutritionData);
-    } catch (error) {
-      console.error('Error loading nutrition:', error);
-    } finally {
-      setLoading(false);
+    let nutritionData = await getNutritionByDate(date);
+    if (!nutritionData && userData) {
+      nutritionData = {
+        id: generateId(),
+        userId: userData.id,
+        date,
+        calorieTarget: userData.dailyCalorieTarget,
+        meals: [],
+      };
+      await saveNutrition(nutritionData);
     }
-  };
+    setNutrition(nutritionData);
+  }, [date]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadData();
-    }, [])
-  );
+  const { loading } = useScreenData(fetchData);
 
   const handleAddMeal = async (meal: Meal) => {
     if (!nutrition) return;

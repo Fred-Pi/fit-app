@@ -7,13 +7,13 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AchievementCard from '../components/AchievementCard';
 import { getAchievements, checkAndUpdateAchievements } from '../services/storage';
 import { Achievement, AchievementCategory } from '../types';
 import { colors, spacing, radius } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
+import { useScreenData } from '../hooks/useScreenData';
 import { achievementCategoryColors } from '../data/achievements';
 
 type FilterCategory = 'All' | AchievementCategory;
@@ -23,26 +23,15 @@ const categories: FilterCategory[] = ['All', 'Workouts', 'Streaks', 'Strength', 
 const AchievementsScreen = () => {
   const { contentMaxWidth } = useResponsive();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<FilterCategory>('All');
 
-  const loadAchievements = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     await checkAndUpdateAchievements();
     const data = await getAchievements();
     setAchievements(data);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadAchievements();
-    }, [loadAchievements])
-  );
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadAchievements();
-    setRefreshing(false);
-  };
+  const { refreshing, onRefresh } = useScreenData(fetchData);
 
   const filteredAchievements = selectedCategory === 'All'
     ? achievements
