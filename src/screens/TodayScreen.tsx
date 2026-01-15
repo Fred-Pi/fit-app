@@ -20,8 +20,10 @@ import WeeklyStatsCard from '../components/WeeklyStatsCard';
 import WeightChart from '../components/WeightChart';
 import StreakCard from '../components/StreakCard';
 import WorkoutSuggestionsCard from '../components/WorkoutSuggestionsCard';
+import { TodayScreenSkeleton } from '../components/SkeletonLoader';
 import { calculateWorkoutStreak } from '../utils/analyticsCalculations';
 import { calculateWorkoutSuggestions, SuggestionData } from '../utils/workoutSuggestions';
+import { lightHaptic, successHaptic } from '../utils/haptics';
 import {
   getUser,
   getWorkouts,
@@ -231,6 +233,7 @@ const TodayScreen = () => {
 
     // Show PR notification if any were set
     if (newPRs.length > 0) {
+      successHaptic();
       const prNames = newPRs.map(pr => pr.exerciseName).join(', ');
       Alert.alert(
         '🏆 New Personal Record!',
@@ -306,9 +309,9 @@ const TodayScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <Text>Loading...</Text>
-      </View>
+      <ScrollView style={styles.container}>
+        <TodayScreenSkeleton />
+      </ScrollView>
     );
   }
 
@@ -322,7 +325,15 @@ const TodayScreen = () => {
           styles.contentContainer,
           { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
         ]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary, colors.workout, colors.nutrition]}
+            progressBackgroundColor={colors.surface}
+          />
+        }
       >
       {/* Weekly Stats Card */}
       {currentWeekStats && (
@@ -378,7 +389,10 @@ const TodayScreen = () => {
           <>
             <TouchableOpacity
               style={styles.addButton}
-              onPress={() => setShowAddWorkoutModal(true)}
+              onPress={() => {
+                lightHaptic();
+                setShowAddWorkoutModal(true);
+              }}
             >
               <Text style={styles.addButtonText}>+ Log Workout</Text>
             </TouchableOpacity>
@@ -390,7 +404,10 @@ const TodayScreen = () => {
                   <TouchableOpacity
                     key={w.id}
                     style={styles.quickRepeatItem}
-                    onPress={() => handleQuickRepeat(w)}
+                    onPress={() => {
+                      lightHaptic();
+                      handleQuickRepeat(w);
+                    }}
                   >
                     <Ionicons name="refresh" size={16} color={colors.primary} />
                     <View style={styles.quickRepeatInfo}>
@@ -432,7 +449,10 @@ const TodayScreen = () => {
         ) : (
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => setShowAddMealModal(true)}
+            onPress={() => {
+              lightHaptic();
+              setShowAddMealModal(true);
+            }}
           >
             <Text style={styles.addButtonText}>+ Add Meal</Text>
           </TouchableOpacity>
@@ -459,7 +479,10 @@ const TodayScreen = () => {
         </View>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => setShowUpdateStepsModal(true)}
+          onPress={() => {
+            lightHaptic();
+            setShowUpdateStepsModal(true);
+          }}
         >
           <Text style={styles.addButtonText}>Update Steps</Text>
         </TouchableOpacity>
@@ -490,7 +513,10 @@ const TodayScreen = () => {
         )}
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => setShowUpdateWeightModal(true)}
+          onPress={() => {
+            lightHaptic();
+            setShowUpdateWeightModal(true);
+          }}
         >
           <Text style={styles.addButtonText}>Update Weight</Text>
         </TouchableOpacity>

@@ -13,6 +13,7 @@ import AddMealModal from '../components/AddMealModal';
 import EditMealModal from '../components/EditMealModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import SwipeableRow from '../components/SwipeableRow';
+import { CardSkeleton, ListSkeleton } from '../components/SkeletonLoader';
 import {
   getNutritionByDate,
   getTodayDate,
@@ -24,6 +25,7 @@ import { DailyNutrition, User, Meal } from '../types'
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useScreenData } from '../hooks/useScreenData';
+import { lightHaptic } from '../utils/haptics';
 
 const NutritionScreen = () => {
   const { contentMaxWidth } = useResponsive();
@@ -100,8 +102,13 @@ const NutritionScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <Text>Loading...</Text>
+      <View style={styles.container}>
+        <View style={styles.contentContainer}>
+          <CardSkeleton />
+          <View style={{ marginTop: 24 }}>
+            <ListSkeleton count={3} />
+          </View>
+        </View>
       </View>
     );
   }
@@ -196,7 +203,10 @@ const NutritionScreen = () => {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => setShowAddMealModal(true)}
+        onPress={() => {
+          lightHaptic();
+          setShowAddMealModal(true);
+        }}
       >
         <Ionicons name="add" size={32} color="#fff" />
       </TouchableOpacity>

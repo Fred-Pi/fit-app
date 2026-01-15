@@ -17,11 +17,13 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import SwipeableRow from '../components/SwipeableRow';
 import ExpandableFAB from '../components/ExpandableFAB';
 import TemplatePicker from '../components/TemplatePicker';
+import { ListSkeleton } from '../components/SkeletonLoader';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, getTodayDate } from '../services/storage';
 import { WorkoutLog, User, WorkoutTemplate } from '../types'
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useScreenData } from '../hooks/useScreenData';
+import { lightHaptic } from '../utils/haptics';
 
 type WorkoutsScreenNavigationProp = StackNavigationProp<WorkoutsStackParamList, 'WorkoutsList'>;
 
@@ -135,8 +137,8 @@ const WorkoutsScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <Text>Loading...</Text>
+      <View style={styles.container}>
+        <ListSkeleton count={5} />
       </View>
     );
   }
@@ -166,17 +168,26 @@ const WorkoutsScreen = () => {
           {
             icon: 'add',
             label: 'New Workout',
-            onPress: () => setShowAddWorkoutModal(true),
+            onPress: () => {
+              lightHaptic();
+              setShowAddWorkoutModal(true);
+            },
           },
           {
             icon: 'document-text',
             label: 'From Template',
-            onPress: () => setShowTemplatePickerDirect(true),
+            onPress: () => {
+              lightHaptic();
+              setShowTemplatePickerDirect(true);
+            },
           },
           {
             icon: 'library-outline',
             label: 'Browse Exercises',
-            onPress: () => navigation.navigate('ExerciseLibrary'),
+            onPress: () => {
+              lightHaptic();
+              navigation.navigate('ExerciseLibrary');
+            },
           },
         ]}
       />

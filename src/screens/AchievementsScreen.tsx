@@ -15,6 +15,7 @@ import { colors, spacing, radius } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useScreenData } from '../hooks/useScreenData';
 import { achievementCategoryColors } from '../data/achievements';
+import { selectionHaptic } from '../utils/haptics';
 
 type FilterCategory = 'All' | AchievementCategory;
 
@@ -52,7 +53,9 @@ const AchievementsScreen = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
+            tintColor={colors.gold}
+            colors={[colors.gold, colors.primary]}
+            progressBackgroundColor={colors.surface}
           />
         }
       >
@@ -89,7 +92,10 @@ const AchievementsScreen = () => {
                   styles.filterChip,
                   isActive && { backgroundColor: `${categoryColor}20`, borderColor: categoryColor },
                 ]}
-                onPress={() => setSelectedCategory(category)}
+                onPress={() => {
+                  selectionHaptic();
+                  setSelectedCategory(category);
+                }}
               >
                 <Text
                   style={[

@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { lightHaptic } from '../utils/haptics';
 
 export interface FABAction {
   icon: string;
@@ -93,6 +94,7 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
   }, [expanded]);
 
   const toggleMenu = () => {
+    lightHaptic();
     setExpanded(!expanded);
   };
 
