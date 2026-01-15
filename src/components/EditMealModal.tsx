@@ -96,6 +96,8 @@ const EditMealModal: React.FC<EditMealModalProps> = ({ visible, onClose, onSave,
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
+              autoFocus
+              selectTextOnFocus
             />
           </View>
 

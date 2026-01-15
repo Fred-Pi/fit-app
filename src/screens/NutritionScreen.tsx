@@ -26,6 +26,7 @@ import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useScreenData } from '../hooks/useScreenData';
 import { lightHaptic } from '../utils/haptics';
+import { formatNumber } from '../utils/formatters';
 
 const NutritionScreen = () => {
   const { contentMaxWidth } = useResponsive();
@@ -137,15 +138,15 @@ const NutritionScreen = () => {
           </View>
           <View style={styles.macrosContainer}>
             <View style={styles.macroItem}>
-              <Text style={styles.macroValue}>{Math.round(totalProtein)}g</Text>
+              <Text style={styles.macroValue}>{formatNumber(Math.round(totalProtein))}g</Text>
               <Text style={styles.macroLabel}>Protein</Text>
             </View>
             <View style={styles.macroItem}>
-              <Text style={styles.macroValue}>{Math.round(totalCarbs)}g</Text>
+              <Text style={styles.macroValue}>{formatNumber(Math.round(totalCarbs))}g</Text>
               <Text style={styles.macroLabel}>Carbs</Text>
             </View>
             <View style={styles.macroItem}>
-              <Text style={styles.macroValue}>{Math.round(totalFats)}g</Text>
+              <Text style={styles.macroValue}>{formatNumber(Math.round(totalFats))}g</Text>
               <Text style={styles.macroLabel}>Fats</Text>
             </View>
           </View>
@@ -190,9 +191,9 @@ const NutritionScreen = () => {
                   </Text>
                 </View>
                 <View style={styles.mealMacros}>
-                  <Text style={styles.mealCalories}>{meal.calories} cal</Text>
+                  <Text style={styles.mealCalories}>{formatNumber(meal.calories)} cal</Text>
                   <Text style={styles.mealMacroDetail}>
-                    P: {meal.protein}g • C: {meal.carbs}g • F: {meal.fats}g
+                    P: {formatNumber(meal.protein)}g • C: {formatNumber(meal.carbs)}g • F: {formatNumber(meal.fats)}g
                   </Text>
                 </View>
               </Card>
