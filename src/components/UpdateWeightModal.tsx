@@ -3,7 +3,6 @@ import {
   Modal,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -13,6 +12,7 @@ import {
 import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { successHaptic } from '../utils/haptics';
+import FormInput from './FormInput';
 
 interface UpdateWeightModalProps {
   visible: boolean;
@@ -78,20 +78,17 @@ const UpdateWeightModal: React.FC<UpdateWeightModalProps> = ({
           </View>
 
           <View style={styles.content}>
-            <Text style={styles.label}>Body Weight ({unit})</Text>
-            <TextInput
-              style={styles.input}
+            <FormInput
+              label={`Body Weight (${unit})`}
+              variant="large"
               placeholder="0"
-              placeholderTextColor="#98989D"
               value={weight}
               onChangeText={setWeight}
               keyboardType="decimal-pad"
               autoFocus
               selectTextOnFocus
+              hint="Enter your current body weight"
             />
-            <Text style={styles.hint}>
-              Enter your current body weight
-            </Text>
           </View>
 
           <View style={styles.actions}>
@@ -152,29 +149,6 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#3A3A42',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
-    backgroundColor: '#2A2A30',
-    color: colors.text,
-  },
-  hint: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 8,
   },
   actions: {
     flexDirection: 'row',

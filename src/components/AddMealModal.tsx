@@ -3,7 +3,6 @@ import {
   Modal,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -16,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Meal } from '../types';
 import { generateId } from '../services/storage';
 import { successHaptic } from '../utils/haptics';
+import FormInput from './FormInput';
 
 interface AddMealModalProps {
   visible: boolean;
@@ -93,11 +93,10 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
-            <Text style={styles.label}>Meal Name *</Text>
-            <TextInput
-              style={styles.input}
+            <FormInput
+              label="Meal Name"
+              required
               placeholder="e.g., Breakfast, Chicken & Rice"
-              placeholderTextColor="#98989D"
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
@@ -106,11 +105,10 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.label}>Calories *</Text>
-            <TextInput
-              style={styles.input}
+            <FormInput
+              label="Calories"
+              required
               placeholder="e.g., 500"
-              placeholderTextColor="#98989D"
               value={calories}
               onChangeText={setCalories}
               keyboardType="number-pad"
@@ -122,11 +120,9 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
 
             <View style={styles.macroRow}>
               <View style={styles.macroInput}>
-                <Text style={styles.label}>Protein (g)</Text>
-                <TextInput
-                  style={styles.input}
+                <FormInput
+                  label="Protein (g)"
                   placeholder="0"
-                  placeholderTextColor="#98989D"
                   value={protein}
                   onChangeText={setProtein}
                   keyboardType="number-pad"
@@ -134,11 +130,9 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
               </View>
 
               <View style={styles.macroInput}>
-                <Text style={styles.label}>Carbs (g)</Text>
-                <TextInput
-                  style={styles.input}
+                <FormInput
+                  label="Carbs (g)"
                   placeholder="0"
-                  placeholderTextColor="#98989D"
                   value={carbs}
                   onChangeText={setCarbs}
                   keyboardType="number-pad"
@@ -146,11 +140,9 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
               </View>
 
               <View style={styles.macroInput}>
-                <Text style={styles.label}>Fats (g)</Text>
-                <TextInput
-                  style={styles.input}
+                <FormInput
+                  label="Fats (g)"
                   placeholder="0"
-                  placeholderTextColor="#98989D"
                   value={fats}
                   onChangeText={setFats}
                   keyboardType="number-pad"
@@ -211,21 +203,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
     marginBottom: 12,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#3A3A42',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#2A2A30',
-    color: colors.text,
   },
   macrosSection: {
     marginBottom: 24,
