@@ -15,6 +15,7 @@ import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutLog, ExerciseLog, SetLog } from '../types';
 import { generateId, getLastExercisePerformance } from '../services/storage';
+import { successHaptic } from '../utils/haptics';
 import ExercisePicker from './ExercisePicker';
 import WorkoutTimer from './WorkoutTimer';
 import ExerciseHistoryIndicator from './ExerciseHistoryIndicator';
@@ -151,6 +152,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
       notes: workoutNotes.trim() || undefined,
     };
 
+    successHaptic();
     onSave(updatedWorkout);
     onClose();
   };

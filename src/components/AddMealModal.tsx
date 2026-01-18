@@ -15,6 +15,7 @@ import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Meal } from '../types';
 import { generateId } from '../services/storage';
+import { successHaptic } from '../utils/haptics';
 
 interface AddMealModalProps {
   visible: boolean;
@@ -50,6 +51,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
       time: new Date().toISOString(),
     };
 
+    successHaptic();
     onSave(meal);
     resetForm();
     onClose();

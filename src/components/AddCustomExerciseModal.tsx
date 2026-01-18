@@ -16,6 +16,7 @@ import { Picker } from '@react-native-picker/picker'
 import { Exercise, MuscleGroup } from '../types'
 import { EXERCISE_CATEGORIES } from '../data/exercises'
 import { generateCustomExerciseId, validateExerciseName } from '../utils/exerciseHelpers'
+import { successHaptic } from '../utils/haptics'
 
 interface AddCustomExerciseModalProps {
   visible: boolean
@@ -86,6 +87,7 @@ const AddCustomExerciseModal: React.FC<AddCustomExerciseModalProps> = ({
       ...(defaultReps && { defaultReps: parseInt(defaultReps) }),
     }
 
+    successHaptic()
     onSave(exercise)
     onClose()
   }

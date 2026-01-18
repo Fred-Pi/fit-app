@@ -15,6 +15,7 @@ import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutLog, ExerciseLog, SetLog, WorkoutTemplate, ExerciseTemplate } from '../types';
 import { generateId, saveTemplate, getLastExercisePerformance } from '../services/storage';
+import { heavyHaptic } from '../utils/haptics';
 import ExercisePicker from './ExercisePicker';
 import TemplatePicker from './TemplatePicker';
 import RestTimer from './RestTimer';
@@ -258,6 +259,7 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
       created: new Date().toISOString(),
     };
 
+    heavyHaptic();
     onSave(workout);
     resetForm();
     onClose();

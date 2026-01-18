@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { successHaptic } from '../utils/haptics';
 
 interface UpdateStepsModalProps {
   visible: boolean;
@@ -40,6 +41,7 @@ const UpdateStepsModal: React.FC<UpdateStepsModalProps> = ({
       return;
     }
 
+    successHaptic();
     onSave(stepsNum);
     onClose();
   };

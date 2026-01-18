@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { successHaptic } from '../utils/haptics';
 
 interface UpdateWeightModalProps {
   visible: boolean;
@@ -42,6 +43,7 @@ const UpdateWeightModal: React.FC<UpdateWeightModalProps> = ({
       return;
     }
 
+    successHaptic();
     onSave(weightNum);
     onClose();
   };

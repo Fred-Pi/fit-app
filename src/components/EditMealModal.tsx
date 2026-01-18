@@ -14,6 +14,7 @@ import {
 import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Meal } from '../types';
+import { successHaptic } from '../utils/haptics';
 
 interface EditMealModalProps {
   visible: boolean;
@@ -61,6 +62,7 @@ const EditMealModal: React.FC<EditMealModalProps> = ({ visible, onClose, onSave,
       fats: parseInt(fats) || 0,
     };
 
+    successHaptic();
     onSave(updatedMeal);
     onClose();
   };
