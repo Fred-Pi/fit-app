@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { WeeklyStats, WeekComparison } from '../types';
 import { formatWeekRange } from '../utils/dateUtils';
 import ProgressBar from './ProgressBar';
+import EmptyState from './EmptyState';
 
 interface WeeklyStatsCardProps {
   currentWeek: WeeklyStats;
@@ -134,11 +135,13 @@ const WeeklyStatsCard: React.FC<WeeklyStatsCardProps> = ({
 
       {/* Empty State */}
       {currentWeek.totalWorkouts === 0 && currentWeek.totalCalories === 0 && currentWeek.totalSteps === 0 && (
-        <View style={styles.emptyState}>
-          <Ionicons name="information-circle-outline" size={24} color="#A0A0A8" />
-          <Text style={styles.emptyText}>No activity this week yet</Text>
-          <Text style={styles.emptySubtext}>Start logging workouts, nutrition, and steps!</Text>
-        </View>
+        <EmptyState
+          icon="information-circle-outline"
+          iconSize={24}
+          iconColor="#A0A0A8"
+          title="No activity this week yet"
+          subtitle="Start logging workouts, nutrition, and steps!"
+        />
       )}
     </View>
   );
@@ -230,21 +233,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    gap: 8,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  emptySubtext: {
-    fontSize: 13,
-    color: '#666',
-    textAlign: 'center',
-  },
-});
+  });
 
 export default WeeklyStatsCard;

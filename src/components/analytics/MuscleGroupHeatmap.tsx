@@ -6,6 +6,7 @@ import { MuscleGroup, MuscleGroupHeatmapData } from '../../types'
 import { EXERCISE_CATEGORIES } from '../../data/exercises'
 import Card from '../Card'
 import BodySilhouette from './BodySilhouette'
+import EmptyState from '../EmptyState'
 
 interface MuscleGroupHeatmapProps {
   data: MuscleGroupHeatmapData
@@ -60,13 +61,12 @@ const MuscleGroupHeatmap: React.FC<MuscleGroupHeatmapProps> = ({ data }) => {
       <Card>
         <Text style={styles.title}>Muscle Balance</Text>
         <Text style={styles.subtitle}>Last 7 days training focus</Text>
-        <View style={styles.emptyState}>
-          <Ionicons name="body-outline" size={64} color={colors.textTertiary} />
-          <Text style={styles.emptyText}>No workout data available</Text>
-          <Text style={styles.emptySubtext}>
-            Complete workouts to see your muscle group training balance
-          </Text>
-        </View>
+        <EmptyState
+          icon="body-outline"
+          iconSize={64}
+          title="No workout data available"
+          subtitle="Complete workouts to see your muscle group training balance"
+        />
       </Card>
     )
   }
@@ -407,23 +407,6 @@ const styles = StyleSheet.create({
     color: colors.gold,
     fontWeight: '500'
   },
-  emptyState: {
-    paddingVertical: 40,
-    alignItems: 'center'
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginTop: 16,
-    marginBottom: 8
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    paddingHorizontal: 20
-  }
-})
+  })
 
 export default React.memo(MuscleGroupHeatmap)

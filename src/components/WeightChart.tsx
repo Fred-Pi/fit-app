@@ -3,6 +3,7 @@ import { colors } from '../utils/theme'
 import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { DailyWeight } from '../types';
+import EmptyState from './EmptyState';
 
 interface WeightChartProps {
   weights: DailyWeight[];
@@ -21,11 +22,9 @@ const WeightChart: React.FC<WeightChartProps> = ({ weights, unit, goalWeight }) 
   // Handle empty state
   if (weights.length < 2) {
     return (
-      <View style={styles.emptyState}>
-        <Text style={styles.emptyStateText}>
-          Add at least 2 weight entries to see your trend
-        </Text>
-      </View>
+      <EmptyState
+        title="Add at least 2 weight entries to see your trend"
+      />
     );
   }
 
@@ -245,15 +244,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
   },
-  emptyState: {
-    paddingVertical: 32,
-    alignItems: 'center',
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-});
+  });
 
 export default WeightChart;
