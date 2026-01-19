@@ -28,6 +28,7 @@ import {
 import Card from '../components/Card'
 import EditCustomExerciseModal from '../components/EditCustomExerciseModal'
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack'
+import { warningHaptic } from '../utils/haptics'
 
 type ExerciseDetailScreenRouteProp = RouteProp<
   WorkoutsStackParamList,
@@ -115,6 +116,7 @@ const ExerciseDetailScreen = () => {
         ? `This exercise is used in ${usageCount} workout(s). Deleting it won't remove it from those workouts, but you won't be able to add it to new workouts.`
         : 'Are you sure you want to delete this exercise?'
 
+    warningHaptic()
     Alert.alert('Delete Exercise', message, [
       { text: 'Cancel', style: 'cancel' },
       {

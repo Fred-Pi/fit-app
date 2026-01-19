@@ -17,6 +17,7 @@ import { User, WorkoutTemplate } from '../types'
 import { colors } from '../utils/theme';
 import { createSampleData } from '../utils/sampleData';
 import { useScreenData } from '../hooks/useScreenData';
+import { warningHaptic } from '../utils/haptics';
 
 const ProfileScreen = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -99,6 +100,7 @@ const ProfileScreen = () => {
     icon: keyof typeof Ionicons.glyphMap = 'alert-circle',
     iconColor: string = colors.error
   ) => {
+    warningHaptic();
     setConfirmDialog({
       visible: true,
       title,

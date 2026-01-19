@@ -28,6 +28,7 @@ import SearchBar from '../components/SearchBar'
 import FilterChip from '../components/FilterChip'
 import { colors } from '../utils/theme'
 import { useResponsive } from '../hooks/useResponsive'
+import { warningHaptic } from '../utils/haptics'
 
 type TabType = 'charts' | 'prs' | 'strength' | 'muscle'
 
@@ -100,6 +101,7 @@ const AnalyticsScreen = () => {
   }
 
   const handleDeletePR = async (pr: PersonalRecord) => {
+    warningHaptic()
     setConfirmDialog({
       visible: true,
       title: 'Delete Personal Record?',

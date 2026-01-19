@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native
 import { colors } from '../utils/theme';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
+import { warningHaptic, lightHaptic } from '../utils/haptics';
 
 interface SwipeableRowProps {
   children: React.ReactNode;
@@ -36,11 +37,13 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
     });
 
     const handleEdit = () => {
+      lightHaptic();
       swipeableRef.current?.close();
       onEdit?.();
     };
 
     const handleDelete = () => {
+      warningHaptic();
       swipeableRef.current?.close();
       onDelete();
     };
@@ -52,6 +55,8 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
             <TouchableOpacity
               style={[styles.actionContent, styles.editAction]}
               onPress={handleEdit}
+              accessibilityLabel="Edit"
+              accessibilityRole="button"
             >
               <Ionicons name="pencil" size={24} color="#FFFFFF" />
               <Text style={styles.actionText}>Edit</Text>
@@ -62,6 +67,8 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
           <TouchableOpacity
             style={[styles.actionContent, styles.deleteAction]}
             onPress={handleDelete}
+            accessibilityLabel="Delete"
+            accessibilityRole="button"
           >
             <Ionicons name="trash" size={24} color="#FFFFFF" />
             <Text style={styles.actionText}>Delete</Text>
