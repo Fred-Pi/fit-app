@@ -15,9 +15,11 @@ const FormInput: React.FC<FormInputProps> = ({
   required,
   variant = 'default',
   style,
+  accessibilityLabel,
   ...textInputProps
 }) => {
   const isLarge = variant === 'large'
+  const a11yLabel = accessibilityLabel || (label ? `${label}${required ? ', required' : ''} input field` : undefined)
 
   return (
     <View style={styles.container}>
@@ -33,6 +35,8 @@ const FormInput: React.FC<FormInputProps> = ({
           style,
         ]}
         placeholderTextColor="#98989D"
+        accessibilityLabel={a11yLabel}
+        accessibilityHint={hint}
         {...textInputProps}
       />
       {hint && <Text style={[styles.hint, isLarge && styles.hintCentered]}>{hint}</Text>}

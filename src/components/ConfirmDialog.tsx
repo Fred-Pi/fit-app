@@ -47,6 +47,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           style={styles.backdrop}
           activeOpacity={1}
           onPress={onCancel}
+          accessibilityLabel="Close dialog"
+          accessibilityRole="button"
         />
         <View style={styles.container}>
           <View style={styles.iconContainer}>
@@ -60,12 +62,16 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             <TouchableOpacity
               style={[styles.button, styles.cancelButton]}
               onPress={onCancel}
+              accessibilityLabel={cancelText}
+              accessibilityRole="button"
             >
               <Text style={styles.cancelButtonText}>{cancelText}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.confirmButton, { backgroundColor: confirmColor }]}
               onPress={onConfirm}
+              accessibilityLabel={confirmText}
+              accessibilityRole="button"
             >
               <Text style={styles.confirmButtonText}>{confirmText}</Text>
             </TouchableOpacity>

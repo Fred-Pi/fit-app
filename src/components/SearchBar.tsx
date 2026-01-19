@@ -61,9 +61,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onChangeText={handleChangeText}
         autoCapitalize="none"
         autoCorrect={false}
+        accessibilityLabel={placeholder}
+        accessibilityRole="search"
       />
       {localValue.length > 0 && (
-        <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
+        <TouchableOpacity
+          onPress={handleClear}
+          style={styles.clearButton}
+          accessibilityLabel="Clear search"
+          accessibilityRole="button"
+        >
           <Ionicons name="close-circle" size={20} color="#A0A0A8" />
         </TouchableOpacity>
       )}

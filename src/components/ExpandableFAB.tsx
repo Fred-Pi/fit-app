@@ -139,6 +139,8 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
                 style={styles.actionButton}
                 onPress={() => handleActionPress(action)}
                 activeOpacity={0.8}
+                accessibilityLabel={action.label}
+                accessibilityRole="button"
               >
                 <Ionicons
                   name={action.icon as any}
@@ -157,6 +159,9 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
         style={[styles.fab, { backgroundColor: mainColor }]}
         onPress={toggleMenu}
         activeOpacity={0.8}
+        accessibilityLabel={expanded ? 'Close menu' : 'Open actions menu'}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
       >
         <Ionicons
           name={expanded ? 'close' : (mainIcon as any)}

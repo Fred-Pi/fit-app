@@ -82,11 +82,11 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
         style={styles.container}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose}>
+          <TouchableOpacity onPress={handleClose} accessibilityLabel="Cancel" accessibilityRole="button">
             <Text style={styles.cancelButton}>Cancel</Text>
           </TouchableOpacity>
           <Text style={styles.title}>Add Meal</Text>
-          <TouchableOpacity onPress={handleSave}>
+          <TouchableOpacity onPress={handleSave} accessibilityLabel="Save meal" accessibilityRole="button">
             <Text style={styles.saveButton}>Save</Text>
           </TouchableOpacity>
         </View>

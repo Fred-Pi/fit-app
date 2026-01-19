@@ -66,6 +66,8 @@ const UpdateStepsModal: React.FC<UpdateStepsModalProps> = ({
           style={styles.backdrop}
           activeOpacity={1}
           onPress={handleClose}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
         />
         <View style={styles.container}>
           <View style={styles.header}>
@@ -93,12 +95,16 @@ const UpdateStepsModal: React.FC<UpdateStepsModalProps> = ({
             <TouchableOpacity
               style={[styles.button, styles.cancelButton]}
               onPress={handleClose}
+              accessibilityLabel="Cancel"
+              accessibilityRole="button"
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.saveButton]}
               onPress={handleSave}
+              accessibilityLabel="Save steps"
+              accessibilityRole="button"
             >
               <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>

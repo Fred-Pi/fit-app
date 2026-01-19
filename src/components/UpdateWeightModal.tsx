@@ -68,6 +68,8 @@ const UpdateWeightModal: React.FC<UpdateWeightModalProps> = ({
           style={styles.backdrop}
           activeOpacity={1}
           onPress={handleClose}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
         />
         <View style={styles.container}>
           <View style={styles.header}>
@@ -95,12 +97,16 @@ const UpdateWeightModal: React.FC<UpdateWeightModalProps> = ({
             <TouchableOpacity
               style={[styles.button, styles.cancelButton]}
               onPress={handleClose}
+              accessibilityLabel="Cancel"
+              accessibilityRole="button"
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.saveButton]}
               onPress={handleSave}
+              accessibilityLabel="Save weight"
+              accessibilityRole="button"
             >
               <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
