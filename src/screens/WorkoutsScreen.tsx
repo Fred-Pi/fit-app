@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -50,7 +51,7 @@ const WorkoutsScreen = () => {
     setWorkouts(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
   }, []);
 
-  const { loading } = useScreenData(fetchData);
+  const { loading, refreshing, onRefresh } = useScreenData(fetchData);
 
   const handleAddWorkout = async (workout: WorkoutLog) => {
     await saveWorkout(workout);
@@ -153,6 +154,13 @@ const WorkoutsScreen = () => {
           styles.listContainer,
           { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
         ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="barbell-outline" size={64} color="#CCC" />
