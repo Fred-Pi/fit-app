@@ -88,7 +88,7 @@ const EditMealModal: React.FC<EditMealModalProps> = ({ visible, onClose, onSave,
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardDismissMode="on-drag">
           <View style={styles.section}>
             <FormInput
               label="Meal Name"

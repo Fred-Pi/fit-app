@@ -182,7 +182,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardDismissMode="on-drag">
           {/* Workout Name */}
           <View style={styles.section}>
             <Text style={styles.label}>Workout Name *</Text>

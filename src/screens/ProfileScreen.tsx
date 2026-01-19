@@ -162,7 +162,7 @@ const ProfileScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} keyboardDismissMode="on-drag">
       {/* Profile Info */}
       <Card>
         <View style={styles.header}>

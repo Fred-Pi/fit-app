@@ -183,7 +183,7 @@ const EditCustomExerciseModal: React.FC<EditCustomExerciseModalProps> = ({
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer} keyboardDismissMode="on-drag">
           <View style={styles.section}>
             <Text style={styles.label}>
               Exercise Name <Text style={styles.required}>*</Text>
