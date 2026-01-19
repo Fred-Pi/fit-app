@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../components/Card';
@@ -13,6 +12,7 @@ import AddMealModal from '../components/AddMealModal';
 import EditMealModal from '../components/EditMealModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import SwipeableRow from '../components/SwipeableRow';
+import ExpandableFAB from '../components/ExpandableFAB';
 import { CardSkeleton, ListSkeleton } from '../components/SkeletonLoader';
 import {
   getNutritionByDate,
@@ -25,7 +25,6 @@ import { DailyNutrition, User, Meal } from '../types'
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useScreenData } from '../hooks/useScreenData';
-import { lightHaptic } from '../utils/haptics';
 import { formatNumber } from '../utils/formatters';
 
 const NutritionScreen = () => {
@@ -202,15 +201,17 @@ const NutritionScreen = () => {
         )}
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => {
-          lightHaptic();
-          setShowAddMealModal(true);
-        }}
-      >
-        <Ionicons name="add" size={32} color="#fff" />
-      </TouchableOpacity>
+      <ExpandableFAB
+        mainColor="#FF6B6B"
+        actions={[
+          {
+            icon: 'restaurant',
+            label: 'Add Meal',
+            onPress: () => setShowAddMealModal(true),
+            color: '#FF6B6B',
+          },
+        ]}
+      />
 
       <AddMealModal
         visible={showAddMealModal}
@@ -335,22 +336,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
   },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FF6B6B',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-});
+  });
 
 export default NutritionScreen;
