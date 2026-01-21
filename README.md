@@ -30,7 +30,8 @@ Regular gym-goer trying to lose fat and/or gain muscle who:
 
 - **React Native** with Expo SDK 54 (TypeScript)
 - **React Navigation** (bottom tabs + stack navigation)
-- **AsyncStorage** for local-first data persistence
+- **Zustand** for state management with centralized stores
+- **SQLite** (expo-sqlite) for local-first data persistence
 - **Expo Vector Icons** for UI
 - Compiled for **iOS, Android, and Web**
 
@@ -40,8 +41,16 @@ Regular gym-goer trying to lose fat and/or gain muscle who:
 src/
 ├── types/              # TypeScript type definitions
 │   └── index.ts
+├── stores/             # Zustand state management
+│   ├── index.ts        # Store exports
+│   ├── userStore.ts    # User profile and preferences
+│   ├── workoutStore.ts # Workouts, templates, PRs (with caching)
+│   ├── nutritionStore.ts # Daily nutrition and meals
+│   ├── dailyTrackingStore.ts # Steps, weight, weekly stats
+│   └── uiStore.ts      # Modal state and UI
 ├── services/           # Data storage and business logic
-│   └── storage.ts
+│   ├── database.ts     # SQLite database management
+│   └── storage.ts      # Data access layer
 ├── screens/            # Main app screens
 │   ├── TodayScreen.tsx
 │   ├── WorkoutsScreen.tsx
@@ -49,16 +58,17 @@ src/
 │   ├── ExerciseLibraryScreen.tsx
 │   ├── ExerciseDetailScreen.tsx
 │   ├── AnalyticsScreen.tsx
-│   ├── PRScreen.tsx
 │   ├── NutritionScreen.tsx
+│   ├── AchievementsScreen.tsx
 │   └── ProfileScreen.tsx
 ├── components/         # Reusable UI components
 │   ├── Card.tsx
 │   ├── ProgressBar.tsx
+│   ├── GlobalModals.tsx # Centralized modal rendering
 │   ├── ExercisePicker.tsx
 │   ├── ExerciseCard.tsx
-│   ├── AddCustomExerciseModal.tsx
-│   ├── EditCustomExerciseModal.tsx
+│   ├── SwipeableRow.tsx
+│   ├── ExpandableFAB.tsx
 │   ├── TemplatePicker.tsx
 │   ├── RestTimer.tsx
 │   ├── WorkoutTimer.tsx
@@ -69,10 +79,11 @@ src/
 │   └── ...
 ├── navigation/         # Navigation setup
 │   ├── AppNavigator.tsx
-│   ├── WorkoutsStack.tsx
-│   └── ExercisesStack.tsx
+│   └── WorkoutsStack.tsx
 ├── hooks/             # Custom React hooks
-│   └── useTimer.ts
+│   ├── useTimer.ts
+│   ├── useResponsive.ts
+│   └── useAnalyticsData.ts
 ├── data/              # Static data and databases
 │   └── exercises.ts   # Exercise database (54 exercises)
 └── utils/             # Utilities and helpers
@@ -83,6 +94,7 @@ src/
     ├── analyticsChartConfig.ts   # Chart configurations
     ├── oneRepMax.ts   # 1RM calculation formulas
     ├── strengthStandards.ts  # Strength level standards
+    ├── haptics.ts     # Haptic feedback utilities
     └── theme.ts       # Color theme
 ```
 
@@ -280,7 +292,7 @@ Seven-tab bottom navigation:
 - **WeeklyStats**: Aggregated weekly statistics
 - **Exercise**: Exercise from the database
 
-All data is stored locally using AsyncStorage for a fast, offline-first experience.
+All data is stored locally using SQLite for a fast, offline-first experience with efficient indexed queries.
 
 ## Usage Guide
 
@@ -400,13 +412,30 @@ npm test           # Run tests (if configured)
 
 ### Local-First Architecture
 
-The app uses AsyncStorage for local data persistence without requiring a backend. This provides:
+The app uses SQLite (expo-sqlite) for local data persistence without requiring a backend. This provides:
 
-- **Fast performance**: No network latency
+- **Fast performance**: Indexed queries with no network latency
 - **Offline-first**: Works without internet
 - **Simple setup**: No backend required
 - **Privacy**: All data stays on device
+- **Relational data**: Proper foreign keys and data integrity
 - **Easy to extend**: Cloud sync can be added later
+
+### State Management
+
+The app uses Zustand for centralized state management with 5 domain-specific stores:
+
+- **userStore**: User profile and preferences
+- **workoutStore**: Workouts, templates, personal records (with 5-minute caching)
+- **nutritionStore**: Daily nutrition and meals with computed totals
+- **dailyTrackingStore**: Steps, weight, and weekly statistics
+- **uiStore**: Modal visibility and UI state
+
+Benefits:
+- **Selective subscriptions**: Components only re-render when their specific data changes
+- **Centralized modals**: All modals rendered at root level via GlobalModals
+- **Built-in caching**: Prevents redundant database queries
+- **Simple API**: No boilerplate, just `useStore((s) => s.value)`
 
 ### Automatic PR Tracking
 

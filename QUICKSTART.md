@@ -57,34 +57,16 @@ The app will load with:
 
 To test the app with realistic data:
 
-1. Go to the **Profile** screen (tap Profile tab)
-2. In your code editor, open `src/screens/ProfileScreen.tsx`
-3. Add this import at the top:
-   ```typescript
-   import { createSampleData } from '../utils/sampleData';
-   ```
-4. Add a button in the Profile screen (after the "About" card):
-   ```typescript
-   <Card>
-     <TouchableOpacity
-       style={styles.dangerButton}
-       onPress={async () => {
-         await createSampleData();
-         Alert.alert('Success', 'Sample data added! Go to Today screen.');
-       }}
-     >
-       <Text style={styles.dangerButtonText}>Add Sample Data</Text>
-     </TouchableOpacity>
-   </Card>
-   ```
-5. Save the file (app will reload automatically)
-6. Tap "Add Sample Data" button
-7. Navigate to Today tab to see the data
+1. Go to the **Profile** tab
+2. Scroll to the **Testing** section
+3. Tap **Load Sample Data**
+4. Navigate to Today tab to see the data
 
 This will create:
-- 3 workouts (today, yesterday, 2 days ago)
-- Meals for today and yesterday
-- Step counts for 3 days
+- Sample workouts over the past week
+- Meals and nutrition data
+- Step counts
+- Personal records
 
 ## Common Commands
 

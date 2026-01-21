@@ -15,12 +15,17 @@
 │       └─────────────┴──────────────┴─────────────┘      │
 │                          │                              │
 │                  ┌───────▼────────┐                     │
+│                  │  Zustand Stores │                    │
+│                  │  (stores/)      │                    │
+│                  └───────┬────────┘                     │
+│                          │                              │
+│                  ┌───────▼────────┐                     │
 │                  │  Storage Layer │                     │
 │                  │  (services/)   │                     │
 │                  └───────┬────────┘                     │
 │                          │                              │
 │                  ┌───────▼────────┐                     │
-│                  │  AsyncStorage  │                     │
+│                  │     SQLite     │                     │
 │                  │  (Local Data)  │                     │
 │                  └────────────────┘                     │
 └─────────────────────────────────────────────────────────┘
@@ -32,13 +37,19 @@
 ```
 Screen Component
     ↓
+Zustand Store (useWorkoutStore, useNutritionStore, etc.)
+    ↓
+Store Action (fetchWorkouts, fetchNutrition)
+    ↓
 Storage Service (getWorkouts, getNutrition, etc.)
     ↓
-AsyncStorage (JSON data)
+SQLite Database (indexed queries)
     ↓
 TypeScript Types (typed data)
     ↓
-Screen Component (render)
+Store State (cached)
+    ↓
+Screen Component (render via subscription)
 ```
 
 ### Write Flow
@@ -47,11 +58,15 @@ User Action (button press, form submit)
     ↓
 Screen Component (gather data)
     ↓
+Zustand Store Action (addWorkout, saveMeal, etc.)
+    ↓
 Storage Service (saveWorkout, saveNutrition, etc.)
     ↓
-AsyncStorage (persist JSON)
+SQLite Database (persist)
     ↓
-Screen Component (refresh/reload)
+Store State (update cache)
+    ↓
+Screen Component (auto re-render via subscription)
 ```
 
 ## Layer Responsibilities
@@ -100,22 +115,41 @@ Screen Component (refresh/reload)
 - Icon and color configuration
 - Header styling
 
-### 4. Services (`src/services/`)
+### 4. Stores (`src/stores/`)
 
-**Responsibility**: Data access and business logic
+**Responsibility**: Centralized state management
 
-- Interact with AsyncStorage
+- Manage application state with Zustand
+- Provide cached data to components
+- Handle data fetching and mutations
+- Coordinate modal visibility
+
+**Example**: `workoutStore.ts`
+- Caches workout data (5-minute TTL)
+- Provides actions: fetchWorkouts, addWorkout, deleteWorkout
+- Computes derived state: streaks, recent workouts
+- Manages templates and personal records
+
+### 5. Services (`src/services/`)
+
+**Responsibility**: Data access layer
+
+- Interact with SQLite database
 - Provide type-safe data operations
 - Handle data transformation
-- Manage data relationships
+- Manage data relationships and migrations
 
 **Example**: `storage.ts`
 - CRUD operations for all entities
-- ID generation
-- Date formatting
-- Data initialization
+- SQL query building
+- Data serialization/deserialization
 
-### 5. Types (`src/types/`)
+**Example**: `database.ts`
+- Database initialization
+- Schema management
+- Migration from AsyncStorage (legacy)
+
+### 6. Types (`src/types/`)
 
 **Responsibility**: Type definitions and data contracts
 
@@ -128,7 +162,7 @@ Screen Component (refresh/reload)
 - User, WorkoutLog, DailyNutrition, etc.
 - Shared interfaces used throughout app
 
-### 6. Utils (`src/utils/`)
+### 7. Utils (`src/utils/`)
 
 **Responsibility**: Helper functions and utilities
 
@@ -142,62 +176,94 @@ Screen Component (refresh/reload)
 
 ## State Management Strategy
 
-### Current Approach: Local Component State
+### Current Approach: Zustand Stores
 
-Each screen manages its own state using React hooks:
+The app uses Zustand for centralized state management with 5 domain-specific stores:
 
 ```typescript
-const [user, setUser] = useState<User | null>(null);
-const [workouts, setWorkouts] = useState<WorkoutLog[]>([]);
-const [loading, setLoading] = useState(true);
+// Selective subscription - only re-renders when specific value changes
+const user = useUserStore((s) => s.user);
+const workouts = useWorkoutStore((s) => s.workouts);
+const isLoading = useWorkoutStore((s) => s.isLoading);
+
+// Store actions
+const addWorkout = useWorkoutStore((s) => s.addWorkout);
+const openAddMeal = useUIStore((s) => s.openAddMeal);
 ```
 
-### When to Reload Data
+### Store Architecture
 
-1. **On mount** (`useEffect`): Initial load
-2. **On focus** (`useFocusEffect`): When tab becomes active
-3. **After mutations**: After creating/updating/deleting data
-4. **Pull to refresh**: User-initiated refresh
+| Store | Purpose | Key State |
+|-------|---------|-----------|
+| `userStore` | User profile & preferences | `user`, `isInitialized` |
+| `workoutStore` | Workouts, templates, PRs | `workouts`, `templates`, `personalRecords`, `streaks` |
+| `nutritionStore` | Daily nutrition & meals | `todayNutrition`, computed totals |
+| `dailyTrackingStore` | Steps & weight | `todaySteps`, `todayWeight`, `weeklyStats` |
+| `uiStore` | Modal state | `activeModal`, `editData`, `confirmDialog` |
 
-### Future: Context or State Management
+### When Data Updates
 
-When app grows, consider:
-- React Context for global state (user, settings)
-- React Query for server sync (Phase 3)
-- Redux/Zustand if complexity increases
+1. **On mount** (`useEffect`): Stores fetch initial data
+2. **On focus** (`useFocusEffect`): Refresh from store (uses cache if fresh)
+3. **After mutations**: Store actions update cache automatically
+4. **Pull to refresh**: Force refresh bypasses cache
+5. **Cache duration**: 5 minutes for workout data
+
+### Benefits of Zustand
+
+- **No boilerplate**: Simple API without reducers or actions
+- **Selective subscriptions**: Fine-grained re-renders
+- **Built-in caching**: Stores maintain data between screen navigations
+- **Centralized modals**: UI store manages all modal visibility
+- **TypeScript support**: Full type inference
 
 ## Storage Strategy
 
-### Current: AsyncStorage (Local-First)
+### Current: SQLite (Local-First)
 
 **Advantages**:
-- Fast (no network latency)
+- Fast indexed queries
 - Works offline
-- Simple API
+- Relational data with foreign keys
 - No backend required
 - No authentication needed
+- Proper data integrity
 
-**Limitations**:
-- Data stays on device
-- No multi-device sync
-- Limited to ~6MB (iOS)
-- No server-side backup
-
-**Data Structure**:
+**Database Schema**:
 ```
-@fit_app_user         → User object (JSON)
-@fit_app_workouts     → WorkoutLog[] (JSON array)
-@fit_app_nutrition    → DailyNutrition[] (JSON array)
-@fit_app_steps        → DailySteps[] (JSON array)
+users                  → User profile
+workout_logs           → Workout sessions
+exercise_logs          → Exercises in workouts (FK → workout_logs)
+set_logs               → Sets in exercises (FK → exercise_logs)
+daily_nutrition        → Daily nutrition records
+meals                  → Individual meals (FK → daily_nutrition)
+daily_steps            → Step tracking
+daily_weights          → Weight tracking
+personal_records       → PR tracking
+workout_templates      → Saved templates
+exercise_templates     → Exercises in templates
+custom_exercises       → User-created exercises
+achievements           → Achievement progress
 ```
 
-### Future: Hybrid Approach (Phase 3)
+**Indexes**:
+- Date-based lookups (user_id, date) on all daily tables
+- Exercise lookups for PRs
+- Foreign key indexes for nested data
+
+### Web Platform Support
+
+SQLite is not available on web, so the app uses a metro config shim:
+- Native platforms: Full SQLite support
+- Web: Graceful fallback (limited functionality)
+
+### Future: Hybrid Approach
 
 Add cloud sync while keeping local-first benefits:
 
 ```
 ┌─────────────┐         ┌─────────────┐
-│AsyncStorage │ ←sync→  │   Backend   │
+│   SQLite    │ ←sync→  │   Backend   │
 │  (Local)    │         │  (Cloud)    │
 └─────────────┘         └─────────────┘
 ```
@@ -375,11 +441,14 @@ try {
 
 ## Key Design Patterns
 
-1. **Local-First**: Data stored locally, sync later
-2. **Type Safety**: TypeScript for all data
-3. **Separation of Concerns**: Screens, services, types
-4. **Component Composition**: Reusable UI components
-5. **Pull-Based Refresh**: User controls data updates
+1. **Local-First**: SQLite for fast, offline data access
+2. **Centralized State**: Zustand stores for all app state
+3. **Selective Subscriptions**: Components subscribe to specific state slices
+4. **Type Safety**: TypeScript for all data and store interfaces
+5. **Separation of Concerns**: Screens → Stores → Services → Database
+6. **Component Composition**: Reusable UI components
+7. **Centralized Modals**: All modals rendered at root via GlobalModals
+8. **Caching**: Store-level caching to prevent redundant queries
 
 ## Development Guidelines
 
