@@ -5,6 +5,7 @@
  * Maintains the same API as the original AsyncStorage implementation.
  */
 
+import { Platform } from 'react-native';
 import { getDatabase } from './database';
 import {
   User,
@@ -29,6 +30,18 @@ import { calculateWorkoutStreak } from '../utils/analyticsCalculations';
 
 // ============ UTILITIES ============
 
+/**
+ * Get database with non-null assertion
+ * On web, this will return null from the shim - callers should check Platform.OS
+ */
+const getDb = async () => {
+  const db = await getDatabase();
+  if (!db) {
+    throw new Error('Database not available on this platform');
+  }
+  return db;
+};
+
 export const generateId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
@@ -50,7 +63,7 @@ const isDateInRange = (date: string, start: string, end: string): boolean => {
 
 export const getUser = async (): Promise<User | null> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const row = await db.getFirstAsync<{
       id: string;
       name: string;
@@ -82,7 +95,7 @@ export const getUser = async (): Promise<User | null> => {
 
 export const saveUser = async (user: User): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     await db.runAsync(
       `INSERT OR REPLACE INTO users (id, name, email, daily_calorie_target, daily_step_goal, preferred_weight_unit, goal_weight, created)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -108,7 +121,7 @@ export const createDefaultUser = (): User => {
 
 // Helper to load exercises and sets for a workout
 const loadWorkoutExercises = async (workoutId: string): Promise<ExerciseLog[]> => {
-  const db = await getDatabase();
+  const db = await getDb();
 
   const exerciseRows = await db.getAllAsync<{
     id: string;
@@ -179,7 +192,7 @@ const rowToWorkoutLog = async (row: {
 
 export const getWorkouts = async (): Promise<WorkoutLog[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -200,7 +213,7 @@ export const getWorkouts = async (): Promise<WorkoutLog[]> => {
 
 export const saveWorkout = async (workout: WorkoutLog): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
 
     await db.withTransactionAsync(async () => {
       // Insert/update workout
@@ -239,7 +252,7 @@ export const saveWorkout = async (workout: WorkoutLog): Promise<void> => {
 
 export const deleteWorkout = async (workoutId: string): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     // Cascade delete handles exercises and sets
     await db.runAsync('DELETE FROM workout_logs WHERE id = ?', [workoutId]);
   } catch (error) {
@@ -249,7 +262,7 @@ export const deleteWorkout = async (workoutId: string): Promise<void> => {
 
 export const getWorkoutsByDate = async (date: string): Promise<WorkoutLog[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -273,7 +286,7 @@ export const getWorkoutsByDate = async (date: string): Promise<WorkoutLog[]> => 
 
 export const getWorkoutsInRange = async (startDate: string, endDate: string): Promise<WorkoutLog[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -298,7 +311,7 @@ export const getWorkoutsInRange = async (startDate: string, endDate: string): Pr
 // ============ NUTRITION ============
 
 const loadNutritionMeals = async (nutritionId: string): Promise<Meal[]> => {
-  const db = await getDatabase();
+  const db = await getDb();
   const rows = await db.getAllAsync<{
     id: string;
     name: string;
@@ -325,7 +338,7 @@ const loadNutritionMeals = async (nutritionId: string): Promise<Meal[]> => {
 
 export const getNutrition = async (): Promise<DailyNutrition[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -353,7 +366,7 @@ export const getNutrition = async (): Promise<DailyNutrition[]> => {
 
 export const getNutritionByDate = async (date: string): Promise<DailyNutrition | null> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const row = await db.getFirstAsync<{
       id: string;
       user_id: string;
@@ -382,7 +395,7 @@ export const getNutritionByDate = async (date: string): Promise<DailyNutrition |
 
 export const saveNutrition = async (nutrition: DailyNutrition): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
 
     await db.withTransactionAsync(async () => {
       // Insert/update nutrition record
@@ -411,7 +424,7 @@ export const saveNutrition = async (nutrition: DailyNutrition): Promise<void> =>
 
 export const getNutritionInRange = async (startDate: string, endDate: string): Promise<DailyNutrition[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -444,7 +457,7 @@ export const getNutritionInRange = async (startDate: string, endDate: string): P
 
 export const getSteps = async (): Promise<DailySteps[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -470,7 +483,7 @@ export const getSteps = async (): Promise<DailySteps[]> => {
 
 export const getStepsByDate = async (date: string): Promise<DailySteps | null> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const row = await db.getFirstAsync<{
       id: string;
       user_id: string;
@@ -501,7 +514,7 @@ export const getStepsByDate = async (date: string): Promise<DailySteps | null> =
 
 export const saveSteps = async (steps: DailySteps): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     await db.runAsync(
       `INSERT OR REPLACE INTO daily_steps (id, user_id, date, steps, step_goal, source)
        VALUES (?, ?, ?, ?, ?, ?)`,
@@ -514,7 +527,7 @@ export const saveSteps = async (steps: DailySteps): Promise<void> => {
 
 export const getStepsInRange = async (startDate: string, endDate: string): Promise<DailySteps[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -545,7 +558,7 @@ export const getStepsInRange = async (startDate: string, endDate: string): Promi
 
 export const getWeights = async (): Promise<DailyWeight[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -573,7 +586,7 @@ export const getWeights = async (): Promise<DailyWeight[]> => {
 
 export const getWeightByDate = async (date: string): Promise<DailyWeight | null> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const row = await db.getFirstAsync<{
       id: string;
       user_id: string;
@@ -606,7 +619,7 @@ export const getWeightByDate = async (date: string): Promise<DailyWeight | null>
 
 export const saveWeight = async (weight: DailyWeight): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     await db.runAsync(
       `INSERT OR REPLACE INTO daily_weights (id, user_id, date, weight, unit, source, created)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -619,7 +632,7 @@ export const saveWeight = async (weight: DailyWeight): Promise<void> => {
 
 export const deleteWeight = async (weightId: string): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     await db.runAsync('DELETE FROM daily_weights WHERE id = ?', [weightId]);
   } catch (error) {
     console.error('Error deleting weight:', error);
@@ -628,7 +641,7 @@ export const deleteWeight = async (weightId: string): Promise<void> => {
 
 export const getWeightsInRange = async (startDate: string, endDate: string): Promise<DailyWeight[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -660,7 +673,7 @@ export const getWeightsInRange = async (startDate: string, endDate: string): Pro
 // ============ WORKOUT TEMPLATES ============
 
 const loadTemplateExercises = async (templateId: string): Promise<ExerciseTemplate[]> => {
-  const db = await getDatabase();
+  const db = await getDb();
   const rows = await db.getAllAsync<{
     id: string;
     exercise_name: string;
@@ -685,7 +698,7 @@ const loadTemplateExercises = async (templateId: string): Promise<ExerciseTempla
 
 export const getTemplates = async (): Promise<WorkoutTemplate[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -713,7 +726,7 @@ export const getTemplates = async (): Promise<WorkoutTemplate[]> => {
 
 export const saveTemplate = async (template: WorkoutTemplate): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
 
     await db.withTransactionAsync(async () => {
       await db.runAsync(
@@ -741,7 +754,7 @@ export const saveTemplate = async (template: WorkoutTemplate): Promise<void> => 
 
 export const deleteTemplate = async (templateId: string): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     await db.runAsync('DELETE FROM workout_templates WHERE id = ?', [templateId]);
   } catch (error) {
     console.error('Error deleting template:', error);
@@ -750,7 +763,7 @@ export const deleteTemplate = async (templateId: string): Promise<void> => {
 
 export const getTemplateById = async (templateId: string): Promise<WorkoutTemplate | null> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const row = await db.getFirstAsync<{
       id: string;
       user_id: string;
@@ -781,7 +794,7 @@ export const getTemplateById = async (templateId: string): Promise<WorkoutTempla
 
 export const getPersonalRecords = async (): Promise<PersonalRecord[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       user_id: string;
@@ -811,7 +824,7 @@ export const getPersonalRecords = async (): Promise<PersonalRecord[]> => {
 
 export const savePersonalRecord = async (pr: PersonalRecord): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     await db.runAsync(
       `INSERT OR REPLACE INTO personal_records (id, user_id, exercise_name, weight, reps, date, workout_id, created)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -824,7 +837,7 @@ export const savePersonalRecord = async (pr: PersonalRecord): Promise<void> => {
 
 export const deletePersonalRecord = async (prId: string): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     await db.runAsync('DELETE FROM personal_records WHERE id = ?', [prId]);
   } catch (error) {
     console.error('Error deleting personal record:', error);
@@ -833,7 +846,7 @@ export const deletePersonalRecord = async (prId: string): Promise<void> => {
 
 export const getPersonalRecordByExercise = async (exerciseName: string): Promise<PersonalRecord | null> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const row = await db.getFirstAsync<{
       id: string;
       user_id: string;
@@ -919,7 +932,7 @@ export const getLastExercisePerformance = async (
   workoutName: string;
 } | null> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
 
     // Use SQL to find the most recent workout with this exercise
     const query = excludeWorkoutId
@@ -985,7 +998,7 @@ export const getLastExercisePerformance = async (
 
 export const getCustomExercises = async (): Promise<Exercise[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       name: string;
@@ -1009,7 +1022,7 @@ export const getCustomExercises = async (): Promise<Exercise[]> => {
 
 export const saveCustomExercise = async (exercise: Exercise): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     await db.runAsync(
       `INSERT OR REPLACE INTO custom_exercises (id, name, category, default_sets, default_reps)
        VALUES (?, ?, ?, ?, ?)`,
@@ -1026,7 +1039,7 @@ export const updateCustomExercise = async (exercise: Exercise): Promise<void> =>
 
 export const deleteCustomExercise = async (exerciseId: string): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     await db.runAsync('DELETE FROM custom_exercises WHERE id = ?', [exerciseId]);
   } catch (error) {
     console.error('Error deleting custom exercise:', error);
@@ -1035,7 +1048,7 @@ export const deleteCustomExercise = async (exerciseId: string): Promise<void> =>
 
 export const getCustomExerciseById = async (id: string): Promise<Exercise | null> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const row = await db.getFirstAsync<{
       id: string;
       name: string;
@@ -1106,7 +1119,7 @@ export const calculateWeeklyStats = async (
 
 export const getAchievements = async (): Promise<Achievement[]> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
       title: string;
@@ -1138,7 +1151,7 @@ export const getAchievements = async (): Promise<Achievement[]> => {
 
 export const saveAchievements = async (achievements: Achievement[]): Promise<void> => {
   try {
-    const db = await getDatabase();
+    const db = await getDb();
 
     await db.withTransactionAsync(async () => {
       for (const a of achievements) {

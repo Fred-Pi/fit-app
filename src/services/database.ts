@@ -3,8 +3,10 @@
  *
  * Handles database initialization, schema management, and migration from AsyncStorage.
  * Uses expo-sqlite for persistent local storage with proper relational structure.
+ * Falls back to AsyncStorage on web platform where SQLite is not supported.
  */
 
+import { Platform } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -22,24 +24,47 @@ import {
 const DATABASE_NAME = 'fitapp.db';
 const SCHEMA_VERSION = 1;
 
+// Check if we're on a platform that supports SQLite
+const isNativePlatform = Platform.OS !== 'web';
+
 // Singleton database instance
 let dbInstance: SQLite.SQLiteDatabase | null = null;
 
 /**
  * Get or create database connection
+ * Returns null on web platform (shim returns null)
  */
-export const getDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
+export const getDatabase = async (): Promise<SQLite.SQLiteDatabase | null> => {
+  if (!isNativePlatform) {
+    return null;
+  }
   if (!dbInstance) {
-    dbInstance = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    // The web shim returns null, so check before assigning
+    if (db) {
+      dbInstance = db;
+    }
   }
   return dbInstance;
 };
 
 /**
+ * Get database with non-null assertion (for internal use after platform check)
+ */
+const getNativeDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
+  const db = await getDatabase();
+  return db!;
+};
+
+/**
  * Initialize database schema - creates all tables and indexes
+ * On web, this is a no-op as we use AsyncStorage directly
  */
 export const initializeDatabase = async (): Promise<void> => {
-  const db = await getDatabase();
+  if (!isNativePlatform) {
+    return; // Web uses AsyncStorage directly via storage.ts
+  }
+  const db = await getNativeDatabase();
 
   // Enable WAL mode and foreign keys
   await db.execAsync(`
@@ -236,7 +261,10 @@ export const initializeDatabase = async (): Promise<void> => {
  * Check if migration from AsyncStorage has been completed
  */
 export const isMigrationComplete = async (): Promise<boolean> => {
-  const db = await getDatabase();
+  if (!isNativePlatform) {
+    return true; // Web doesn't need migration
+  }
+  const db = await getNativeDatabase();
   const result = await db.getFirstAsync<{ value: string }>(
     'SELECT value FROM app_meta WHERE key = ?',
     ['asyncstorage_migrated']
@@ -248,7 +276,7 @@ export const isMigrationComplete = async (): Promise<boolean> => {
  * Mark migration as complete
  */
 const markMigrationComplete = async (): Promise<void> => {
-  const db = await getDatabase();
+  const db = await getNativeDatabase();
   await db.runAsync(
     'INSERT OR REPLACE INTO app_meta (key, value) VALUES (?, ?)',
     ['asyncstorage_migrated', 'true']
@@ -266,12 +294,16 @@ const generateId = (): string => {
  * Migrate all data from AsyncStorage to SQLite
  */
 export const migrateFromAsyncStorage = async (): Promise<void> => {
+  if (!isNativePlatform) {
+    return; // Web doesn't need migration
+  }
+
   // Skip if already migrated
   if (await isMigrationComplete()) {
     return;
   }
 
-  const db = await getDatabase();
+  const db = await getNativeDatabase();
 
   try {
     // Migrate User
@@ -442,7 +474,10 @@ export const migrateFromAsyncStorage = async (): Promise<void> => {
  * Clear all data from SQLite database (for testing/reset)
  */
 export const clearDatabase = async (): Promise<void> => {
-  const db = await getDatabase();
+  if (!isNativePlatform) {
+    return; // Web uses AsyncStorage.clear() directly
+  }
+  const db = await getNativeDatabase();
 
   await db.execAsync(`
     DELETE FROM set_logs;
@@ -466,7 +501,10 @@ export const clearDatabase = async (): Promise<void> => {
  * Get schema version for future migrations
  */
 export const getSchemaVersion = async (): Promise<number> => {
-  const db = await getDatabase();
+  if (!isNativePlatform) {
+    return SCHEMA_VERSION; // Web doesn't track schema version
+  }
+  const db = await getNativeDatabase();
   const result = await db.getFirstAsync<{ value: string }>(
     'SELECT value FROM app_meta WHERE key = ?',
     ['schema_version']
@@ -478,7 +516,10 @@ export const getSchemaVersion = async (): Promise<number> => {
  * Set schema version
  */
 export const setSchemaVersion = async (version: number): Promise<void> => {
-  const db = await getDatabase();
+  if (!isNativePlatform) {
+    return; // Web doesn't track schema version
+  }
+  const db = await getNativeDatabase();
   await db.runAsync(
     'INSERT OR REPLACE INTO app_meta (key, value) VALUES (?, ?)',
     ['schema_version', version.toString()]
