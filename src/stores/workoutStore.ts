@@ -1,0 +1,372 @@
+/**
+ * Workout Store - Zustand
+ *
+ * Centralized state for workouts, templates, personal records, and custom exercises.
+ * Includes caching to prevent redundant database queries.
+ */
+
+import { create } from 'zustand';
+import {
+  WorkoutLog,
+  WorkoutTemplate,
+  PersonalRecord,
+  Exercise,
+} from '../types';
+import {
+  getWorkouts,
+  getWorkoutsByDate,
+  saveWorkout,
+  deleteWorkout as deleteWorkoutFromStorage,
+  getTemplates,
+  saveTemplate as saveTemplateToStorage,
+  deleteTemplate as deleteTemplateFromStorage,
+  getPersonalRecords,
+  deletePersonalRecord as deletePRFromStorage,
+  checkAndUpdatePRs,
+  getCustomExercises,
+  saveCustomExercise as saveCustomExerciseToStorage,
+  deleteCustomExercise as deleteCustomExerciseFromStorage,
+} from '../services/storage';
+import { calculateWorkoutStreak } from '../utils/analyticsCalculations';
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+interface WorkoutState {
+  // State - Workouts
+  workouts: WorkoutLog[];
+  workoutsByDateCache: Map<string, WorkoutLog[]>;
+  isLoading: boolean;
+  isRefreshing: boolean;
+  lastFetched: number | null;
+
+  // State - Streaks (computed but cached)
+  currentStreak: number;
+  longestStreak: number;
+
+  // State - Templates
+  templates: WorkoutTemplate[];
+  templatesLoaded: boolean;
+
+  // State - Personal Records
+  personalRecords: PersonalRecord[];
+  prsLoaded: boolean;
+  isPRsLoading: boolean;
+  isPRsRefreshing: boolean;
+
+  // State - Custom Exercises
+  customExercises: Exercise[];
+  customExercisesLoaded: boolean;
+
+  // Actions - Workouts
+  fetchWorkouts: (force?: boolean) => Promise<void>;
+  fetchWorkoutsByDate: (date: string) => Promise<WorkoutLog[]>;
+  addWorkout: (workout: WorkoutLog) => Promise<PersonalRecord[]>;
+  updateWorkout: (workout: WorkoutLog) => Promise<void>;
+  deleteWorkout: (workoutId: string) => Promise<void>;
+  invalidateCache: () => void;
+
+  // Actions - Templates
+  fetchTemplates: () => Promise<void>;
+  addTemplate: (template: WorkoutTemplate) => Promise<void>;
+  deleteTemplate: (templateId: string) => Promise<void>;
+
+  // Actions - Personal Records
+  fetchPersonalRecords: (force?: boolean) => Promise<void>;
+  deletePersonalRecord: (prId: string) => Promise<void>;
+
+  // Actions - Custom Exercises
+  fetchCustomExercises: () => Promise<void>;
+  addCustomExercise: (exercise: Exercise) => Promise<void>;
+  updateCustomExercise: (exercise: Exercise) => Promise<void>;
+  deleteCustomExercise: (exerciseId: string) => Promise<void>;
+
+  // Selectors
+  getWorkoutById: (id: string) => WorkoutLog | undefined;
+  getRecentWorkouts: (limit: number) => WorkoutLog[];
+  getWorkoutsInRange: (start: string, end: string) => WorkoutLog[];
+  getTodayWorkout: (date: string) => WorkoutLog | undefined;
+}
+
+export const useWorkoutStore = create<WorkoutState>((set, get) => ({
+  // Initial state
+  workouts: [],
+  workoutsByDateCache: new Map(),
+  isLoading: false,
+  isRefreshing: false,
+  lastFetched: null,
+  currentStreak: 0,
+  longestStreak: 0,
+  templates: [],
+  templatesLoaded: false,
+  personalRecords: [],
+  prsLoaded: false,
+  isPRsLoading: false,
+  isPRsRefreshing: false,
+  customExercises: [],
+  customExercisesLoaded: false,
+
+  // Workouts
+  fetchWorkouts: async (force = false) => {
+    const { lastFetched, isLoading } = get();
+    const now = Date.now();
+
+    // Skip if recently fetched and not forced
+    if (!force && lastFetched && now - lastFetched < CACHE_DURATION && !isLoading) {
+      return;
+    }
+
+    set({ isLoading: !get().lastFetched, isRefreshing: !!get().lastFetched });
+    try {
+      const workouts = await getWorkouts();
+      const streakData = calculateWorkoutStreak(workouts);
+
+      set({
+        workouts,
+        lastFetched: now,
+        currentStreak: streakData.current,
+        longestStreak: streakData.longest,
+        workoutsByDateCache: new Map(), // Clear date cache on full refresh
+      });
+    } catch (error) {
+      console.error('Failed to fetch workouts:', error);
+    } finally {
+      set({ isLoading: false, isRefreshing: false });
+    }
+  },
+
+  fetchWorkoutsByDate: async (date: string) => {
+    const { workoutsByDateCache, workouts, lastFetched } = get();
+
+    // Check cache first
+    if (workoutsByDateCache.has(date)) {
+      return workoutsByDateCache.get(date)!;
+    }
+
+    // If we have all workouts loaded, filter from memory
+    if (lastFetched && workouts.length > 0) {
+      const filtered = workouts.filter((w) => w.date === date);
+      const newCache = new Map(workoutsByDateCache);
+      newCache.set(date, filtered);
+      set({ workoutsByDateCache: newCache });
+      return filtered;
+    }
+
+    // Otherwise fetch from storage
+    const dateWorkouts = await getWorkoutsByDate(date);
+    const newCache = new Map(workoutsByDateCache);
+    newCache.set(date, dateWorkouts);
+    set({ workoutsByDateCache: newCache });
+    return dateWorkouts;
+  },
+
+  addWorkout: async (workout: WorkoutLog) => {
+    await saveWorkout(workout);
+    const newPRs = await checkAndUpdatePRs(workout);
+
+    const { workouts, workoutsByDateCache, personalRecords } = get();
+
+    // Update workouts list
+    const updatedWorkouts = [workout, ...workouts].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    // Update date cache
+    const newCache = new Map(workoutsByDateCache);
+    const dateWorkouts = newCache.get(workout.date) || [];
+    newCache.set(workout.date, [workout, ...dateWorkouts.filter((w) => w.id !== workout.id)]);
+
+    // Update PRs if any new ones
+    const updatedPRs =
+      newPRs.length > 0
+        ? [...personalRecords.filter((pr) => !newPRs.some((np) => np.id === pr.id)), ...newPRs]
+        : personalRecords;
+
+    // Recalculate streaks
+    const streakData = calculateWorkoutStreak(updatedWorkouts);
+
+    set({
+      workouts: updatedWorkouts,
+      workoutsByDateCache: newCache,
+      personalRecords: updatedPRs,
+      currentStreak: streakData.current,
+      longestStreak: streakData.longest,
+    });
+
+    return newPRs;
+  },
+
+  updateWorkout: async (workout: WorkoutLog) => {
+    await saveWorkout(workout);
+
+    const { workouts, workoutsByDateCache } = get();
+    const updatedWorkouts = workouts.map((w) => (w.id === workout.id ? workout : w));
+
+    // Update date cache
+    const newCache = new Map(workoutsByDateCache);
+    const dateWorkouts = newCache.get(workout.date);
+    if (dateWorkouts) {
+      newCache.set(
+        workout.date,
+        dateWorkouts.map((w) => (w.id === workout.id ? workout : w))
+      );
+    }
+
+    set({
+      workouts: updatedWorkouts,
+      workoutsByDateCache: newCache,
+    });
+  },
+
+  deleteWorkout: async (workoutId: string) => {
+    await deleteWorkoutFromStorage(workoutId);
+
+    const { workouts, workoutsByDateCache } = get();
+    const deletedWorkout = workouts.find((w) => w.id === workoutId);
+    const updatedWorkouts = workouts.filter((w) => w.id !== workoutId);
+
+    // Update date cache
+    const newCache = new Map(workoutsByDateCache);
+    if (deletedWorkout) {
+      const dateWorkouts = newCache.get(deletedWorkout.date);
+      if (dateWorkouts) {
+        newCache.set(
+          deletedWorkout.date,
+          dateWorkouts.filter((w) => w.id !== workoutId)
+        );
+      }
+    }
+
+    // Recalculate streaks
+    const streakData = calculateWorkoutStreak(updatedWorkouts);
+
+    set({
+      workouts: updatedWorkouts,
+      workoutsByDateCache: newCache,
+      currentStreak: streakData.current,
+      longestStreak: streakData.longest,
+    });
+  },
+
+  invalidateCache: () => {
+    set({
+      lastFetched: null,
+      workoutsByDateCache: new Map(),
+    });
+  },
+
+  // Templates
+  fetchTemplates: async () => {
+    if (get().templatesLoaded) return;
+
+    try {
+      const templates = await getTemplates();
+      set({ templates, templatesLoaded: true });
+    } catch (error) {
+      console.error('Failed to fetch templates:', error);
+    }
+  },
+
+  addTemplate: async (template: WorkoutTemplate) => {
+    await saveTemplateToStorage(template);
+    const { templates } = get();
+    set({ templates: [template, ...templates] });
+  },
+
+  deleteTemplate: async (templateId: string) => {
+    await deleteTemplateFromStorage(templateId);
+    const { templates } = get();
+    set({ templates: templates.filter((t) => t.id !== templateId) });
+  },
+
+  // Personal Records
+  fetchPersonalRecords: async (force = false) => {
+    const { prsLoaded, isPRsLoading } = get();
+
+    // Skip if already loaded and not forced
+    if (!force && prsLoaded && !isPRsLoading) {
+      return;
+    }
+
+    set({
+      isPRsLoading: !prsLoaded,
+      isPRsRefreshing: prsLoaded,
+    });
+
+    try {
+      const personalRecords = await getPersonalRecords();
+      set({ personalRecords, prsLoaded: true });
+    } catch (error) {
+      console.error('Failed to fetch personal records:', error);
+    } finally {
+      set({ isPRsLoading: false, isPRsRefreshing: false });
+    }
+  },
+
+  deletePersonalRecord: async (prId: string) => {
+    await deletePRFromStorage(prId);
+    const { personalRecords } = get();
+    set({ personalRecords: personalRecords.filter((pr) => pr.id !== prId) });
+  },
+
+  // Custom Exercises
+  fetchCustomExercises: async () => {
+    if (get().customExercisesLoaded) return;
+
+    try {
+      const customExercises = await getCustomExercises();
+      set({ customExercises, customExercisesLoaded: true });
+    } catch (error) {
+      console.error('Failed to fetch custom exercises:', error);
+    }
+  },
+
+  addCustomExercise: async (exercise: Exercise) => {
+    await saveCustomExerciseToStorage(exercise);
+    const { customExercises } = get();
+    set({ customExercises: [...customExercises, exercise] });
+  },
+
+  updateCustomExercise: async (exercise: Exercise) => {
+    await saveCustomExerciseToStorage(exercise);
+    const { customExercises } = get();
+    set({
+      customExercises: customExercises.map((e) => (e.id === exercise.id ? exercise : e)),
+    });
+  },
+
+  deleteCustomExercise: async (exerciseId: string) => {
+    await deleteCustomExerciseFromStorage(exerciseId);
+    const { customExercises } = get();
+    set({ customExercises: customExercises.filter((e) => e.id !== exerciseId) });
+  },
+
+  // Selectors
+  getWorkoutById: (id: string) => get().workouts.find((w) => w.id === id),
+
+  getRecentWorkouts: (limit: number) => {
+    const { workouts } = get();
+    // Get unique workouts by name (most recent first)
+    const seen = new Set<string>();
+    const unique: WorkoutLog[] = [];
+    for (const w of workouts) {
+      if (!seen.has(w.name) && w.completed) {
+        seen.add(w.name);
+        unique.push(w);
+        if (unique.length >= limit) break;
+      }
+    }
+    return unique;
+  },
+
+  getWorkoutsInRange: (start: string, end: string) =>
+    get().workouts.filter((w) => w.date >= start && w.date <= end),
+
+  getTodayWorkout: (date: string) => {
+    const { workoutsByDateCache, workouts } = get();
+    const cached = workoutsByDateCache.get(date);
+    if (cached && cached.length > 0) {
+      return cached[0];
+    }
+    return workouts.find((w) => w.date === date);
+  },
+}));

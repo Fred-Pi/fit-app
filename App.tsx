@@ -5,10 +5,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/utils/ThemeContext';
 import { initializeDatabase, migrateFromAsyncStorage } from './src/services/database';
-import { initializeApp } from './src/services/storage';
+import { useUserStore } from './src/stores';
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
+  const initializeUser = useUserStore((state) => state.initialize);
 
   useEffect(() => {
     async function prepare() {
@@ -17,8 +18,8 @@ export default function App() {
         await initializeDatabase();
         await migrateFromAsyncStorage();
 
-        // Initialize app (create default user if needed)
-        await initializeApp();
+        // Initialize user store (creates default user if needed)
+        await initializeUser();
       } catch (error) {
         console.error('Error initializing app:', error);
       } finally {
@@ -27,7 +28,7 @@ export default function App() {
     }
 
     prepare();
-  }, []);
+  }, [initializeUser]);
 
   if (!isReady) {
     return (

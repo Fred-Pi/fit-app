@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,68 +8,72 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Card from '../components/Card';
-import ConfirmDialog from '../components/ConfirmDialog';
-import { getUser, saveUser, clearAllData, getTemplates, deleteTemplate } from '../services/storage';
-import { User, WorkoutTemplate } from '../types'
+import { clearAllData } from '../services/storage';
 import { colors } from '../utils/theme';
 import { createSampleData } from '../utils/sampleData';
-import { useScreenData } from '../hooks/useScreenData';
 import { warningHaptic } from '../utils/haptics';
+import {
+  useUserStore,
+  useUIStore,
+  useWorkoutStore,
+} from '../stores';
 
 const ProfileScreen = () => {
-  const [user, setUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
   const [calorieTarget, setCalorieTarget] = useState('');
   const [stepGoal, setStepGoal] = useState('');
   const [goalWeight, setGoalWeight] = useState('');
-  const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
-  const [confirmDialog, setConfirmDialog] = useState<{
-    visible: boolean;
-    title: string;
-    message: string;
-    onConfirm: () => void;
-    confirmText?: string;
-    icon?: keyof typeof Ionicons.glyphMap;
-    iconColor?: string;
-  }>({
-    visible: false,
-    title: '',
-    message: '',
-    onConfirm: () => {},
-  });
 
-  const fetchData = useCallback(async () => {
-    const userData = await getUser();
-    if (userData) {
-      setUser(userData);
-      setName(userData.name);
-      setCalorieTarget(userData.dailyCalorieTarget.toString());
-      setStepGoal(userData.dailyStepGoal.toString());
-      setGoalWeight(userData.goalWeight?.toString() || '');
+  // User Store
+  const user = useUserStore((s) => s.user);
+  const updateUser = useUserStore((s) => s.updateUser);
+  const refreshUser = useUserStore((s) => s.refreshUser);
+
+  // UI Store
+  const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
+
+  // Workout Store
+  const templates = useWorkoutStore((s) => s.templates);
+  const fetchTemplates = useWorkoutStore((s) => s.fetchTemplates);
+  const deleteTemplate = useWorkoutStore((s) => s.deleteTemplate);
+  const invalidateWorkoutCache = useWorkoutStore((s) => s.invalidateCache);
+
+  // Initialize form values when user loads
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      setCalorieTarget(user.dailyCalorieTarget.toString());
+      setStepGoal(user.dailyStepGoal.toString());
+      setGoalWeight(user.goalWeight?.toString() || '');
     }
-    const templateData = await getTemplates();
-    setTemplates(templateData);
-  }, []);
+  }, [user]);
 
-  const { reload } = useScreenData(fetchData);
+  // Load templates
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
+
+  // Reload on focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchTemplates();
+    }, [fetchTemplates])
+  );
 
   const handleSave = async () => {
     if (!user) return;
 
-    const updatedUser: User = {
-      ...user,
+    await updateUser({
       name: name.trim() || 'User',
       dailyCalorieTarget: parseInt(calorieTarget) || 2200,
       dailyStepGoal: parseInt(stepGoal) || 10000,
       goalWeight: parseFloat(goalWeight) || undefined,
-    };
-
-    await saveUser(updatedUser);
-    setUser(updatedUser);
+    });
     setIsEditing(false);
     Alert.alert('Success', 'Profile updated successfully');
   };
@@ -78,6 +82,9 @@ const ProfileScreen = () => {
     try {
       const success = await createSampleData();
       if (success) {
+        // Invalidate caches so data is refreshed
+        invalidateWorkoutCache();
+        refreshUser();
         Alert.alert(
           'Success',
           'Sample data loaded! Check the Today, Workouts, and Nutrition tabs to see it.',
@@ -101,50 +108,45 @@ const ProfileScreen = () => {
     iconColor: string = colors.error
   ) => {
     warningHaptic();
-    setConfirmDialog({
-      visible: true,
+    openConfirmDialog({
       title,
       message,
-      onConfirm,
       confirmText,
       icon,
       iconColor,
+      onConfirm,
     });
   };
 
   const handleDeleteWorkouts = async () => {
     await AsyncStorage.removeItem('@fit_app_workouts');
-    setConfirmDialog({ ...confirmDialog, visible: false });
+    invalidateWorkoutCache();
     Alert.alert('Success', 'All workouts deleted');
   };
 
   const handleDeleteNutrition = async () => {
     await AsyncStorage.removeItem('@fit_app_nutrition');
-    setConfirmDialog({ ...confirmDialog, visible: false });
     Alert.alert('Success', 'All nutrition data deleted');
   };
 
   const handleDeleteSteps = async () => {
     await AsyncStorage.removeItem('@fit_app_steps');
-    setConfirmDialog({ ...confirmDialog, visible: false });
     Alert.alert('Success', 'All step data deleted');
   };
 
   const handleResetAll = async () => {
     await clearAllData();
-    setConfirmDialog({ ...confirmDialog, visible: false });
+    invalidateWorkoutCache();
+    refreshUser();
     Alert.alert('Success', 'All data has been reset');
-    reload(); // Reload data after reset
   };
 
-  const handleDeleteTemplate = async (templateId: string, templateName: string) => {
+  const handleDeleteTemplate = (templateId: string, templateName: string) => {
     showConfirmDialog(
       'Delete Template?',
       `Are you sure you want to delete "${templateName}"? This cannot be undone.`,
       async () => {
         await deleteTemplate(templateId);
-        setConfirmDialog({ ...confirmDialog, visible: false });
-        reload();
         Alert.alert('Success', 'Template deleted');
       },
       'Delete Template',
@@ -256,11 +258,7 @@ const ProfileScreen = () => {
                 styles.unitButton,
                 user.preferredWeightUnit === 'lbs' && styles.unitButtonActive,
               ]}
-              onPress={async () => {
-                const updated = { ...user, preferredWeightUnit: 'lbs' as const };
-                await saveUser(updated);
-                setUser(updated);
-              }}
+              onPress={() => updateUser({ preferredWeightUnit: 'lbs' })}
             >
               <Text
                 style={[
@@ -276,11 +274,7 @@ const ProfileScreen = () => {
                 styles.unitButton,
                 user.preferredWeightUnit === 'kg' && styles.unitButtonActive,
               ]}
-              onPress={async () => {
-                const updated = { ...user, preferredWeightUnit: 'kg' as const };
-                await saveUser(updated);
-                setUser(updated);
-              }}
+              onPress={() => updateUser({ preferredWeightUnit: 'kg' })}
             >
               <Text
                 style={[
@@ -444,17 +438,6 @@ const ProfileScreen = () => {
           </Text>
         </TouchableOpacity>
       </Card>
-
-      <ConfirmDialog
-        visible={confirmDialog.visible}
-        title={confirmDialog.title}
-        message={confirmDialog.message}
-        confirmText={confirmDialog.confirmText}
-        icon={confirmDialog.icon}
-        iconColor={confirmDialog.iconColor}
-        onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog({ ...confirmDialog, visible: false })}
-      />
     </ScrollView>
   );
 };

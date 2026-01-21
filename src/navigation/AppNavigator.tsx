@@ -12,6 +12,9 @@ import NutritionScreen from '../screens/NutritionScreen';
 import AchievementsScreen from '../screens/AchievementsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
+// Global Modals
+import GlobalModals from '../components/GlobalModals';
+
 export type RootTabParamList = {
   Today: undefined;
   Workouts: undefined;
@@ -38,6 +41,7 @@ const CustomDarkTheme = {
 const AppNavigator = () => {
   return (
     <NavigationContainer theme={CustomDarkTheme}>
+      <GlobalModals />
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {

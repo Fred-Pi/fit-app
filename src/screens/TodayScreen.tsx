@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,243 +6,113 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../components/Card';
 import ProgressBar from '../components/ProgressBar';
-import UpdateStepsModal from '../components/UpdateStepsModal';
-import UpdateWeightModal from '../components/UpdateWeightModal';
-import AddWorkoutModal from '../components/AddWorkoutModal';
-import AddMealModal from '../components/AddMealModal';
 import WeeklyStatsCard from '../components/WeeklyStatsCard';
 import WeightChart from '../components/WeightChart';
 import StreakCard from '../components/StreakCard';
 import WorkoutSuggestionsCard from '../components/WorkoutSuggestionsCard';
 import { TodayScreenSkeleton } from '../components/SkeletonLoader';
-import { calculateWorkoutStreak } from '../utils/analyticsCalculations';
 import { calculateWorkoutSuggestions, SuggestionData } from '../utils/workoutSuggestions';
-import { lightHaptic, successHaptic } from '../utils/haptics';
-import {
-  getUser,
-  getWorkouts,
-  getWorkoutsByDate,
-  getNutritionByDate,
-  getStepsByDate,
-  getWeightByDate,
-  getWeightsInRange,
-  getTodayDate,
-  generateId,
-  saveNutrition,
-  saveSteps,
-  saveWeight,
-  saveWorkout,
-  calculateWeeklyStats,
-  checkAndUpdatePRs,
-  formatDate,
-} from '../services/storage';
-import { User, WorkoutLog, DailyNutrition, DailySteps, DailyWeight, Meal, WeeklyStats, WeekComparison, WorkoutTemplate } from '../types';
-import { getWeekDates, getPreviousWeekDates, calculateDifference, calculatePercentageChange } from '../utils/dateUtils';
+import { lightHaptic } from '../utils/haptics';
+import { getTodayDate, generateId } from '../services/storage';
+import { WorkoutLog, WorkoutTemplate } from '../types';
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
+import {
+  useUserStore,
+  useUIStore,
+  useWorkoutStore,
+  useNutritionStore,
+  useDailyTrackingStore,
+} from '../stores';
 
 const TodayScreen = () => {
-  const { isDesktop, isTablet, contentMaxWidth, contentPadding } = useResponsive();
-  const [user, setUser] = useState<User | null>(null);
-  const [date] = useState(getTodayDate());
-  const [workout, setWorkout] = useState<WorkoutLog | null>(null);
-  const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
-  const [steps, setSteps] = useState<DailySteps | null>(null);
-  const [weight, setWeight] = useState<DailyWeight | null>(null);
-  const [recentWeights, setRecentWeights] = useState<DailyWeight[]>([]);
-  const [currentWeekStats, setCurrentWeekStats] = useState<WeeklyStats | null>(null);
-  const [previousWeekStats, setPreviousWeekStats] = useState<WeeklyStats | null>(null);
-  const [weekComparison, setWeekComparison] = useState<WeekComparison | null>(null);
-  const [currentStreak, setCurrentStreak] = useState(0);
-  const [longestStreak, setLongestStreak] = useState(0);
-  const [suggestions, setSuggestions] = useState<SuggestionData | null>(null);
-  const [recentWorkouts, setRecentWorkouts] = useState<WorkoutLog[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<WorkoutTemplate | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [showUpdateStepsModal, setShowUpdateStepsModal] = useState(false);
-  const [showUpdateWeightModal, setShowUpdateWeightModal] = useState(false);
-  const [showAddWorkoutModal, setShowAddWorkoutModal] = useState(false);
-  const [showAddMealModal, setShowAddMealModal] = useState(false);
+  const { isDesktop, isTablet, contentMaxWidth } = useResponsive();
+  const date = getTodayDate();
 
-  const loadWeeklyStats = async (userData: User) => {
-    try {
-      // Get current week dates
-      const currentWeek = getWeekDates();
-      const currentStats = await calculateWeeklyStats(
-        currentWeek.start,
-        currentWeek.end,
-        userData
-      );
-      setCurrentWeekStats(currentStats);
+  // User Store
+  const user = useUserStore((s) => s.user);
 
-      // Get previous week dates
-      const previousWeek = getPreviousWeekDates();
-      const previousStats = await calculateWeeklyStats(
-        previousWeek.start,
-        previousWeek.end,
-        userData
-      );
-      setPreviousWeekStats(previousStats);
+  // UI Store
+  const openAddWorkout = useUIStore((s) => s.openAddWorkout);
+  const openAddMeal = useUIStore((s) => s.openAddMeal);
+  const openUpdateSteps = useUIStore((s) => s.openUpdateSteps);
+  const openUpdateWeight = useUIStore((s) => s.openUpdateWeight);
 
-      // Calculate comparison
-      const comparison: WeekComparison = {
-        workouts: calculateDifference(currentStats.totalWorkouts, previousStats.totalWorkouts),
-        calories: calculateDifference(currentStats.totalCalories, previousStats.totalCalories),
-        steps: calculateDifference(currentStats.totalSteps, previousStats.totalSteps),
-        workoutsPercent: calculatePercentageChange(currentStats.totalWorkouts, previousStats.totalWorkouts),
-        caloriesPercent: calculatePercentageChange(currentStats.totalCalories, previousStats.totalCalories),
-        stepsPercent: calculatePercentageChange(currentStats.totalSteps, previousStats.totalSteps),
-      };
-      setWeekComparison(comparison);
-    } catch (error) {
-      console.error('Error loading weekly stats:', error);
-    }
-  };
+  // Workout Store
+  const workouts = useWorkoutStore((s) => s.workouts);
+  const currentStreak = useWorkoutStore((s) => s.currentStreak);
+  const longestStreak = useWorkoutStore((s) => s.longestStreak);
+  const isWorkoutsLoading = useWorkoutStore((s) => s.isLoading);
+  const isWorkoutsRefreshing = useWorkoutStore((s) => s.isRefreshing);
+  const fetchWorkouts = useWorkoutStore((s) => s.fetchWorkouts);
+  const getRecentWorkouts = useWorkoutStore((s) => s.getRecentWorkouts);
+  const getTodayWorkout = useWorkoutStore((s) => s.getTodayWorkout);
 
-  const loadData = async () => {
-    try {
-      const userData = await getUser();
-      setUser(userData);
+  // Nutrition Store
+  const todayNutrition = useNutritionStore((s) => s.todayNutrition);
+  const fetchNutritionByDate = useNutritionStore((s) => s.fetchNutritionByDate);
+  const getTotalCalories = useNutritionStore((s) => s.getTotalCalories);
 
-      if (userData) {
-        // Load weekly stats
-        await loadWeeklyStats(userData);
-      }
+  // Daily Tracking Store
+  const todaySteps = useDailyTrackingStore((s) => s.todaySteps);
+  const todayWeight = useDailyTrackingStore((s) => s.todayWeight);
+  const recentWeights = useDailyTrackingStore((s) => s.recentWeights);
+  const currentWeekStats = useDailyTrackingStore((s) => s.currentWeekStats);
+  const previousWeekStats = useDailyTrackingStore((s) => s.previousWeekStats);
+  const weekComparison = useDailyTrackingStore((s) => s.weekComparison);
+  const fetchTodaySteps = useDailyTrackingStore((s) => s.fetchTodaySteps);
+  const fetchTodayWeight = useDailyTrackingStore((s) => s.fetchTodayWeight);
+  const fetchRecentWeights = useDailyTrackingStore((s) => s.fetchRecentWeights);
+  const fetchWeeklyStats = useDailyTrackingStore((s) => s.fetchWeeklyStats);
 
-      // Load all workouts for streak calculation and suggestions
-      const allWorkouts = await getWorkouts();
-      const streakData = calculateWorkoutStreak(allWorkouts);
-      setCurrentStreak(streakData.current);
-      setLongestStreak(streakData.longest);
+  // Derived state
+  const todayWorkout = getTodayWorkout(date);
+  const recentWorkoutsForRepeat = getRecentWorkouts(3);
+  const totalCalories = getTotalCalories();
 
-      // Calculate workout suggestions
-      const suggestionData = calculateWorkoutSuggestions(allWorkouts);
-      setSuggestions(suggestionData);
+  // Calculate suggestions from workouts
+  const suggestions: SuggestionData | null = workouts.length > 0
+    ? calculateWorkoutSuggestions(workouts)
+    : null;
 
-      // Get recent unique workouts for quick repeat
-      const recentUnique = allWorkouts
-        .filter(w => w.date !== date && w.completed)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .filter((w, i, arr) => arr.findIndex(x => x.name === w.name) === i)
-        .slice(0, 3);
-      setRecentWorkouts(recentUnique);
+  // Load all data
+  const loadData = useCallback(async () => {
+    if (!user) return;
 
-      const workouts = await getWorkoutsByDate(date);
-      setWorkout(workouts.length > 0 ? workouts[0] : null);
+    await Promise.all([
+      fetchWorkouts(),
+      fetchNutritionByDate(date, user.id, user.dailyCalorieTarget),
+      fetchTodaySteps(date, user.id, user.dailyStepGoal),
+      fetchTodayWeight(date, user.id, user.preferredWeightUnit),
+      fetchRecentWeights(date, 30),
+      fetchWeeklyStats(user),
+    ]);
+  }, [user, date, fetchWorkouts, fetchNutritionByDate, fetchTodaySteps, fetchTodayWeight, fetchRecentWeights, fetchWeeklyStats]);
 
-      let nutritionData = await getNutritionByDate(date);
-      if (!nutritionData && userData) {
-        nutritionData = {
-          id: generateId(),
-          userId: userData.id,
-          date,
-          calorieTarget: userData.dailyCalorieTarget,
-          meals: [],
-        };
-        await saveNutrition(nutritionData);
-      }
-      setNutrition(nutritionData);
-
-      let stepsData = await getStepsByDate(date);
-      if (!stepsData && userData) {
-        stepsData = {
-          id: generateId(),
-          userId: userData.id,
-          date,
-          steps: 0,
-          stepGoal: userData.dailyStepGoal,
-          source: 'manual',
-        };
-        await saveSteps(stepsData);
-      }
-      setSteps(stepsData);
-
-      // Load weight data
-      let weightData = await getWeightByDate(date);
-      if (!weightData && userData) {
-        weightData = {
-          id: generateId(),
-          userId: userData.id,
-          date,
-          weight: 0,
-          unit: userData.preferredWeightUnit,
-          source: 'manual',
-          created: new Date().toISOString(),
-        };
-        await saveWeight(weightData);
-      }
-      setWeight(weightData);
-
-      // Load last 30 days of weights for chart
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const startDate = formatDate(thirtyDaysAgo);
-      const weights = await getWeightsInRange(startDate, date);
-      setRecentWeights(weights);
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
+  // Initial load
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
+  // Reload on focus
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, [loadData])
   );
 
-  const onRefresh = () => {
-    setRefreshing(true);
+  // Refresh handler
+  const onRefresh = useCallback(() => {
+    fetchWorkouts(true); // Force refresh
     loadData();
-  };
+  }, [fetchWorkouts, loadData]);
 
-  const handleUpdateSteps = async (newSteps: number) => {
-    if (!steps || !user) return;
-
-    const updatedSteps: DailySteps = {
-      ...steps,
-      steps: newSteps,
-    };
-
-    await saveSteps(updatedSteps);
-    setSteps(updatedSteps);
-  };
-
-  const handleAddWorkout = async (newWorkout: WorkoutLog) => {
-    await saveWorkout(newWorkout);
-
-    // Check for new PRs
-    const newPRs = await checkAndUpdatePRs(newWorkout);
-
-    setWorkout(newWorkout);
-    setShowAddWorkoutModal(false);
-    setSelectedTemplate(null);
-
-    // Show PR notification if any were set
-    if (newPRs.length > 0) {
-      successHaptic();
-      const prNames = newPRs.map(pr => pr.exerciseName).join(', ');
-      Alert.alert(
-        '🏆 New Personal Record!',
-        `Congratulations! You set a new PR for: ${prNames}`,
-        [{ text: 'Awesome!', style: 'default' }]
-      );
-    }
-  };
-
+  // Helper functions
   const daysAgo = (dateStr: string): string => {
     const days = Math.floor(
       (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24)
@@ -269,45 +139,14 @@ const TodayScreen = () => {
 
   const handleQuickRepeat = (workoutToRepeat: WorkoutLog) => {
     const template = workoutToTemplate(workoutToRepeat);
-    setSelectedTemplate(template);
-    setShowAddWorkoutModal(true);
+    openAddWorkout(template);
   };
 
-  const handleAddMeal = async (meal: Meal) => {
-    if (!nutrition) return;
+  // Loading state
+  const isLoading = isWorkoutsLoading && !todayNutrition && !todaySteps;
+  const isRefreshing = isWorkoutsRefreshing;
 
-    const updatedNutrition: DailyNutrition = {
-      ...nutrition,
-      meals: [...nutrition.meals, meal],
-    };
-
-    await saveNutrition(updatedNutrition);
-    setNutrition(updatedNutrition);
-    setShowAddMealModal(false);
-  };
-
-  const handleUpdateWeight = async (newWeight: number) => {
-    if (!weight || !user) return;
-
-    const updatedWeight: DailyWeight = {
-      ...weight,
-      weight: newWeight,
-    };
-
-    await saveWeight(updatedWeight);
-    setWeight(updatedWeight);
-
-    // Reload recent weights for chart
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const startDate = formatDate(thirtyDaysAgo);
-    const weights = await getWeightsInRange(startDate, date);
-    setRecentWeights(weights);
-  };
-
-  const totalCalories = nutrition?.meals.reduce((sum, meal) => sum + meal.calories, 0) || 0;
-
-  if (loading) {
+  if (isLoading) {
     return (
       <ScrollView style={styles.container}>
         <TodayScreenSkeleton />
@@ -318,23 +157,22 @@ const TodayScreen = () => {
   const isWideScreen = isDesktop || isTablet;
 
   return (
-    <>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.contentContainer,
-          { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
-        ]}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary, colors.workout, colors.nutrition]}
-            progressBackgroundColor={colors.surface}
-          />
-        }
-      >
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.contentContainer,
+        { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
+      ]}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+          colors={[colors.primary, colors.workout, colors.nutrition]}
+          progressBackgroundColor={colors.surface}
+        />
+      }
+    >
       {/* Weekly Stats Card */}
       {currentWeekStats && (
         <WeeklyStatsCard
@@ -367,199 +205,163 @@ const TodayScreen = () => {
 
       {/* Cards Grid for tablet/desktop */}
       <View style={isWideScreen ? styles.cardsGrid : undefined}>
-      {/* Workout Card */}
-      <View style={isWideScreen ? styles.cardWrapper : undefined}>
-      <Card gradient>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardHeaderLeft}>
-            <Ionicons name="barbell" size={24} color={colors.workout} />
-            <Text style={styles.cardTitle}>Workout</Text>
-          </View>
+        {/* Workout Card */}
+        <View style={isWideScreen ? styles.cardWrapper : undefined}>
+          <Card gradient>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderLeft}>
+                <Ionicons name="barbell" size={24} color={colors.workout} />
+                <Text style={styles.cardTitle}>Workout</Text>
+              </View>
+            </View>
+            {todayWorkout ? (
+              <View style={styles.workoutContent}>
+                <Text style={styles.workoutName}>{todayWorkout.name}</Text>
+                <Text style={styles.workoutDetails}>
+                  {todayWorkout.exercises.length} exercises
+                  {todayWorkout.duration && ` • ${Math.round(todayWorkout.duration)} min`}
+                  {' • '}{todayWorkout.completed ? 'Completed' : 'In Progress'}
+                </Text>
+              </View>
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => {
+                    lightHaptic();
+                    openAddWorkout();
+                  }}
+                >
+                  <Text style={styles.addButtonText}>+ Log Workout</Text>
+                </TouchableOpacity>
+                {/* Quick Repeat Section */}
+                {recentWorkoutsForRepeat.length > 0 && (
+                  <View style={styles.quickRepeatSection}>
+                    <Text style={styles.quickRepeatTitle}>Quick Repeat</Text>
+                    {recentWorkoutsForRepeat.map(w => (
+                      <TouchableOpacity
+                        key={w.id}
+                        style={styles.quickRepeatItem}
+                        onPress={() => {
+                          lightHaptic();
+                          handleQuickRepeat(w);
+                        }}
+                      >
+                        <Ionicons name="refresh" size={16} color={colors.primary} />
+                        <View style={styles.quickRepeatInfo}>
+                          <Text style={styles.quickRepeatName}>{w.name}</Text>
+                          <Text style={styles.quickRepeatMeta}>
+                            {w.exercises.length} exercises • {daysAgo(w.date)}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
+          </Card>
         </View>
-        {workout ? (
-          <View style={styles.workoutContent}>
-            <Text style={styles.workoutName}>{workout.name}</Text>
-            <Text style={styles.workoutDetails}>
-              {workout.exercises.length} exercises
-              {workout.duration && ` • ${Math.round(workout.duration)} min`}
-              {' • '}{workout.completed ? 'Completed' : 'In Progress'}
-            </Text>
-          </View>
-        ) : (
-          <>
+
+        {/* Nutrition Card */}
+        <View style={isWideScreen ? styles.cardWrapper : undefined}>
+          <Card gradient>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderLeft}>
+                <Ionicons name="nutrition" size={24} color={colors.nutrition} />
+                <Text style={styles.cardTitle}>Calories</Text>
+              </View>
+            </View>
+            <View style={styles.progressContainer}>
+              <ProgressBar
+                current={totalCalories}
+                target={todayNutrition?.calorieTarget || user?.dailyCalorieTarget || 2200}
+                unit="cal"
+                color={colors.nutrition}
+              />
+            </View>
+            {todayNutrition && todayNutrition.meals.length > 0 ? (
+              <View style={styles.mealsPreview}>
+                <Text style={styles.mealsCount}>{todayNutrition.meals.length} meals logged</Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => {
+                  lightHaptic();
+                  openAddMeal();
+                }}
+              >
+                <Text style={styles.addButtonText}>+ Add Meal</Text>
+              </TouchableOpacity>
+            )}
+          </Card>
+        </View>
+
+        {/* Steps Card */}
+        <View style={isWideScreen ? styles.cardWrapper : undefined}>
+          <Card gradient>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderLeft}>
+                <Ionicons name="footsteps" size={24} color={colors.steps} />
+                <Text style={styles.cardTitle}>Steps</Text>
+              </View>
+            </View>
+            <View style={styles.progressContainer}>
+              <ProgressBar
+                current={todaySteps?.steps || 0}
+                target={todaySteps?.stepGoal || user?.dailyStepGoal || 10000}
+                unit="steps"
+                color={colors.steps}
+              />
+            </View>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() => {
                 lightHaptic();
-                setShowAddWorkoutModal(true);
+                openUpdateSteps();
               }}
             >
-              <Text style={styles.addButtonText}>+ Log Workout</Text>
+              <Text style={styles.addButtonText}>Update Steps</Text>
             </TouchableOpacity>
-            {/* Quick Repeat Section */}
-            {recentWorkouts.length > 0 && (
-              <View style={styles.quickRepeatSection}>
-                <Text style={styles.quickRepeatTitle}>Quick Repeat</Text>
-                {recentWorkouts.map(w => (
-                  <TouchableOpacity
-                    key={w.id}
-                    style={styles.quickRepeatItem}
-                    onPress={() => {
-                      lightHaptic();
-                      handleQuickRepeat(w);
-                    }}
-                  >
-                    <Ionicons name="refresh" size={16} color={colors.primary} />
-                    <View style={styles.quickRepeatInfo}>
-                      <Text style={styles.quickRepeatName}>{w.name}</Text>
-                      <Text style={styles.quickRepeatMeta}>
-                        {w.exercises.length} exercises • {daysAgo(w.date)}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+          </Card>
+        </View>
+
+        {/* Weight Card */}
+        <View style={isWideScreen ? styles.cardWrapper : undefined}>
+          <Card gradient>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderLeft}>
+                <Ionicons name="scale-outline" size={24} color={colors.gold} />
+                <Text style={styles.cardTitle}>Body Weight</Text>
+              </View>
+            </View>
+            {todayWeight && todayWeight.weight > 0 ? (
+              <View>
+                <View style={styles.weightDisplay}>
+                  <Text style={styles.weightValue}>{todayWeight.weight.toFixed(1)}</Text>
+                  <Text style={styles.weightUnit}>{todayWeight.unit}</Text>
+                </View>
+                <WeightChart weights={recentWeights} unit={todayWeight.unit} goalWeight={user?.goalWeight} />
+              </View>
+            ) : (
+              <View style={styles.emptyWeightState}>
+                <Text style={styles.emptyWeightText}>Track your weight to see trends</Text>
               </View>
             )}
-          </>
-        )}
-      </Card>
-      </View>
-
-      {/* Nutrition Card */}
-      <View style={isWideScreen ? styles.cardWrapper : undefined}>
-      <Card gradient>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardHeaderLeft}>
-            <Ionicons name="nutrition" size={24} color={colors.nutrition} />
-            <Text style={styles.cardTitle}>Calories</Text>
-          </View>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => {
+                lightHaptic();
+                openUpdateWeight();
+              }}
+            >
+              <Text style={styles.addButtonText}>Update Weight</Text>
+            </TouchableOpacity>
+          </Card>
         </View>
-        <View style={styles.progressContainer}>
-          <ProgressBar
-            current={totalCalories}
-            target={nutrition?.calorieTarget || 2200}
-            unit="cal"
-            color={colors.nutrition}
-          />
-        </View>
-        {nutrition && nutrition.meals.length > 0 ? (
-          <View style={styles.mealsPreview}>
-            <Text style={styles.mealsCount}>{nutrition.meals.length} meals logged</Text>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => {
-              lightHaptic();
-              setShowAddMealModal(true);
-            }}
-          >
-            <Text style={styles.addButtonText}>+ Add Meal</Text>
-          </TouchableOpacity>
-        )}
-      </Card>
       </View>
-
-      {/* Steps Card */}
-      <View style={isWideScreen ? styles.cardWrapper : undefined}>
-      <Card gradient>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardHeaderLeft}>
-            <Ionicons name="footsteps" size={24} color={colors.steps} />
-            <Text style={styles.cardTitle}>Steps</Text>
-          </View>
-        </View>
-        <View style={styles.progressContainer}>
-          <ProgressBar
-            current={steps?.steps || 0}
-            target={steps?.stepGoal || 10000}
-            unit="steps"
-            color={colors.steps}
-          />
-        </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => {
-            lightHaptic();
-            setShowUpdateStepsModal(true);
-          }}
-        >
-          <Text style={styles.addButtonText}>Update Steps</Text>
-        </TouchableOpacity>
-      </Card>
-      </View>
-
-      {/* Weight Card */}
-      <View style={isWideScreen ? styles.cardWrapper : undefined}>
-      <Card gradient>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardHeaderLeft}>
-            <Ionicons name="scale-outline" size={24} color={colors.gold} />
-            <Text style={styles.cardTitle}>Body Weight</Text>
-          </View>
-        </View>
-        {weight && weight.weight > 0 ? (
-          <View>
-            <View style={styles.weightDisplay}>
-              <Text style={styles.weightValue}>{weight.weight.toFixed(1)}</Text>
-              <Text style={styles.weightUnit}>{weight.unit}</Text>
-            </View>
-            <WeightChart weights={recentWeights} unit={weight.unit} goalWeight={user?.goalWeight} />
-          </View>
-        ) : (
-          <View style={styles.emptyWeightState}>
-            <Text style={styles.emptyWeightText}>Track your weight to see trends</Text>
-          </View>
-        )}
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => {
-            lightHaptic();
-            setShowUpdateWeightModal(true);
-          }}
-        >
-          <Text style={styles.addButtonText}>Update Weight</Text>
-        </TouchableOpacity>
-      </Card>
-      </View>
-      </View>
-      </ScrollView>
-
-      <UpdateStepsModal
-        visible={showUpdateStepsModal}
-        onClose={() => setShowUpdateStepsModal(false)}
-        onSave={handleUpdateSteps}
-        currentSteps={steps?.steps || 0}
-      />
-
-      <UpdateWeightModal
-        visible={showUpdateWeightModal}
-        onClose={() => setShowUpdateWeightModal(false)}
-        onSave={handleUpdateWeight}
-        currentWeight={weight?.weight || 0}
-        unit={user?.preferredWeightUnit || 'lbs'}
-      />
-
-      {user && (
-        <AddWorkoutModal
-          visible={showAddWorkoutModal}
-          onClose={() => {
-            setShowAddWorkoutModal(false);
-            setSelectedTemplate(null);
-          }}
-          onSave={handleAddWorkout}
-          date={date}
-          userId={user.id}
-          initialTemplate={selectedTemplate}
-        />
-      )}
-
-      <AddMealModal
-        visible={showAddMealModal}
-        onClose={() => setShowAddMealModal(false)}
-        onSave={handleAddMeal}
-      />
-    </>
+    </ScrollView>
   );
 };
 
@@ -571,11 +373,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 20,
     paddingBottom: 32,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   dateContainer: {
     marginBottom: 24,

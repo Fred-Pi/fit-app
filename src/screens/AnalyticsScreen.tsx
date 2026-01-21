@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,113 +7,97 @@ import {
   RefreshControl,
   TouchableOpacity,
   Alert,
-} from 'react-native'
-import { useFocusEffect } from '@react-navigation/native'
-import { Ionicons } from '@expo/vector-icons'
-import { DateRangeKey, User, PersonalRecord } from '../types'
-import { getUser, getPersonalRecords, deletePersonalRecord } from '../services/storage'
-import { useAnalyticsData } from '../hooks/useAnalyticsData'
-import { useTrainingVolume } from '../hooks/useTrainingVolume'
-import { useWorkoutFrequency } from '../hooks/useWorkoutFrequency'
-import DateRangeSelector from '../components/analytics/DateRangeSelector'
-import TrainingVolumeChart from '../components/analytics/TrainingVolumeChart'
-import WorkoutFrequencyChart from '../components/analytics/WorkoutFrequencyChart'
-import StrengthCalculator from '../components/analytics/StrengthCalculator'
-import ExerciseProgressionChart from '../components/analytics/ExerciseProgressionChart'
-import MuscleGroupHeatmap from '../components/analytics/MuscleGroupHeatmap'
-import { useMuscleGroupData } from '../hooks/useMuscleGroupData'
-import Card from '../components/Card'
-import ConfirmDialog from '../components/ConfirmDialog'
-import SearchBar from '../components/SearchBar'
-import FilterChip from '../components/FilterChip'
-import { colors } from '../utils/theme'
-import { useResponsive } from '../hooks/useResponsive'
-import { warningHaptic } from '../utils/haptics'
+} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { DateRangeKey, PersonalRecord } from '../types';
+import { useAnalyticsData } from '../hooks/useAnalyticsData';
+import { useTrainingVolume } from '../hooks/useTrainingVolume';
+import { useWorkoutFrequency } from '../hooks/useWorkoutFrequency';
+import DateRangeSelector from '../components/analytics/DateRangeSelector';
+import TrainingVolumeChart from '../components/analytics/TrainingVolumeChart';
+import WorkoutFrequencyChart from '../components/analytics/WorkoutFrequencyChart';
+import StrengthCalculator from '../components/analytics/StrengthCalculator';
+import ExerciseProgressionChart from '../components/analytics/ExerciseProgressionChart';
+import MuscleGroupHeatmap from '../components/analytics/MuscleGroupHeatmap';
+import { useMuscleGroupData } from '../hooks/useMuscleGroupData';
+import Card from '../components/Card';
+import SearchBar from '../components/SearchBar';
+import FilterChip from '../components/FilterChip';
+import { colors } from '../utils/theme';
+import { useResponsive } from '../hooks/useResponsive';
+import { warningHaptic } from '../utils/haptics';
+import {
+  useUserStore,
+  useUIStore,
+  useWorkoutStore,
+} from '../stores';
 
 type TabType = 'charts' | 'prs' | 'strength' | 'muscle'
 
 const AnalyticsScreen = () => {
-  const { contentMaxWidth } = useResponsive()
-  const [user, setUser] = useState<User | null>(null)
-  const [selectedRange, setSelectedRange] = useState<DateRangeKey>('3M')
-  const [activeTab, setActiveTab] = useState<TabType>('charts')
+  const { contentMaxWidth } = useResponsive();
+  const [selectedRange, setSelectedRange] = useState<DateRangeKey>('3M');
+  const [activeTab, setActiveTab] = useState<TabType>('charts');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
+  // User Store
+  const user = useUserStore((s) => s.user);
+
+  // UI Store
+  const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
+
+  // Workout Store
+  const personalRecords = useWorkoutStore((s) => s.personalRecords);
+  const isPRsLoading = useWorkoutStore((s) => s.isPRsLoading);
+  const isPRsRefreshing = useWorkoutStore((s) => s.isPRsRefreshing);
+  const fetchPersonalRecords = useWorkoutStore((s) => s.fetchPersonalRecords);
+  const deletePersonalRecord = useWorkoutStore((s) => s.deletePersonalRecord);
 
   // Charts state
-  const { workouts, loading: chartsLoading, refreshing: chartsRefreshing, refresh: refreshCharts } = useAnalyticsData(selectedRange)
-  const { volumeData, stats: volumeStats } = useTrainingVolume(workouts)
-  const { frequencyData, stats: frequencyStats } = useWorkoutFrequency(workouts)
-  const muscleData = useMuscleGroupData(workouts, 7)
+  const { workouts, loading: chartsLoading, refreshing: chartsRefreshing, refresh: refreshCharts } = useAnalyticsData(selectedRange);
+  const { volumeData, stats: volumeStats } = useTrainingVolume(workouts);
+  const { frequencyData, stats: frequencyStats } = useWorkoutFrequency(workouts);
+  const muscleData = useMuscleGroupData(workouts, 7);
 
-  // PRs state
-  const [prs, setPRs] = useState<PersonalRecord[]>([])
-  const [prsLoading, setPrsLoading] = useState(true)
-  const [prsRefreshing, setPrsRefreshing] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('All')
-  const [confirmDialog, setConfirmDialog] = useState<{
-    visible: boolean
-    title: string
-    message: string
-    onConfirm: () => void
-  }>({
-    visible: false,
-    title: '',
-    message: '',
-    onConfirm: () => {},
-  })
+  // Sorted PRs
+  const prs = [...personalRecords].sort((a, b) => b.weight - a.weight);
 
+  // Initial load
   useEffect(() => {
-    loadUser()
-    loadPRs()
-  }, [])
+    fetchPersonalRecords();
+  }, [fetchPersonalRecords]);
 
+  // Reload on focus
   useFocusEffect(
-    React.useCallback(() => {
-      loadPRs()
-    }, [])
-  )
-
-  const loadUser = async () => {
-    const userData = await getUser()
-    setUser(userData)
-  }
-
-  const loadPRs = async () => {
-    try {
-      const records = await getPersonalRecords()
-      const sortedRecords = records.sort((a, b) => b.weight - a.weight)
-      setPRs(sortedRecords)
-    } catch (error) {
-      console.error('Error loading PRs:', error)
-    } finally {
-      setPrsLoading(false)
-      setPrsRefreshing(false)
-    }
-  }
+    useCallback(() => {
+      fetchPersonalRecords();
+    }, [fetchPersonalRecords])
+  );
 
   const onRefresh = () => {
     if (activeTab === 'charts') {
-      refreshCharts()
+      refreshCharts();
     } else {
-      setPrsRefreshing(true)
-      loadPRs()
+      fetchPersonalRecords(true);
     }
-  }
+  };
 
-  const handleDeletePR = async (pr: PersonalRecord) => {
-    warningHaptic()
-    setConfirmDialog({
-      visible: true,
+  const handleDeletePR = (pr: PersonalRecord) => {
+    warningHaptic();
+    openConfirmDialog({
       title: 'Delete Personal Record?',
       message: `Are you sure you want to delete the PR for ${pr.exerciseName}? This cannot be undone.`,
+      confirmText: 'Delete',
+      icon: 'trophy',
+      iconColor: '#FF3B30',
       onConfirm: async () => {
-        await deletePersonalRecord(pr.id)
-        setConfirmDialog({ ...confirmDialog, visible: false })
-        loadPRs()
-        Alert.alert('Success', 'Personal record deleted')
+        await deletePersonalRecord(pr.id);
+        Alert.alert('Success', 'Personal record deleted');
       },
-    })
-  }
+    });
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -227,8 +211,8 @@ const AnalyticsScreen = () => {
     </Card>
   )
 
-  const loading = activeTab === 'charts' ? chartsLoading : prsLoading
-  const refreshing = activeTab === 'charts' ? chartsRefreshing : prsRefreshing
+  const loading = activeTab === 'charts' ? chartsLoading : isPRsLoading;
+  const refreshing = activeTab === 'charts' ? chartsRefreshing : isPRsRefreshing;
 
   if (loading) {
     return (
@@ -591,20 +575,9 @@ const AnalyticsScreen = () => {
           </>
         )}
       </ScrollView>
-
-      <ConfirmDialog
-        visible={confirmDialog.visible}
-        title={confirmDialog.title}
-        message={confirmDialog.message}
-        confirmText="Delete"
-        onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog({ ...confirmDialog, visible: false })}
-        icon="trophy"
-        iconColor="#FF3B30"
-      />
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,84 +8,76 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack';
 import Card from '../components/Card';
-import AddWorkoutModal from '../components/AddWorkoutModal';
-import EditWorkoutModal from '../components/EditWorkoutModal';
-import ConfirmDialog from '../components/ConfirmDialog';
 import SwipeableRow from '../components/SwipeableRow';
 import ExpandableFAB from '../components/ExpandableFAB';
-import TemplatePicker from '../components/TemplatePicker';
 import { ListSkeleton } from '../components/SkeletonLoader';
-import { getWorkouts, saveWorkout, deleteWorkout, getUser, getTodayDate } from '../services/storage';
-import { WorkoutLog, User, WorkoutTemplate } from '../types'
+import { WorkoutLog } from '../types';
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
-import { useScreenData } from '../hooks/useScreenData';
-import { lightHaptic } from '../utils/haptics';
+import { lightHaptic, warningHaptic } from '../utils/haptics';
+import {
+  useUserStore,
+  useUIStore,
+  useWorkoutStore,
+} from '../stores';
 
 type WorkoutsScreenNavigationProp = StackNavigationProp<WorkoutsStackParamList, 'WorkoutsList'>;
 
 const WorkoutsScreen = () => {
   const navigation = useNavigation<WorkoutsScreenNavigationProp>();
   const { contentMaxWidth } = useResponsive();
-  const [workouts, setWorkouts] = useState<WorkoutLog[]>([]);
-  const [showAddWorkoutModal, setShowAddWorkoutModal] = useState(false);
-  const [showEditWorkoutModal, setShowEditWorkoutModal] = useState(false);
-  const [selectedWorkout, setSelectedWorkout] = useState<WorkoutLog | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<{
-    visible: boolean;
-    workoutId: string;
-    workoutName: string;
-  }>({ visible: false, workoutId: '', workoutName: '' });
-  const [showTemplatePickerDirect, setShowTemplatePickerDirect] = useState(false);
-  const [templateToLoad, setTemplateToLoad] = useState<WorkoutTemplate | null>(null);
 
-  const fetchData = useCallback(async () => {
-    const userData = await getUser();
-    setUser(userData);
-    const data = await getWorkouts();
-    setWorkouts(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-  }, []);
+  // User Store
+  const user = useUserStore((s) => s.user);
 
-  const { loading, refreshing, onRefresh } = useScreenData(fetchData);
+  // UI Store
+  const openAddWorkout = useUIStore((s) => s.openAddWorkout);
+  const openEditWorkout = useUIStore((s) => s.openEditWorkout);
+  const openTemplatePicker = useUIStore((s) => s.openTemplatePicker);
+  const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
 
-  const handleAddWorkout = async (workout: WorkoutLog) => {
-    await saveWorkout(workout);
-    setWorkouts([workout, ...workouts]);
-  };
+  // Workout Store
+  const workouts = useWorkoutStore((s) => s.workouts);
+  const isLoading = useWorkoutStore((s) => s.isLoading);
+  const isRefreshing = useWorkoutStore((s) => s.isRefreshing);
+  const fetchWorkouts = useWorkoutStore((s) => s.fetchWorkouts);
+  const deleteWorkout = useWorkoutStore((s) => s.deleteWorkout);
 
-  const handleEditWorkout = async (editedWorkout: WorkoutLog) => {
-    await saveWorkout(editedWorkout);
-    setWorkouts(workouts.map((w) => (w.id === editedWorkout.id ? editedWorkout : w)));
-    setShowEditWorkoutModal(false);
-    setSelectedWorkout(null);
-  };
-
-  const handleDeleteWorkout = async () => {
-    await deleteWorkout(confirmDelete.workoutId);
-    setWorkouts(workouts.filter((w) => w.id !== confirmDelete.workoutId));
-    setConfirmDelete({ visible: false, workoutId: '', workoutName: '' });
-  };
-
-  const handleDirectTemplateSelect = (template: WorkoutTemplate) => {
-    setTemplateToLoad(template);
-    setShowTemplatePickerDirect(false);
-    setShowAddWorkoutModal(true);
-  };
-
-  // Clear template after modal opens
+  // Initial load
   useEffect(() => {
-    if (showAddWorkoutModal && templateToLoad) {
-      // Template will be loaded by AddWorkoutModal
-      // Clear after delay to prevent re-loading
-      const timeout = setTimeout(() => setTemplateToLoad(null), 500);
-      return () => clearTimeout(timeout);
-    }
-  }, [showAddWorkoutModal, templateToLoad]);
+    fetchWorkouts();
+  }, [fetchWorkouts]);
+
+  // Reload on focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchWorkouts();
+    }, [fetchWorkouts])
+  );
+
+  // Refresh handler
+  const onRefresh = useCallback(() => {
+    fetchWorkouts(true);
+  }, [fetchWorkouts]);
+
+  const handleDeleteWorkout = (workoutId: string, workoutName: string) => {
+    warningHaptic();
+    openConfirmDialog({
+      title: 'Delete Workout?',
+      message: `Are you sure you want to delete "${workoutName}"? This cannot be undone.`,
+      confirmText: 'Delete',
+      icon: 'barbell',
+      iconColor: '#FF3B30',
+      onConfirm: async () => {
+        await deleteWorkout(workoutId);
+      },
+    });
+  };
 
   const renderWorkoutItem = ({ item }: { item: WorkoutLog }) => {
     const totalSets = item.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
@@ -98,16 +90,9 @@ const WorkoutsScreen = () => {
     return (
       <SwipeableRow
         onEdit={() => {
-          setSelectedWorkout(item);
-          setShowEditWorkoutModal(true);
+          openEditWorkout(item);
         }}
-        onDelete={() =>
-          setConfirmDelete({
-            visible: true,
-            workoutId: item.id,
-            workoutName: item.name,
-          })
-        }
+        onDelete={() => handleDeleteWorkout(item.id, item.name)}
       >
         <TouchableOpacity
           onPress={() => navigation.navigate('WorkoutDetail', { workoutId: item.id })}
@@ -136,7 +121,7 @@ const WorkoutsScreen = () => {
     );
   };
 
-  if (loading) {
+  if (isLoading && workouts.length === 0) {
     return (
       <View style={styles.container}>
         <ListSkeleton count={5} />
@@ -156,7 +141,7 @@ const WorkoutsScreen = () => {
         ]}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={isRefreshing}
             onRefresh={onRefresh}
             tintColor={colors.primary}
           />
@@ -178,7 +163,7 @@ const WorkoutsScreen = () => {
             label: 'New Workout',
             onPress: () => {
               lightHaptic();
-              setShowAddWorkoutModal(true);
+              openAddWorkout();
             },
           },
           {
@@ -186,7 +171,7 @@ const WorkoutsScreen = () => {
             label: 'From Template',
             onPress: () => {
               lightHaptic();
-              setShowTemplatePickerDirect(true);
+              openTemplatePicker();
             },
           },
           {
@@ -199,44 +184,6 @@ const WorkoutsScreen = () => {
           },
         ]}
       />
-
-      {user && (
-        <AddWorkoutModal
-          visible={showAddWorkoutModal}
-          onClose={() => setShowAddWorkoutModal(false)}
-          onSave={handleAddWorkout}
-          date={getTodayDate()}
-          userId={user.id}
-          initialTemplate={templateToLoad}
-        />
-      )}
-
-      <TemplatePicker
-        visible={showTemplatePickerDirect}
-        onClose={() => setShowTemplatePickerDirect(false)}
-        onSelectTemplate={handleDirectTemplateSelect}
-      />
-
-      <EditWorkoutModal
-        visible={showEditWorkoutModal}
-        onClose={() => {
-          setShowEditWorkoutModal(false);
-          setSelectedWorkout(null);
-        }}
-        onSave={handleEditWorkout}
-        workout={selectedWorkout}
-      />
-
-      <ConfirmDialog
-        visible={confirmDelete.visible}
-        title="Delete Workout?"
-        message={`Are you sure you want to delete "${confirmDelete.workoutName}"? This cannot be undone.`}
-        confirmText="Delete"
-        onConfirm={handleDeleteWorkout}
-        onCancel={() => setConfirmDelete({ visible: false, workoutId: '', workoutName: '' })}
-        icon="barbell"
-        iconColor="#FF3B30"
-      />
     </View>
   );
 };
@@ -245,11 +192,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   listContainer: {
     padding: 20,
@@ -308,22 +250,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: 'center',
     lineHeight: 22,
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
 });
 

@@ -1,106 +1,84 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../components/Card';
 import ProgressBar from '../components/ProgressBar';
-import AddMealModal from '../components/AddMealModal';
-import EditMealModal from '../components/EditMealModal';
-import ConfirmDialog from '../components/ConfirmDialog';
 import SwipeableRow from '../components/SwipeableRow';
 import ExpandableFAB from '../components/ExpandableFAB';
 import { CardSkeleton, ListSkeleton } from '../components/SkeletonLoader';
-import {
-  getNutritionByDate,
-  getTodayDate,
-  getUser,
-  generateId,
-  saveNutrition,
-} from '../services/storage';
-import { DailyNutrition, User, Meal } from '../types'
+import { getTodayDate } from '../services/storage';
+import { Meal } from '../types';
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
-import { useScreenData } from '../hooks/useScreenData';
 import { formatNumber } from '../utils/formatters';
+import { warningHaptic } from '../utils/haptics';
+import {
+  useUserStore,
+  useUIStore,
+  useNutritionStore,
+} from '../stores';
 
 const NutritionScreen = () => {
   const { contentMaxWidth } = useResponsive();
-  const [user, setUser] = useState<User | null>(null);
-  const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
-  const [showAddMealModal, setShowAddMealModal] = useState(false);
-  const [showEditMealModal, setShowEditMealModal] = useState(false);
-  const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<{
-    visible: boolean;
-    mealId: string;
-    mealName: string;
-  }>({ visible: false, mealId: '', mealName: '' });
   const date = getTodayDate();
 
-  const fetchData = useCallback(async () => {
-    const userData = await getUser();
-    setUser(userData);
+  // User Store
+  const user = useUserStore((s) => s.user);
 
-    let nutritionData = await getNutritionByDate(date);
-    if (!nutritionData && userData) {
-      nutritionData = {
-        id: generateId(),
-        userId: userData.id,
-        date,
-        calorieTarget: userData.dailyCalorieTarget,
-        meals: [],
-      };
-      await saveNutrition(nutritionData);
-    }
-    setNutrition(nutritionData);
-  }, [date]);
+  // UI Store
+  const openAddMeal = useUIStore((s) => s.openAddMeal);
+  const openEditMeal = useUIStore((s) => s.openEditMeal);
+  const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
 
-  const { loading } = useScreenData(fetchData);
+  // Nutrition Store
+  const todayNutrition = useNutritionStore((s) => s.todayNutrition);
+  const isLoading = useNutritionStore((s) => s.isLoading);
+  const fetchNutritionByDate = useNutritionStore((s) => s.fetchNutritionByDate);
+  const deleteMeal = useNutritionStore((s) => s.deleteMeal);
+  const getTotalCalories = useNutritionStore((s) => s.getTotalCalories);
+  const getTotalProtein = useNutritionStore((s) => s.getTotalProtein);
+  const getTotalCarbs = useNutritionStore((s) => s.getTotalCarbs);
+  const getTotalFats = useNutritionStore((s) => s.getTotalFats);
 
-  const handleAddMeal = async (meal: Meal) => {
-    if (!nutrition) return;
+  // Load data
+  const loadData = useCallback(async () => {
+    if (!user) return;
+    await fetchNutritionByDate(date, user.id, user.dailyCalorieTarget);
+  }, [user, date, fetchNutritionByDate]);
 
-    const updatedNutrition: DailyNutrition = {
-      ...nutrition,
-      meals: [...nutrition.meals, meal],
-    };
+  // Initial load
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-    await saveNutrition(updatedNutrition);
-    setNutrition(updatedNutrition);
+  // Reload on focus
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+
+  const handleDeleteMeal = (meal: Meal) => {
+    warningHaptic();
+    openConfirmDialog({
+      title: 'Delete Meal?',
+      message: `Are you sure you want to delete "${meal.name}"? This cannot be undone.`,
+      confirmText: 'Delete',
+      icon: 'restaurant',
+      iconColor: '#FF3B30',
+      onConfirm: async () => {
+        await deleteMeal(meal.id);
+      },
+    });
   };
 
-  const handleEditMeal = async (editedMeal: Meal) => {
-    if (!nutrition) return;
-
-    const updatedNutrition: DailyNutrition = {
-      ...nutrition,
-      meals: nutrition.meals.map((m) => (m.id === editedMeal.id ? editedMeal : m)),
-    };
-
-    await saveNutrition(updatedNutrition);
-    setNutrition(updatedNutrition);
-    setShowEditMealModal(false);
-    setSelectedMeal(null);
-  };
-
-  const handleDeleteMeal = async () => {
-    if (!nutrition) return;
-
-    const updatedNutrition: DailyNutrition = {
-      ...nutrition,
-      meals: nutrition.meals.filter((m) => m.id !== confirmDelete.mealId),
-    };
-
-    await saveNutrition(updatedNutrition);
-    setNutrition(updatedNutrition);
-    setConfirmDelete({ visible: false, mealId: '', mealName: '' });
-  };
-
-  if (loading) {
+  if (isLoading && !todayNutrition) {
     return (
       <View style={styles.container}>
         <View style={styles.contentContainer}>
@@ -113,10 +91,10 @@ const NutritionScreen = () => {
     );
   }
 
-  const totalCalories = nutrition?.meals.reduce((sum, meal) => sum + meal.calories, 0) || 0;
-  const totalProtein = nutrition?.meals.reduce((sum, meal) => sum + meal.protein, 0) || 0;
-  const totalCarbs = nutrition?.meals.reduce((sum, meal) => sum + meal.carbs, 0) || 0;
-  const totalFats = nutrition?.meals.reduce((sum, meal) => sum + meal.fats, 0) || 0;
+  const totalCalories = getTotalCalories();
+  const totalProtein = getTotalProtein();
+  const totalCarbs = getTotalCarbs();
+  const totalFats = getTotalFats();
 
   return (
     <View style={styles.container}>
@@ -130,7 +108,7 @@ const NutritionScreen = () => {
           <View style={styles.summaryContainer}>
             <ProgressBar
               current={totalCalories}
-              target={nutrition?.calorieTarget || 2200}
+              target={todayNutrition?.calorieTarget || user?.dailyCalorieTarget || 2200}
               unit="cal"
               color="#FF6B6B"
             />
@@ -156,7 +134,7 @@ const NutritionScreen = () => {
           <Text style={styles.mealsTitle}>Meals</Text>
         </View>
 
-        {nutrition?.meals.length === 0 ? (
+        {!todayNutrition?.meals.length ? (
           <Card>
             <View style={styles.emptyContainer}>
               <Ionicons name="restaurant-outline" size={48} color="#CCC" />
@@ -164,20 +142,13 @@ const NutritionScreen = () => {
             </View>
           </Card>
         ) : (
-          nutrition?.meals.map((meal) => (
+          todayNutrition.meals.map((meal) => (
             <SwipeableRow
               key={meal.id}
               onEdit={() => {
-                setSelectedMeal(meal);
-                setShowEditMealModal(true);
+                openEditMeal(meal);
               }}
-              onDelete={() =>
-                setConfirmDelete({
-                  visible: true,
-                  mealId: meal.id,
-                  mealName: meal.name,
-                })
-              }
+              onDelete={() => handleDeleteMeal(meal)}
             >
               <Card>
                 <View style={styles.mealHeader}>
@@ -207,37 +178,10 @@ const NutritionScreen = () => {
           {
             icon: 'restaurant',
             label: 'Add Meal',
-            onPress: () => setShowAddMealModal(true),
+            onPress: () => openAddMeal(),
             color: '#FF6B6B',
           },
         ]}
-      />
-
-      <AddMealModal
-        visible={showAddMealModal}
-        onClose={() => setShowAddMealModal(false)}
-        onSave={handleAddMeal}
-      />
-
-      <EditMealModal
-        visible={showEditMealModal}
-        onClose={() => {
-          setShowEditMealModal(false);
-          setSelectedMeal(null);
-        }}
-        onSave={handleEditMeal}
-        meal={selectedMeal}
-      />
-
-      <ConfirmDialog
-        visible={confirmDelete.visible}
-        title="Delete Meal?"
-        message={`Are you sure you want to delete "${confirmDelete.mealName}"? This cannot be undone.`}
-        confirmText="Delete"
-        onConfirm={handleDeleteMeal}
-        onCancel={() => setConfirmDelete({ visible: false, mealId: '', mealName: '' })}
-        icon="restaurant"
-        iconColor="#FF3B30"
       />
     </View>
   );
@@ -247,11 +191,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   contentContainer: {
     padding: 20,
@@ -336,6 +275,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
   },
-  });
+});
 
 export default NutritionScreen;
