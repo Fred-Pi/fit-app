@@ -175,11 +175,11 @@ const WorkoutsScreen = () => {
             },
           },
           {
-            icon: 'library-outline',
-            label: 'Browse Exercises',
+            icon: 'analytics-outline',
+            label: 'Analytics',
             onPress: () => {
               lightHaptic();
-              navigation.navigate('ExerciseLibrary');
+              navigation.navigate('Analytics');
             },
           },
         ]}

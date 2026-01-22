@@ -4,12 +4,14 @@ import WorkoutsScreen from '../screens/WorkoutsScreen';
 import WorkoutDetailScreen from '../screens/WorkoutDetailScreen';
 import ExerciseLibraryScreen from '../screens/ExerciseLibraryScreen';
 import ExerciseDetailScreen from '../screens/ExerciseDetailScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
 
 export type WorkoutsStackParamList = {
   WorkoutsList: undefined;
   WorkoutDetail: { workoutId: string };
   ExerciseLibrary: undefined;
   ExerciseDetail: { exerciseId: string };
+  Analytics: undefined;
 };
 
 const Stack = createStackNavigator<WorkoutsStackParamList>();
@@ -68,6 +70,26 @@ const WorkoutsStack = () => {
         options={{
           headerShown: true,
           headerTitle: 'Exercise Details',
+          headerStyle: {
+            backgroundColor: '#1E1E22',
+            borderBottomWidth: 1,
+            borderBottomColor: '#3A3A42',
+          },
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+            color: '#FFFFFF',
+            letterSpacing: 0.2,
+          },
+          headerTintColor: '#3A9BFF',
+        }}
+      />
+      <Stack.Screen
+        name="Analytics"
+        component={AnalyticsScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Analytics',
           headerStyle: {
             backgroundColor: '#1E1E22',
             borderBottomWidth: 1,

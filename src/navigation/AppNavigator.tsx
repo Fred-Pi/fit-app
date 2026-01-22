@@ -7,9 +7,7 @@ import { colors } from '../utils/theme';
 // Screens
 import TodayScreen from '../screens/TodayScreen';
 import WorkoutsStack from './WorkoutsStack';
-import AnalyticsScreen from '../screens/AnalyticsScreen';
 import NutritionScreen from '../screens/NutritionScreen';
-import AchievementsScreen from '../screens/AchievementsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 // Global Modals
@@ -18,9 +16,7 @@ import GlobalModals from '../components/GlobalModals';
 export type RootTabParamList = {
   Today: undefined;
   Workouts: undefined;
-  Analytics: undefined;
   Nutrition: undefined;
-  Achievements: undefined;
   Profile: undefined;
 };
 
@@ -54,15 +50,9 @@ const AppNavigator = () => {
             } else if (route.name === 'Workouts') {
               iconName = focused ? 'barbell' : 'barbell-outline';
               iconColor = focused ? colors.workout : color;
-            } else if (route.name === 'Analytics') {
-              iconName = focused ? 'analytics' : 'analytics-outline';
-              iconColor = focused ? colors.analytics : color;
             } else if (route.name === 'Nutrition') {
               iconName = focused ? 'nutrition' : 'nutrition-outline';
               iconColor = focused ? colors.nutrition : color;
-            } else if (route.name === 'Achievements') {
-              iconName = focused ? 'trophy' : 'trophy-outline';
-              iconColor = focused ? colors.gold : color;
             } else {
               iconName = focused ? 'person' : 'person-outline';
               iconColor = focused ? colors.textSecondary : color;
@@ -110,19 +100,9 @@ const AppNavigator = () => {
           options={{ headerShown: false }}
         />
         <Tab.Screen
-          name="Analytics"
-          component={AnalyticsScreen}
-          options={{ headerTitle: 'Analytics' }}
-        />
-        <Tab.Screen
           name="Nutrition"
           component={NutritionScreen}
           options={{ headerTitle: 'Nutrition' }}
-        />
-        <Tab.Screen
-          name="Achievements"
-          component={AchievementsScreen}
-          options={{ headerTitle: 'Achievements' }}
         />
         <Tab.Screen
           name="Profile"
