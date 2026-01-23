@@ -12,9 +12,11 @@ import { Ionicons } from '@expo/vector-icons';
 import Card from '../components/Card';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditWorkoutModal from '../components/EditWorkoutModal';
-import { WorkoutLog, User } from '../types'
+import { WorkoutLog, User, WorkoutTemplate, ExerciseTemplate } from '../types'
 import { colors } from '../utils/theme';
-import { getWorkouts, saveWorkout, deleteWorkout, getUser, checkAndUpdatePRs } from '../services/storage';
+import { getWorkouts, saveWorkout, deleteWorkout, getUser, checkAndUpdatePRs, generateId } from '../services/storage';
+import { useUIStore } from '../stores';
+import { successHaptic } from '../utils/haptics';
 
 type WorkoutDetailRouteProp = RouteProp<{ params: { workoutId: string } }, 'params'>;
 
@@ -28,6 +30,8 @@ const WorkoutDetailScreen = () => {
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const openAddWorkout = useUIStore((s) => s.openAddWorkout);
 
   useEffect(() => {
     loadWorkout();
@@ -74,6 +78,30 @@ const WorkoutDetailScreen = () => {
     navigation.goBack();
   };
 
+  const handleDuplicate = () => {
+    if (!workout || !user) return;
+
+    // Convert workout to template format
+    const template: WorkoutTemplate = {
+      id: generateId(),
+      userId: user.id,
+      name: workout.name,
+      created: new Date().toISOString(),
+      exercises: workout.exercises.map((ex, index): ExerciseTemplate => ({
+        id: generateId(),
+        exerciseName: ex.exerciseName,
+        targetSets: ex.sets.length,
+        targetReps: ex.sets[0]?.reps || 10,
+        targetWeight: ex.sets[0]?.weight || undefined,
+        order: index,
+      })),
+    };
+
+    successHaptic();
+    openAddWorkout(template);
+    navigation.goBack();
+  };
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -117,6 +145,12 @@ const WorkoutDetailScreen = () => {
               )}
             </View>
             <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.headerButton}
+                onPress={handleDuplicate}
+              >
+                <Ionicons name="copy" size={22} color="#30D158" />
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.headerButton}
                 onPress={() => setShowEditModal(true)}

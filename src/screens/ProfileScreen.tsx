@@ -7,15 +7,16 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Share,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Card from '../components/Card';
-import { clearAllData } from '../services/storage';
+import { clearAllData, getWorkouts, getNutrition, getSteps, getWeights } from '../services/storage';
 import { colors } from '../utils/theme';
 import { createSampleData } from '../utils/sampleData';
-import { warningHaptic } from '../utils/haptics';
+import { warningHaptic, successHaptic } from '../utils/haptics';
 import {
   useUserStore,
   useUIStore,
@@ -96,6 +97,53 @@ const ProfileScreen = () => {
     } catch (error) {
       Alert.alert('Error', 'Failed to load sample data');
       console.error('Error loading sample data:', error);
+    }
+  };
+
+  const handleExportData = async () => {
+    try {
+      const [workouts, nutrition, steps, weights] = await Promise.all([
+        getWorkouts(),
+        getNutrition(),
+        getSteps(),
+        getWeights(),
+      ]);
+
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        user: user ? {
+          name: user.name,
+          dailyCalorieTarget: user.dailyCalorieTarget,
+          dailyStepGoal: user.dailyStepGoal,
+          preferredWeightUnit: user.preferredWeightUnit,
+          goalWeight: user.goalWeight,
+        } : null,
+        workouts,
+        nutrition,
+        steps,
+        weights,
+        summary: {
+          totalWorkouts: workouts.length,
+          totalMeals: nutrition.reduce((sum, n) => sum + n.meals.length, 0),
+          totalDaysTracked: new Set([
+            ...workouts.map(w => w.date),
+            ...nutrition.map(n => n.date),
+            ...steps.map(s => s.date),
+          ]).size,
+        },
+      };
+
+      const jsonString = JSON.stringify(exportData, null, 2);
+
+      await Share.share({
+        message: jsonString,
+        title: 'FitApp Data Export',
+      });
+
+      successHaptic();
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      Alert.alert('Error', 'Failed to export data');
     }
   };
 
@@ -342,6 +390,21 @@ const ProfileScreen = () => {
             </Text>
           </View>
         )}
+      </Card>
+
+      {/* Your Data */}
+      <Card>
+        <Text style={styles.sectionTitle}>Your Data</Text>
+        <TouchableOpacity
+          style={styles.exportButton}
+          onPress={handleExportData}
+        >
+          <Ionicons name="download-outline" size={20} color="#30D158" />
+          <Text style={styles.exportButtonText}>Export All Data</Text>
+        </TouchableOpacity>
+        <Text style={styles.testDescription}>
+          Export your workouts, nutrition, and tracking data as JSON
+        </Text>
       </Card>
 
       {/* Testing */}
@@ -595,6 +658,20 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.borderLight,
     marginVertical: 12,
+  },
+  exportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#1A2E1F',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  exportButtonText: {
+    fontSize: 15,
+    color: '#30D158',
+    marginLeft: 8,
+    fontWeight: '500',
   },
   testButton: {
     flexDirection: 'row',
