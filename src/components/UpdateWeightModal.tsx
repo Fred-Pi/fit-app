@@ -12,6 +12,7 @@ import {
 import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { successHaptic } from '../utils/haptics';
+import { validateBodyWeight } from '../utils/validation';
 import FormInput from './FormInput';
 
 interface UpdateWeightModalProps {
@@ -38,8 +39,14 @@ const UpdateWeightModal: React.FC<UpdateWeightModalProps> = ({
   const handleSave = () => {
     const weightNum = parseFloat(weight);
 
-    if (isNaN(weightNum) || weightNum <= 0) {
+    if (isNaN(weightNum)) {
       Alert.alert('Error', 'Please enter a valid weight');
+      return;
+    }
+
+    const validation = validateBodyWeight(weightNum, unit);
+    if (!validation.isValid) {
+      Alert.alert('Error', validation.error);
       return;
     }
 

@@ -6,6 +6,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/utils/ThemeContext';
 import { initializeDatabase, migrateFromAsyncStorage } from './src/services/database';
 import { useUserStore } from './src/stores';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
@@ -40,12 +41,14 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider>
-        <AppNavigator />
-        <StatusBar style="light" />
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider>
+          <AppNavigator />
+          <StatusBar style="light" />
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
 

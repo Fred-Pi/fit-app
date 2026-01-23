@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Meal } from '../types';
 import { generateId } from '../services/storage';
 import { successHaptic } from '../utils/haptics';
+import { validateMeal } from '../utils/validation';
 import FormInput from './FormInput';
 
 interface AddMealModalProps {
@@ -31,23 +32,23 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
   const [fats, setFats] = useState('');
 
   const handleSave = () => {
-    if (!name.trim()) {
-      Alert.alert('Error', 'Please enter a meal name');
-      return;
-    }
-
-    if (!calories || parseInt(calories) <= 0) {
-      Alert.alert('Error', 'Please enter valid calories');
-      return;
-    }
-
-    const meal: Meal = {
-      id: generateId(),
+    const mealData = {
       name: name.trim(),
       calories: parseInt(calories) || 0,
       protein: parseInt(protein) || 0,
       carbs: parseInt(carbs) || 0,
       fats: parseInt(fats) || 0,
+    };
+
+    const validation = validateMeal(mealData);
+    if (!validation.isValid) {
+      Alert.alert('Error', validation.error);
+      return;
+    }
+
+    const meal: Meal = {
+      id: generateId(),
+      ...mealData,
       time: new Date().toISOString(),
     };
 

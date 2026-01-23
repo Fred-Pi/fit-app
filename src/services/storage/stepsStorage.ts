@@ -1,0 +1,105 @@
+/**
+ * Steps storage operations
+ */
+
+import { DailySteps } from '../../types';
+import { getDb } from './db';
+
+export const getSteps = async (): Promise<DailySteps[]> => {
+  try {
+    const db = await getDb();
+    const rows = await db.getAllAsync<{
+      id: string;
+      user_id: string;
+      date: string;
+      steps: number;
+      step_goal: number;
+      source: string;
+    }>('SELECT * FROM daily_steps ORDER BY date DESC');
+
+    return rows.map(r => ({
+      id: r.id,
+      userId: r.user_id,
+      date: r.date,
+      steps: r.steps,
+      stepGoal: r.step_goal,
+      source: r.source as 'manual' | 'apple_health' | 'google_fit',
+    }));
+  } catch (error) {
+    console.error('Error getting steps:', error);
+    return [];
+  }
+};
+
+export const getStepsByDate = async (date: string): Promise<DailySteps | null> => {
+  try {
+    const db = await getDb();
+    const row = await db.getFirstAsync<{
+      id: string;
+      user_id: string;
+      date: string;
+      steps: number;
+      step_goal: number;
+      source: string;
+    }>(
+      'SELECT * FROM daily_steps WHERE date = ?',
+      [date]
+    );
+
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      userId: row.user_id,
+      date: row.date,
+      steps: row.steps,
+      stepGoal: row.step_goal,
+      source: row.source as 'manual' | 'apple_health' | 'google_fit',
+    };
+  } catch (error) {
+    console.error('Error getting steps by date:', error);
+    return null;
+  }
+};
+
+export const saveSteps = async (steps: DailySteps): Promise<void> => {
+  try {
+    const db = await getDb();
+    await db.runAsync(
+      `INSERT OR REPLACE INTO daily_steps (id, user_id, date, steps, step_goal, source)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [steps.id, steps.userId, steps.date, steps.steps, steps.stepGoal, steps.source]
+    );
+  } catch (error) {
+    console.error('Error saving steps:', error);
+  }
+};
+
+export const getStepsInRange = async (startDate: string, endDate: string): Promise<DailySteps[]> => {
+  try {
+    const db = await getDb();
+    const rows = await db.getAllAsync<{
+      id: string;
+      user_id: string;
+      date: string;
+      steps: number;
+      step_goal: number;
+      source: string;
+    }>(
+      'SELECT * FROM daily_steps WHERE date BETWEEN ? AND ? ORDER BY date',
+      [startDate, endDate]
+    );
+
+    return rows.map(r => ({
+      id: r.id,
+      userId: r.user_id,
+      date: r.date,
+      steps: r.steps,
+      stepGoal: r.step_goal,
+      source: r.source as 'manual' | 'apple_health' | 'google_fit',
+    }));
+  } catch (error) {
+    console.error('Error getting steps in range:', error);
+    return [];
+  }
+};

@@ -4,6 +4,9 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../utils/theme';
 
+// Components
+import ErrorBoundary from '../components/ErrorBoundary';
+
 // Screens
 import TodayScreen from '../screens/TodayScreen';
 import WorkoutsStack from './WorkoutsStack';
@@ -38,7 +41,8 @@ const AppNavigator = () => {
   return (
     <NavigationContainer theme={CustomDarkTheme}>
       <GlobalModals />
-      <Tab.Navigator
+      <ErrorBoundary>
+        <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
             let iconName: keyof typeof Ionicons.glyphMap;
@@ -110,6 +114,7 @@ const AppNavigator = () => {
           options={{ headerTitle: 'Profile' }}
         />
       </Tab.Navigator>
+      </ErrorBoundary>
     </NavigationContainer>
   );
 };

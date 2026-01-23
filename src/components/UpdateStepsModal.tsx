@@ -12,6 +12,7 @@ import {
 import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { successHaptic } from '../utils/haptics';
+import { validateSteps } from '../utils/validation';
 import FormInput from './FormInput';
 
 interface UpdateStepsModalProps {
@@ -36,8 +37,14 @@ const UpdateStepsModal: React.FC<UpdateStepsModalProps> = ({
   const handleSave = () => {
     const stepsNum = parseInt(steps);
 
-    if (isNaN(stepsNum) || stepsNum < 0) {
+    if (isNaN(stepsNum)) {
       Alert.alert('Error', 'Please enter a valid number of steps');
+      return;
+    }
+
+    const validation = validateSteps(stepsNum);
+    if (!validation.isValid) {
+      Alert.alert('Error', validation.error);
       return;
     }
 
