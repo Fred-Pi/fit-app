@@ -8,6 +8,7 @@ import { colors, glass } from '../utils/theme';
 // Components
 import ErrorBoundary from '../components/ErrorBoundary';
 import CustomTabBar from '../components/CustomTabBar';
+import AnimatedBackground from '../components/AnimatedBackground';
 
 // Screens
 import TodayScreen from '../screens/TodayScreen';
@@ -39,10 +40,10 @@ const CustomDarkTheme = {
   },
 };
 
-// Custom header background with subtle gradient
+// Custom header background with subtle transparency
 const HeaderBackground = () => (
   <LinearGradient
-    colors={[colors.surface, colors.background]}
+    colors={['rgba(24, 24, 27, 0.8)', 'rgba(24, 24, 27, 0.4)', 'transparent']}
     style={StyleSheet.absoluteFill}
   />
 );
@@ -50,53 +51,59 @@ const HeaderBackground = () => (
 const AppNavigator = () => {
   return (
     <NavigationContainer theme={CustomDarkTheme}>
-      <GlobalModals />
-      <ErrorBoundary>
-        <Tab.Navigator
-          tabBar={(props) => <CustomTabBar {...props} />}
-          screenOptions={{
-            headerShown: true,
-            headerStyle: {
-              backgroundColor: colors.surface,
-              elevation: 0,
-              shadowOpacity: 0,
-              borderBottomWidth: 0,
-            },
-            headerBackground: () => <HeaderBackground />,
-            headerTitleStyle: {
-              fontWeight: '700',
-              fontSize: 20,
-              color: colors.text,
-              letterSpacing: 0.3,
-            },
-            headerTitleAlign: 'left',
-            headerLeftContainerStyle: {
-              paddingLeft: 8,
-            },
-          }}
-        >
-          <Tab.Screen
-            name="Today"
-            component={TodayScreen}
-            options={{ headerTitle: 'Today' }}
-          />
-          <Tab.Screen
-            name="Workouts"
-            component={WorkoutsStack}
-            options={{ headerShown: false }}
-          />
-          <Tab.Screen
-            name="Nutrition"
-            component={NutritionScreen}
-            options={{ headerTitle: 'Nutrition' }}
-          />
-          <Tab.Screen
-            name="Profile"
-            component={ProfileScreen}
-            options={{ headerTitle: 'Profile' }}
-          />
-        </Tab.Navigator>
-      </ErrorBoundary>
+      <AnimatedBackground>
+        <GlobalModals />
+        <ErrorBoundary>
+          <Tab.Navigator
+            tabBar={(props) => <CustomTabBar {...props} />}
+            screenOptions={{
+              headerShown: true,
+              headerTransparent: true,
+              headerStyle: {
+                backgroundColor: 'transparent',
+                elevation: 0,
+                shadowOpacity: 0,
+                borderBottomWidth: 0,
+              },
+              headerBackground: () => <HeaderBackground />,
+              headerTitleStyle: {
+                fontWeight: '700',
+                fontSize: 20,
+                color: colors.text,
+                letterSpacing: 0.3,
+              },
+              headerTitleAlign: 'left',
+              headerLeftContainerStyle: {
+                paddingLeft: 8,
+              },
+              sceneStyle: {
+                backgroundColor: 'transparent',
+              },
+            }}
+          >
+            <Tab.Screen
+              name="Today"
+              component={TodayScreen}
+              options={{ headerTitle: 'Today' }}
+            />
+            <Tab.Screen
+              name="Workouts"
+              component={WorkoutsStack}
+              options={{ headerShown: false }}
+            />
+            <Tab.Screen
+              name="Nutrition"
+              component={NutritionScreen}
+              options={{ headerTitle: 'Nutrition' }}
+            />
+            <Tab.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{ headerTitle: 'Profile' }}
+            />
+          </Tab.Navigator>
+        </ErrorBoundary>
+      </AnimatedBackground>
     </NavigationContainer>
   );
 };

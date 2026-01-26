@@ -269,7 +269,7 @@ const MacroItem = ({ value, label, color, icon }: {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
   },
   contentContainer: {
     padding: spacing.xl,
