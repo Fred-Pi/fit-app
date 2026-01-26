@@ -1,14 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { colors, glass } from '../utils/theme';
+import { colors } from '../utils/theme';
 
 // Components
 import ErrorBoundary from '../components/ErrorBoundary';
 import CustomTabBar from '../components/CustomTabBar';
-import AnimatedBackground from '../components/AnimatedBackground';
 
 // Screens
 import TodayScreen from '../screens/TodayScreen';
@@ -40,47 +37,33 @@ const CustomDarkTheme = {
   },
 };
 
-// Custom header background with subtle transparency
-const HeaderBackground = () => (
-  <LinearGradient
-    colors={['rgba(24, 24, 27, 0.8)', 'rgba(24, 24, 27, 0.4)', 'transparent']}
-    style={StyleSheet.absoluteFill}
-  />
-);
-
 const AppNavigator = () => {
   return (
     <NavigationContainer theme={CustomDarkTheme}>
-      <AnimatedBackground>
-        <GlobalModals />
-        <ErrorBoundary>
-          <Tab.Navigator
-            tabBar={(props) => <CustomTabBar {...props} />}
-            screenOptions={{
-              headerShown: true,
-              headerTransparent: true,
-              headerStyle: {
-                backgroundColor: 'transparent',
-                elevation: 0,
-                shadowOpacity: 0,
-                borderBottomWidth: 0,
-              },
-              headerBackground: () => <HeaderBackground />,
-              headerTitleStyle: {
-                fontWeight: '700',
-                fontSize: 20,
-                color: colors.text,
-                letterSpacing: 0.3,
-              },
-              headerTitleAlign: 'left',
-              headerLeftContainerStyle: {
-                paddingLeft: 8,
-              },
-              sceneStyle: {
-                backgroundColor: 'transparent',
-              },
-            }}
-          >
+      <GlobalModals />
+      <ErrorBoundary>
+        <Tab.Navigator
+          tabBar={(props) => <CustomTabBar {...props} />}
+          screenOptions={{
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: colors.background,
+              elevation: 0,
+              shadowOpacity: 0,
+              borderBottomWidth: 0,
+            },
+            headerTitleStyle: {
+              fontWeight: '700',
+              fontSize: 20,
+              color: colors.text,
+              letterSpacing: 0.3,
+            },
+            headerTitleAlign: 'left',
+            headerLeftContainerStyle: {
+              paddingLeft: 8,
+            },
+          }}
+        >
             <Tab.Screen
               name="Today"
               component={TodayScreen}
@@ -102,8 +85,7 @@ const AppNavigator = () => {
               options={{ headerTitle: 'Profile' }}
             />
           </Tab.Navigator>
-        </ErrorBoundary>
-      </AnimatedBackground>
+      </ErrorBoundary>
     </NavigationContainer>
   );
 };
