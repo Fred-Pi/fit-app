@@ -3,18 +3,20 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
+  TextInput,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Alert,
-} from 'react-native'
-import { colors } from '../utils/theme';
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Meal } from '../types';
 import { successHaptic } from '../utils/haptics';
-import FormInput from './FormInput';
+import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
+import ModalHeader from './ModalHeader';
+import { modalStyles, placeholderColor } from '../styles/modalStyles';
 
 interface EditMealModalProps {
   visible: boolean;
@@ -29,6 +31,7 @@ const EditMealModal: React.FC<EditMealModalProps> = ({ visible, onClose, onSave,
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fats, setFats] = useState('');
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   useEffect(() => {
     if (meal) {
@@ -76,82 +79,135 @@ const EditMealModal: React.FC<EditMealModalProps> = ({ visible, onClose, onSave,
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+        style={modalStyles.container}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} accessibilityLabel="Cancel" accessibilityRole="button">
-            <Text style={styles.cancelButton}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Edit Meal</Text>
-          <TouchableOpacity onPress={handleSave} accessibilityLabel="Save changes" accessibilityRole="button">
-            <Text style={styles.saveButton}>Save</Text>
-          </TouchableOpacity>
-        </View>
+        <ModalHeader
+          title="Edit Meal"
+          onCancel={onClose}
+          onSave={handleSave}
+        />
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardDismissMode="on-drag">
-          <View style={styles.section}>
-            <FormInput
-              label="Meal Name"
-              required
+        <ScrollView
+          style={modalStyles.content}
+          contentContainerStyle={modalStyles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
+        >
+          {/* Meal Name */}
+          <View style={modalStyles.section}>
+            <Text style={modalStyles.label}>
+              Meal Name <Text style={modalStyles.requiredLabel}>*</Text>
+            </Text>
+            <TextInput
+              style={[
+                modalStyles.input,
+                focusedField === 'name' && modalStyles.inputFocused,
+              ]}
               placeholder="e.g., Breakfast, Chicken & Rice"
+              placeholderTextColor={placeholderColor}
               value={name}
               onChangeText={setName}
+              onFocus={() => setFocusedField('name')}
+              onBlur={() => setFocusedField(null)}
               autoCapitalize="words"
               autoFocus
               selectTextOnFocus
             />
           </View>
 
-          <View style={styles.section}>
-            <FormInput
-              label="Calories"
-              required
+          {/* Calories */}
+          <View style={modalStyles.section}>
+            <Text style={modalStyles.label}>
+              Calories <Text style={modalStyles.requiredLabel}>*</Text>
+            </Text>
+            <TextInput
+              style={[
+                modalStyles.input,
+                focusedField === 'calories' && modalStyles.inputFocused,
+              ]}
               placeholder="e.g., 500"
+              placeholderTextColor={placeholderColor}
               value={calories}
               onChangeText={setCalories}
+              onFocus={() => setFocusedField('calories')}
+              onBlur={() => setFocusedField(null)}
               keyboardType="number-pad"
             />
           </View>
 
-          <View style={styles.macrosSection}>
-            <Text style={styles.sectionTitle}>Macros (Optional)</Text>
+          {/* Macros Section */}
+          <View style={styles.macrosCard}>
+            <View style={styles.macrosHeader}>
+              <LinearGradient
+                colors={[colors.nutritionLight, colors.nutrition]}
+                style={styles.macrosIcon}
+              >
+                <Ionicons name="pie-chart" size={18} color={colors.text} />
+              </LinearGradient>
+              <View>
+                <Text style={modalStyles.sectionTitle}>Macros</Text>
+                <Text style={styles.macrosSubtitle}>Optional but recommended</Text>
+              </View>
+            </View>
 
-            <View style={styles.macroRow}>
-              <View style={styles.macroInput}>
-                <FormInput
-                  label="Protein (g)"
+            <View style={modalStyles.row}>
+              <View style={modalStyles.rowItem}>
+                <Text style={modalStyles.label}>Protein (g)</Text>
+                <TextInput
+                  style={[
+                    modalStyles.input,
+                    focusedField === 'protein' && modalStyles.inputFocused,
+                  ]}
                   placeholder="0"
+                  placeholderTextColor={placeholderColor}
                   value={protein}
                   onChangeText={setProtein}
+                  onFocus={() => setFocusedField('protein')}
+                  onBlur={() => setFocusedField(null)}
                   keyboardType="number-pad"
                 />
               </View>
 
-              <View style={styles.macroInput}>
-                <FormInput
-                  label="Carbs (g)"
+              <View style={modalStyles.rowItem}>
+                <Text style={modalStyles.label}>Carbs (g)</Text>
+                <TextInput
+                  style={[
+                    modalStyles.input,
+                    focusedField === 'carbs' && modalStyles.inputFocused,
+                  ]}
                   placeholder="0"
+                  placeholderTextColor={placeholderColor}
                   value={carbs}
                   onChangeText={setCarbs}
+                  onFocus={() => setFocusedField('carbs')}
+                  onBlur={() => setFocusedField(null)}
                   keyboardType="number-pad"
                 />
               </View>
 
-              <View style={styles.macroInput}>
-                <FormInput
-                  label="Fats (g)"
+              <View style={modalStyles.rowItem}>
+                <Text style={modalStyles.label}>Fats (g)</Text>
+                <TextInput
+                  style={[
+                    modalStyles.input,
+                    focusedField === 'fats' && modalStyles.inputFocused,
+                  ]}
                   placeholder="0"
+                  placeholderTextColor={placeholderColor}
                   value={fats}
                   onChangeText={setFats}
+                  onFocus={() => setFocusedField('fats')}
+                  onBlur={() => setFocusedField(null)}
                   keyboardType="number-pad"
                 />
               </View>
             </View>
           </View>
 
-          <View style={styles.helpSection}>
-            <Ionicons name="information-circle-outline" size={20} color="#666" />
-            <Text style={styles.helpText}>
+          {/* Help Section */}
+          <View style={modalStyles.helpSection}>
+            <Ionicons name="information-circle" size={20} color={colors.primary} />
+            <Text style={modalStyles.helpText}>
               Update the meal details and tap Save to apply changes.
             </Text>
           </View>
@@ -162,70 +218,32 @@ const EditMealModal: React.FC<EditMealModalProps> = ({ visible, onClose, onSave,
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1E1E22',
+  macrosCard: {
+    backgroundColor: glass.backgroundLight,
+    borderWidth: 1,
+    borderColor: glass.border,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    marginBottom: spacing.xl,
+    ...shadows.sm,
   },
-  header: {
+  macrosHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A42',
+    gap: spacing.md,
+    marginBottom: spacing.xl,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
+  macrosIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  cancelButton: {
-    fontSize: 16,
+  macrosSubtitle: {
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-  },
-  saveButton: {
-    fontSize: 16,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 12,
-  },
-  macrosSection: {
-    marginBottom: 24,
-  },
-  macroRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  macroInput: {
-    flex: 1,
-  },
-  helpSection: {
-    flexDirection: 'row',
-    backgroundColor: '#0F1A2E',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'flex-start',
-  },
-  helpText: {
-    flex: 1,
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginLeft: 8,
-    lineHeight: 18,
+    marginTop: 2,
   },
 });
 

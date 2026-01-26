@@ -3,13 +3,15 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   Vibration,
   Alert,
 } from 'react-native'
-import { colors } from '../utils/theme';
+import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
+import ModalHeader from './ModalHeader';
+import GlassButton from './GlassButton';
 
 interface RestTimerProps {
   visible: boolean;
@@ -118,14 +120,12 @@ const RestTimer: React.FC<RestTimerProps> = ({ visible, onClose }) => {
       onRequestClose={handleClose}
     >
       <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose}>
-            <Text style={styles.closeButton}>Close</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Rest Timer</Text>
-          <View style={styles.placeholder} />
-        </View>
+        <ModalHeader
+          title="Rest Timer"
+          onCancel={handleClose}
+          showSave={false}
+          cancelText="Close"
+        />
 
         <View style={styles.content}>
           {/* Timer Display */}
@@ -164,11 +164,12 @@ const RestTimer: React.FC<RestTimerProps> = ({ visible, onClose }) => {
             <Text style={styles.presetsLabel}>Quick Select</Text>
             <View style={styles.presets}>
               {PRESET_TIMES.map((time) => (
-                <TouchableOpacity
+                <Pressable
                   key={time}
-                  style={[
+                  style={({ pressed }) => [
                     styles.presetButton,
-                    selectedDuration === time && styles.presetButtonActive
+                    selectedDuration === time && styles.presetButtonActive,
+                    pressed && styles.presetButtonPressed,
                   ]}
                   onPress={() => handlePresetSelect(time)}
                 >
@@ -178,7 +179,7 @@ const RestTimer: React.FC<RestTimerProps> = ({ visible, onClose }) => {
                   ]}>
                     {time < 60 ? `${time}s` : `${time / 60}m`}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
           </View>
@@ -186,30 +187,39 @@ const RestTimer: React.FC<RestTimerProps> = ({ visible, onClose }) => {
           {/* Controls */}
           <View style={styles.controls}>
             {!isRunning ? (
-              <TouchableOpacity
-                style={[styles.controlButton, styles.startButton]}
-                onPress={handleStart}
-              >
-                <Ionicons name="play" size={32} color="#FFFFFF" />
-                <Text style={styles.controlButtonText}>Start</Text>
-              </TouchableOpacity>
+              <View style={styles.controlButtonWrapper}>
+                <GlassButton
+                  title="Start"
+                  onPress={handleStart}
+                  variant="success"
+                  icon="play"
+                  size="lg"
+                  fullWidth
+                />
+              </View>
             ) : (
-              <TouchableOpacity
-                style={[styles.controlButton, styles.pauseButton]}
-                onPress={handlePause}
-              >
-                <Ionicons name="pause" size={32} color="#FFFFFF" />
-                <Text style={styles.controlButtonText}>Pause</Text>
-              </TouchableOpacity>
+              <View style={styles.controlButtonWrapper}>
+                <GlassButton
+                  title="Pause"
+                  onPress={handlePause}
+                  variant="secondary"
+                  icon="pause"
+                  size="lg"
+                  fullWidth
+                />
+              </View>
             )}
 
-            <TouchableOpacity
-              style={[styles.controlButton, styles.resetButton]}
-              onPress={handleReset}
-            >
-              <Ionicons name="refresh" size={32} color="#FFFFFF" />
-              <Text style={styles.controlButtonText}>Reset</Text>
-            </TouchableOpacity>
+            <View style={styles.controlButtonWrapper}>
+              <GlassButton
+                title="Reset"
+                onPress={handleReset}
+                variant="danger"
+                icon="refresh"
+                size="lg"
+                fullWidth
+              />
+            </View>
           </View>
 
           {/* Tip */}
@@ -228,66 +238,45 @@ const RestTimer: React.FC<RestTimerProps> = ({ visible, onClose }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E1E22',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A42',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  closeButton: {
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
-  placeholder: {
-    width: 60,
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: spacing.xl,
     alignItems: 'center',
   },
   timerContainer: {
-    marginTop: 40,
-    marginBottom: 60,
+    marginTop: spacing['3xl'],
+    marginBottom: spacing['4xl'],
     position: 'relative',
   },
   timerCircle: {
     width: 240,
     height: 240,
     borderRadius: 120,
-    backgroundColor: '#2A2A30',
+    backgroundColor: glass.backgroundLight,
     borderWidth: 8,
-    borderColor: '#3A3A42',
+    borderColor: glass.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   timerCircleComplete: {
     borderColor: colors.success,
-    backgroundColor: '#1A2E1F',
+    backgroundColor: colors.successMuted,
   },
   timerText: {
-    fontSize: 64,
-    fontWeight: '800',
+    fontSize: typography.size['5xl'],
+    fontWeight: typography.weight.extrabold,
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   timerTextComplete: {
     color: colors.success,
   },
   timerLabel: {
-    fontSize: 16,
+    fontSize: typography.size.base,
     color: colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: typography.weight.semibold,
   },
   progressRing: {
     position: 'absolute',
@@ -307,36 +296,39 @@ const styles = StyleSheet.create({
   },
   presetsContainer: {
     width: '100%',
-    marginBottom: 40,
+    marginBottom: spacing['3xl'],
   },
   presetsLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: spacing.md,
     textAlign: 'center',
   },
   presets: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 12,
+    gap: spacing.md,
     flexWrap: 'wrap',
   },
   presetButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: '#2A2A30',
-    borderWidth: 2,
-    borderColor: '#3A3A42',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: glass.backgroundLight,
+    borderWidth: 1,
+    borderColor: glass.border,
   },
   presetButtonActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
+  presetButtonPressed: {
+    backgroundColor: glass.background,
+  },
   presetButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.bold,
     color: colors.textSecondary,
   },
   presetButtonTextActive: {
@@ -344,42 +336,28 @@ const styles = StyleSheet.create({
   },
   controls: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 30,
+    gap: spacing.lg,
+    marginBottom: spacing['2xl'],
+    width: '100%',
+    paddingHorizontal: spacing.lg,
   },
-  controlButton: {
+  controlButtonWrapper: {
     flex: 1,
-    alignItems: 'center',
-    paddingVertical: 20,
-    borderRadius: 12,
-    gap: 8,
-  },
-  startButton: {
-    backgroundColor: colors.success,
-  },
-  pauseButton: {
-    backgroundColor: '#FFD60A',
-  },
-  resetButton: {
-    backgroundColor: '#FF5E6D',
-  },
-  controlButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
   },
   tipContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F1A2E',
-    padding: 12,
-    borderRadius: 10,
-    gap: 8,
+    backgroundColor: colors.primaryMuted,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    gap: spacing.sm,
     maxWidth: 320,
+    borderWidth: 1,
+    borderColor: `${colors.primary}30`,
   },
   tipText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.primary,
     lineHeight: 18,
   },

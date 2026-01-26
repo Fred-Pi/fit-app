@@ -3,15 +3,19 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   FlatList,
   Alert,
-} from 'react-native'
-import { colors } from '../utils/theme';
+  Pressable,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
+import ModalHeader from './ModalHeader';
+import { modalStyles } from '../styles/modalStyles';
 import { WorkoutTemplate } from '../types';
 import { getTemplates, deleteTemplate } from '../services/storage';
+import { warningHaptic } from '../utils/haptics';
 
 interface TemplatePickerProps {
   visible: boolean;
@@ -46,6 +50,7 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
   };
 
   const handleDeleteTemplate = async (templateId: string, templateName: string) => {
+    warningHaptic();
     Alert.alert(
       'Delete Template',
       `Are you sure you want to delete "${templateName}"?`,
@@ -65,36 +70,50 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
 
   const renderTemplateItem = ({ item }: { item: WorkoutTemplate }) => (
     <View style={styles.templateItem}>
-      <TouchableOpacity
-        style={styles.templateContent}
+      <Pressable
+        style={({ pressed }) => [
+          styles.templateContent,
+          pressed && styles.templateContentPressed,
+        ]}
         onPress={() => handleSelectTemplate(item)}
       >
+        <View style={styles.templateIcon}>
+          <LinearGradient
+            colors={[colors.workoutLight, colors.workout]}
+            style={styles.templateIconGradient}
+          >
+            <Ionicons name="document-text" size={20} color={colors.text} />
+          </LinearGradient>
+        </View>
         <View style={styles.templateInfo}>
           <Text style={styles.templateName}>{item.name}</Text>
           <Text style={styles.templateDetails}>
             {item.exercises.length} {item.exercises.length === 1 ? 'exercise' : 'exercises'}
           </Text>
           <View style={styles.exercisePreview}>
-            {item.exercises.slice(0, 3).map((exercise, index) => (
+            {item.exercises.slice(0, 3).map((exercise) => (
               <Text key={exercise.id} style={styles.exercisePreviewText}>
                 • {exercise.exerciseName}
               </Text>
             ))}
             {item.exercises.length > 3 && (
-              <Text style={styles.exercisePreviewText}>
+              <Text style={styles.exercisePreviewMore}>
                 + {item.exercises.length - 3} more
               </Text>
             )}
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={20} color="#A0A0A8" />
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.deleteButton}
+        <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [
+          styles.deleteButton,
+          pressed && styles.deleteButtonPressed,
+        ]}
         onPress={() => handleDeleteTemplate(item.id, item.name)}
       >
-        <Ionicons name="trash-outline" size={20} color="#FF5E6D" />
-      </TouchableOpacity>
+        <Ionicons name="trash-outline" size={18} color={colors.error} />
+      </Pressable>
     </View>
   );
 
@@ -105,17 +124,13 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelButton}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Workout Templates</Text>
-          <View style={styles.placeholder} />
-        </View>
+      <View style={modalStyles.container}>
+        <ModalHeader
+          title="Workout Templates"
+          onCancel={onClose}
+          showSave={false}
+        />
 
-        {/* Template List */}
         {loading ? (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Loading templates...</Text>
@@ -129,8 +144,10 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
             showsVerticalScrollIndicator={false}
           />
         ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="document-text-outline" size={64} color="#A0A0A8" />
+          <View style={modalStyles.emptyState}>
+            <View style={styles.emptyIcon}>
+              <Ionicons name="document-text-outline" size={48} color={colors.textTertiary} />
+            </View>
             <Text style={styles.emptyText}>No templates yet</Text>
             <Text style={styles.emptySubtext}>
               Create a workout and save it as a template to reuse it later
@@ -143,105 +160,106 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1E1E22',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A42',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  cancelButton: {
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
-  placeholder: {
-    width: 60,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: typography.size.base,
     color: colors.textSecondary,
   },
   listContent: {
-    padding: 16,
+    padding: spacing.lg,
+    paddingBottom: spacing['3xl'],
   },
   templateItem: {
-    backgroundColor: '#2A2A30',
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.xl,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#3A3A42',
+    borderColor: glass.border,
     overflow: 'hidden',
+    ...shadows.sm,
   },
   templateContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  templateContentPressed: {
+    backgroundColor: glass.background,
+  },
+  templateIcon: {
+    marginRight: spacing.xs,
+  },
+  templateIconGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   templateInfo: {
     flex: 1,
   },
   templateName: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
     marginBottom: 4,
   },
   templateDetails: {
-    fontSize: 14,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   exercisePreview: {
-    marginTop: 4,
+    gap: 2,
   },
   exercisePreviewText: {
-    fontSize: 13,
-    color: '#666',
-    marginBottom: 2,
+    fontSize: typography.size.sm,
+    color: colors.textTertiary,
+  },
+  exercisePreviewMore: {
+    fontSize: typography.size.sm,
+    color: colors.primary,
+    fontWeight: typography.weight.medium,
+    marginTop: 2,
   },
   deleteButton: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    padding: 8,
-    backgroundColor: 'rgba(255, 94, 109, 0.1)',
-    borderRadius: 8,
+    top: spacing.md,
+    right: spacing.md,
+    padding: spacing.sm,
+    backgroundColor: colors.errorMuted,
+    borderRadius: radius.md,
   },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
+  deleteButtonPressed: {
+    backgroundColor: colors.error,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: radius.xl,
+    backgroundColor: glass.backgroundLight,
     alignItems: 'center',
-    paddingHorizontal: 32,
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
   },
   emptyText: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
+    paddingHorizontal: spacing['3xl'],
   },
 });
 

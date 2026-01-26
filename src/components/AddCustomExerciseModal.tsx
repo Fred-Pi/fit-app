@@ -98,7 +98,7 @@ const AddCustomExerciseModal: React.FC<AddCustomExerciseModalProps> = ({
         'Discard Exercise?',
         'You have unsaved changes. Are you sure you want to discard this exercise?',
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: 'Keep Editing', style: 'cancel' },
           { text: 'Discard', style: 'destructive', onPress: onClose },
         ]
       )

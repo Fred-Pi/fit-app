@@ -9,11 +9,12 @@ import {
   Platform,
   Alert,
 } from 'react-native'
-import { colors } from '../utils/theme';
+import { colors, glass, radius, spacing, typography } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { successHaptic } from '../utils/haptics';
 import { validateBodyWeight } from '../utils/validation';
 import FormInput from './FormInput';
+import GlassButton from './GlassButton';
 
 interface UpdateWeightModalProps {
   visible: boolean;
@@ -101,22 +102,22 @@ const UpdateWeightModal: React.FC<UpdateWeightModalProps> = ({
           </View>
 
           <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={handleClose}
-              accessibilityLabel="Cancel"
-              accessibilityRole="button"
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.saveButton]}
-              onPress={handleSave}
-              accessibilityLabel="Save weight"
-              accessibilityRole="button"
-            >
-              <Text style={styles.saveButtonText}>Save</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonWrapper}>
+              <GlassButton
+                title="Cancel"
+                onPress={handleClose}
+                variant="secondary"
+                fullWidth
+              />
+            </View>
+            <View style={styles.buttonWrapper}>
+              <GlassButton
+                title="Save"
+                onPress={handleSave}
+                variant="primary"
+                fullWidth
+              />
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -131,64 +132,45 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.overlay,
   },
   container: {
-    backgroundColor: '#1E1E22',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius['2xl'],
+    borderTopRightRadius: radius['2xl'],
+    paddingBottom: Platform.OS === 'ios' ? 34 : spacing.xl,
   },
   header: {
     alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#3A3A42',
+    borderBottomColor: glass.border,
   },
   iconContainer: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#2E2416',
+    backgroundColor: colors.warningMuted,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
   },
   content: {
-    padding: 20,
+    padding: spacing.xl,
   },
   actions: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    gap: 12,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.md,
   },
-  button: {
+  buttonWrapper: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#3A3A42',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  saveButton: {
-    backgroundColor: '#FF9500',
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
   },
 });
 

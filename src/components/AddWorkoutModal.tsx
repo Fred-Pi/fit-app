@@ -10,12 +10,17 @@ import {
   Platform,
   ScrollView,
   Alert,
-} from 'react-native'
-import { colors } from '../utils/theme';
+  Pressable,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutLog, ExerciseLog, SetLog, WorkoutTemplate, ExerciseTemplate } from '../types';
 import { generateId, saveTemplate, getLastExercisePerformance } from '../services/storage';
-import { heavyHaptic } from '../utils/haptics';
+import { heavyHaptic, lightHaptic } from '../utils/haptics';
+import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
+import ModalHeader from './ModalHeader';
+import GlassButton from './GlassButton';
+import { modalStyles, placeholderColor } from '../styles/modalStyles';
 import ExercisePicker from './ExercisePicker';
 import TemplatePicker from './TemplatePicker';
 import RestTimer from './RestTimer';
@@ -41,6 +46,7 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
 }) => {
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState<ExerciseLog[]>([]);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // Current exercise being added
   const [exerciseName, setExerciseName] = useState('');
@@ -62,45 +68,36 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
   } | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  // Exercise picker
+  // Pickers
   const [showExercisePicker, setShowExercisePicker] = useState(false);
-
-  // Template picker
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
-
-  // Rest timer
   const [showRestTimer, setShowRestTimer] = useState(false);
 
-  // Workout timer state
-  const [workoutDuration, setWorkoutDuration] = useState<number>(0); // in minutes
+  // Workout timer
+  const [workoutDuration, setWorkoutDuration] = useState<number>(0);
   const [hasActiveTimer, setHasActiveTimer] = useState(false);
 
-  // Handle duration change from timer
   const handleDurationChange = (durationInMinutes: number) => {
     setWorkoutDuration(durationInMinutes);
     setHasActiveTimer(durationInMinutes > 0);
   };
 
-  // Load initial template if provided
+  // Load initial template
   useEffect(() => {
     if (visible && initialTemplate) {
-      // Load template using same logic as handleSelectTemplate
       setWorkoutName(initialTemplate.name);
-
       const exerciseLogs: ExerciseLog[] = initialTemplate.exercises.map((exerciseTemplate) => {
         const setsArray: SetLog[] = Array.from({ length: exerciseTemplate.targetSets }, () => ({
           reps: exerciseTemplate.targetReps,
           weight: exerciseTemplate.targetWeight || 0,
           completed: true,
         }));
-
         return {
           id: generateId(),
           exerciseName: exerciseTemplate.exerciseName,
           sets: setsArray,
         };
       });
-
       setExercises(exerciseLogs);
     }
   }, [visible, initialTemplate]);
@@ -115,7 +112,6 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
     const numReps = parseInt(reps) || 10;
     const numWeight = parseInt(weight) || 0;
 
-    // Create sets array
     const setsArray: SetLog[] = Array.from({ length: numSets }, () => ({
       reps: numReps,
       weight: numWeight,
@@ -130,13 +126,11 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
     };
 
     setExercises([...exercises, newExercise]);
-
-    // Reset exercise form
     setExerciseName('');
     setWeight('');
     setExerciseNotes('');
     setExerciseHistory(null);
-    Alert.alert('Success', `${exerciseName} added to workout`);
+    lightHaptic();
   };
 
   const handleRemoveExercise = (id: string) => {
@@ -158,7 +152,6 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
       setExerciseHistory(null);
       return;
     }
-
     setLoadingHistory(true);
     const history = await getLastExercisePerformance(name.trim(), userId);
     setExerciseHistory(history);
@@ -166,27 +159,21 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
   };
 
   const handleSelectTemplate = (template: WorkoutTemplate) => {
-    // Populate workout name
     setWorkoutName(template.name);
-
-    // Convert template exercises to ExerciseLog format
     const exerciseLogs: ExerciseLog[] = template.exercises.map((exerciseTemplate) => {
       const setsArray: SetLog[] = Array.from({ length: exerciseTemplate.targetSets }, () => ({
         reps: exerciseTemplate.targetReps,
         weight: exerciseTemplate.targetWeight || 0,
         completed: true,
       }));
-
       return {
         id: generateId(),
         exerciseName: exerciseTemplate.exerciseName,
         sets: setsArray,
       };
     });
-
     setExercises(exerciseLogs);
     setShowTemplatePicker(false);
-    Alert.alert('Template Loaded', `"${template.name}" has been loaded. You can modify it before saving.`);
   };
 
   const handleSaveAsTemplate = async () => {
@@ -208,7 +195,6 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
               return;
             }
 
-            // Convert exercises to template format
             const exerciseTemplates: ExerciseTemplate[] = exercises.map((exercise, index) => ({
               id: generateId(),
               exerciseName: exercise.exerciseName,
@@ -241,7 +227,6 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
       Alert.alert('Error', 'Please enter a workout name');
       return;
     }
-
     if (exercises.length === 0) {
       Alert.alert('Error', 'Please add at least one exercise');
       return;
@@ -284,22 +269,27 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
         ? 'You have an active workout timer. Your progress will be lost if you close.'
         : 'You have unsaved changes. Are you sure you want to close?';
 
-      Alert.alert(
-        'Discard Workout?',
-        message,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Discard', style: 'destructive', onPress: () => {
-            resetForm();
-            onClose();
-          }},
-        ]
-      );
+      Alert.alert('Discard Workout?', message, [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', style: 'destructive', onPress: () => { resetForm(); onClose(); }},
+      ]);
     } else {
       resetForm();
       onClose();
     }
   };
+
+  const TimerAccessory = (
+    <View style={styles.timerAccessory}>
+      <WorkoutTimer onDurationChange={handleDurationChange} />
+      <Pressable
+        style={styles.restTimerButton}
+        onPress={() => setShowRestTimer(true)}
+      >
+        <Ionicons name="hourglass-outline" size={18} color={colors.primary} />
+      </Pressable>
+    </View>
+  );
 
   return (
     <Modal
@@ -310,236 +300,276 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+        style={modalStyles.container}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose}>
-            <Text style={styles.cancelButton}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Log Workout</Text>
-          <View style={styles.headerRight}>
-            <WorkoutTimer onDurationChange={handleDurationChange} />
-            <TouchableOpacity
-              style={styles.restTimerButton}
-              onPress={() => setShowRestTimer(true)}
-            >
-              <Ionicons name="hourglass-outline" size={18} color="#3A9BFF" />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity onPress={handleSave}>
-            <Text style={styles.saveButton}>Save</Text>
-          </TouchableOpacity>
-        </View>
+        <ModalHeader
+          title="Log Workout"
+          onCancel={handleClose}
+          onSave={handleSave}
+          rightAccessory={TimerAccessory}
+        />
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardDismissMode="on-drag">
+        <ScrollView
+          style={modalStyles.content}
+          contentContainerStyle={modalStyles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
+        >
           {/* Use Template Button */}
-          <TouchableOpacity
-            style={styles.templateButton}
-            onPress={() => setShowTemplatePicker(true)}
-          >
-            <Ionicons name="document-text-outline" size={20} color="#3A9BFF" />
-            <Text style={styles.templateButtonText}>Use Template</Text>
-            <Ionicons name="chevron-forward" size={20} color="#A0A0A8" />
-          </TouchableOpacity>
+          <View style={styles.templateButtonContainer}>
+            <GlassButton
+              title="Use Template"
+              onPress={() => setShowTemplatePicker(true)}
+              variant="ghost"
+              icon="document-text"
+              fullWidth
+            />
+          </View>
 
           {/* Workout Name */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Workout Name *</Text>
+          <View style={modalStyles.section}>
+            <Text style={modalStyles.label}>
+              Workout Name <Text style={modalStyles.requiredLabel}>*</Text>
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                modalStyles.input,
+                focusedField === 'workoutName' && modalStyles.inputFocused,
+              ]}
               placeholder="e.g., Push Day, Upper Body"
-              placeholderTextColor="#98989D"
+              placeholderTextColor={placeholderColor}
               value={workoutName}
               onChangeText={setWorkoutName}
+              onFocus={() => setFocusedField('workoutName')}
+              onBlur={() => setFocusedField(null)}
               autoCapitalize="words"
             />
           </View>
 
           {/* Workout Notes */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Workout Notes (Optional)</Text>
+          <View style={modalStyles.section}>
+            <Text style={modalStyles.label}>Workout Notes (Optional)</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[
+                modalStyles.input,
+                modalStyles.textArea,
+                focusedField === 'workoutNotes' && modalStyles.inputFocused,
+              ]}
               placeholder="How did you feel? Any adjustments needed?"
-              placeholderTextColor="#98989D"
+              placeholderTextColor={placeholderColor}
               value={workoutNotes}
               onChangeText={setWorkoutNotes}
+              onFocus={() => setFocusedField('workoutNotes')}
+              onBlur={() => setFocusedField(null)}
               multiline
               numberOfLines={3}
-              textAlignVertical="top"
             />
           </View>
 
-          {/* Exercises Added */}
+          {/* Exercises List */}
           {exercises.length > 0 && (
-            <View style={styles.exercisesList}>
-              <Text style={styles.sectionTitle}>
-                Exercises ({exercises.length})
-              </Text>
+            <View style={styles.exercisesSection}>
+              <View style={styles.exercisesHeader}>
+                <LinearGradient
+                  colors={[colors.workoutLight, colors.workout]}
+                  style={styles.exercisesIcon}
+                >
+                  <Ionicons name="barbell" size={18} color={colors.text} />
+                </LinearGradient>
+                <Text style={modalStyles.sectionTitle}>Exercises ({exercises.length})</Text>
+              </View>
+
               {exercises.map((exercise) => (
                 <View key={exercise.id} style={styles.exerciseItem}>
                   <View style={styles.exerciseInfo}>
-                    <Text style={styles.exerciseItemName}>
-                      {exercise.exerciseName}
-                    </Text>
-                    <Text style={styles.exerciseItemDetails}>
+                    <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
+                    <Text style={styles.exerciseDetails}>
                       {exercise.sets.length} sets × {exercise.sets[0]?.reps} reps
                       {exercise.sets[0]?.weight > 0 && ` @ ${exercise.sets[0].weight} lbs`}
                     </Text>
                     {exercise.notes && (
-                      <Text style={styles.exerciseItemNotes}>{exercise.notes}</Text>
+                      <Text style={styles.exerciseNotes}>{exercise.notes}</Text>
                     )}
                   </View>
-                  <TouchableOpacity
+                  <Pressable
                     onPress={() => handleRemoveExercise(exercise.id)}
+                    style={styles.removeButton}
                   >
-                    <Ionicons name="close-circle" size={24} color="#FF3B30" />
-                  </TouchableOpacity>
+                    <Ionicons name="close-circle" size={24} color={colors.error} />
+                  </Pressable>
                 </View>
               ))}
             </View>
           )}
 
           {/* Add Exercise Form */}
-          <View style={styles.addExerciseSection}>
-            <Text style={styles.sectionTitle}>Add Exercise</Text>
-
-            <View style={styles.section}>
-              <Text style={styles.label}>Exercise Name *</Text>
-
-              {/* Exercise Picker Button */}
-              <TouchableOpacity
-                style={styles.exercisePickerButton}
-                onPress={() => setShowExercisePicker(true)}
-              >
-                <Ionicons name="search-outline" size={20} color="#3A9BFF" />
-                <Text style={[
-                  styles.exercisePickerButtonText,
-                  exerciseName && styles.exercisePickerButtonTextSelected
-                ]}>
-                  {exerciseName || 'Select from exercise database'}
-                </Text>
-                <Ionicons name="chevron-forward" size={20} color="#A0A0A8" />
-              </TouchableOpacity>
-
-              {/* Manual Entry */}
-              <Text style={styles.orText}>or enter custom name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Bench Press, Squat"
-                placeholderTextColor="#98989D"
-                value={exerciseName}
-                onChangeText={setExerciseName}
-                onBlur={() => loadExerciseHistory(exerciseName)}
-                autoCapitalize="words"
-              />
-
-              {/* Exercise History & Progressive Overload Suggestion */}
-              {exerciseName.trim() && (
-                <ExerciseHistoryIndicator
-                  exerciseName={exerciseName}
-                  lastPerformance={exerciseHistory}
-                  loading={loadingHistory}
-                  weightUnit="lbs"
-                  onApplySuggestion={(suggestedSets, suggestedReps, suggestedWeight) => {
-                    setSets(suggestedSets.toString());
-                    setReps(suggestedReps.toString());
-                    setWeight(suggestedWeight > 0 ? suggestedWeight.toString() : '');
-                  }}
-                />
-              )}
+          <View style={styles.addExerciseCard}>
+            <View style={styles.addExerciseHeader}>
+              <Ionicons name="add-circle" size={22} color={colors.success} />
+              <Text style={modalStyles.sectionTitle}>Add Exercise</Text>
             </View>
 
-            <View style={styles.row}>
-              <View style={styles.rowItem}>
-                <Text style={styles.label}>Sets</Text>
+            {/* Exercise Picker */}
+            <Text style={modalStyles.label}>Exercise Name *</Text>
+            <Pressable
+              style={({ pressed }) => [
+                modalStyles.pickerButton,
+                pressed && { backgroundColor: glass.background },
+              ]}
+              onPress={() => setShowExercisePicker(true)}
+            >
+              <Ionicons name="search" size={20} color={colors.primary} />
+              <Text style={[
+                modalStyles.pickerButtonText,
+                exerciseName && modalStyles.pickerButtonTextSelected,
+              ]}>
+                {exerciseName || 'Select from exercise database'}
+              </Text>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </Pressable>
+
+            <Text style={styles.orText}>or enter custom name</Text>
+
+            <TextInput
+              style={[
+                modalStyles.input,
+                focusedField === 'exerciseName' && modalStyles.inputFocused,
+              ]}
+              placeholder="e.g., Bench Press, Squat"
+              placeholderTextColor={placeholderColor}
+              value={exerciseName}
+              onChangeText={setExerciseName}
+              onFocus={() => setFocusedField('exerciseName')}
+              onBlur={() => { setFocusedField(null); loadExerciseHistory(exerciseName); }}
+              autoCapitalize="words"
+            />
+
+            {exerciseName.trim() && (
+              <ExerciseHistoryIndicator
+                exerciseName={exerciseName}
+                lastPerformance={exerciseHistory}
+                loading={loadingHistory}
+                weightUnit="lbs"
+                onApplySuggestion={(suggestedSets, suggestedReps, suggestedWeight) => {
+                  setSets(suggestedSets.toString());
+                  setReps(suggestedReps.toString());
+                  setWeight(suggestedWeight > 0 ? suggestedWeight.toString() : '');
+                }}
+              />
+            )}
+
+            <View style={[modalStyles.row, { marginTop: spacing.lg }]}>
+              <View style={modalStyles.rowItem}>
+                <Text style={modalStyles.label}>Sets</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    modalStyles.input,
+                    focusedField === 'sets' && modalStyles.inputFocused,
+                  ]}
                   placeholder="3"
-                  placeholderTextColor="#98989D"
+                  placeholderTextColor={placeholderColor}
                   value={sets}
                   onChangeText={setSets}
+                  onFocus={() => setFocusedField('sets')}
+                  onBlur={() => setFocusedField(null)}
                   keyboardType="number-pad"
                 />
               </View>
 
-              <View style={styles.rowItem}>
-                <Text style={styles.label}>Reps</Text>
+              <View style={modalStyles.rowItem}>
+                <Text style={modalStyles.label}>Reps</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    modalStyles.input,
+                    focusedField === 'reps' && modalStyles.inputFocused,
+                  ]}
                   placeholder="10"
-                  placeholderTextColor="#98989D"
+                  placeholderTextColor={placeholderColor}
                   value={reps}
                   onChangeText={setReps}
+                  onFocus={() => setFocusedField('reps')}
+                  onBlur={() => setFocusedField(null)}
                   keyboardType="number-pad"
                 />
               </View>
 
-              <View style={styles.rowItem}>
-                <Text style={styles.label}>Weight (lbs)</Text>
+              <View style={modalStyles.rowItem}>
+                <Text style={modalStyles.label}>Weight (lbs)</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    modalStyles.input,
+                    focusedField === 'weight' && modalStyles.inputFocused,
+                  ]}
                   placeholder="0"
-                  placeholderTextColor="#98989D"
+                  placeholderTextColor={placeholderColor}
                   value={weight}
                   onChangeText={setWeight}
+                  onFocus={() => setFocusedField('weight')}
+                  onBlur={() => setFocusedField(null)}
                   keyboardType="number-pad"
                 />
               </View>
             </View>
 
-            {/* Exercise Notes */}
-            <View style={styles.section}>
-              <Text style={styles.label}>Exercise Notes (Optional)</Text>
+            <View style={{ marginTop: spacing.lg }}>
+              <Text style={modalStyles.label}>Exercise Notes (Optional)</Text>
               <TextInput
-                style={[styles.input, styles.textArea]}
+                style={[
+                  modalStyles.input,
+                  modalStyles.textArea,
+                  { minHeight: 60 },
+                  focusedField === 'exerciseNotes' && modalStyles.inputFocused,
+                ]}
                 placeholder="Form cues, adjustments, etc."
-                placeholderTextColor="#98989D"
+                placeholderTextColor={placeholderColor}
                 value={exerciseNotes}
                 onChangeText={setExerciseNotes}
+                onFocus={() => setFocusedField('exerciseNotes')}
+                onBlur={() => setFocusedField(null)}
                 multiline
                 numberOfLines={2}
-                textAlignVertical="top"
               />
             </View>
 
-            <TouchableOpacity
-              style={styles.addExerciseButton}
+            <GlassButton
+              title="Add Exercise"
               onPress={handleAddExercise}
-            >
-              <Ionicons name="add-circle" size={20} color="#007AFF" />
-              <Text style={styles.addExerciseButtonText}>Add Exercise</Text>
-            </TouchableOpacity>
+              variant="success"
+              icon="add-circle"
+              fullWidth
+              style={{ marginTop: spacing.xl }}
+            />
           </View>
 
-          {/* Save as Template Button */}
+          {/* Save as Template */}
           {exercises.length > 0 && (
-            <TouchableOpacity
-              style={styles.saveTemplateButton}
-              onPress={handleSaveAsTemplate}
-            >
-              <Ionicons name="bookmark-outline" size={20} color="#3A9BFF" />
-              <Text style={styles.saveTemplateButtonText}>Save as Template</Text>
-            </TouchableOpacity>
+            <View style={styles.saveTemplateContainer}>
+              <GlassButton
+                title="Save as Template"
+                onPress={handleSaveAsTemplate}
+                variant="ghost"
+                icon="bookmark"
+                fullWidth
+              />
+            </View>
           )}
 
-          <View style={styles.helpSection}>
-            <Ionicons name="information-circle-outline" size={20} color="#666" />
-            <Text style={styles.helpText}>
+          {/* Help */}
+          <View style={modalStyles.helpSection}>
+            <Ionicons name="information-circle" size={20} color={colors.primary} />
+            <Text style={modalStyles.helpText}>
               Add exercises one at a time. Each exercise will use the same reps and weight for all sets.
             </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Template Picker Modal */}
       <TemplatePicker
         visible={showTemplatePicker}
         onClose={() => setShowTemplatePicker(false)}
         onSelectTemplate={handleSelectTemplate}
       />
 
-      {/* Exercise Picker Modal */}
       <ExercisePicker
         visible={showExercisePicker}
         onClose={() => setShowExercisePicker(false)}
@@ -547,7 +577,6 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
         currentExerciseName={exerciseName}
       />
 
-      {/* Rest Timer Modal */}
       <RestTimer
         visible={showRestTimer}
         onClose={() => setShowRestTimer(false)}
@@ -557,215 +586,92 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1E1E22',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A42',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerRight: {
+  timerAccessory: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   restTimerButton: {
-    padding: 6,
-    backgroundColor: '#2A2A30',
-    borderRadius: 8,
+    padding: spacing.sm,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#3A3A42',
+    borderColor: glass.border,
   },
-  cancelButton: {
-    fontSize: 16,
-    color: colors.textSecondary,
+  templateButtonContainer: {
+    marginBottom: spacing.xl,
   },
-  saveButton: {
-    fontSize: 16,
-    color: colors.primary,
-    fontWeight: '600',
+  exercisesSection: {
+    marginBottom: spacing.xl,
   },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  section: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#3A3A42',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#2A2A30',
-    color: colors.text,
-  },
-  row: {
+  exercisesHeader: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
   },
-  rowItem: {
-    flex: 1,
-  },
-  exercisesList: {
-    marginBottom: 24,
+  exercisesIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   exerciseItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#0F1A2E',
-    borderRadius: 8,
-    marginBottom: 8,
+    backgroundColor: glass.backgroundLight,
+    borderWidth: 1,
+    borderColor: glass.border,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.sm,
   },
   exerciseInfo: {
     flex: 1,
   },
-  exerciseItemName: {
-    fontSize: 16,
-    fontWeight: '600',
+  exerciseName: {
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
     marginBottom: 4,
   },
-  exerciseItemDetails: {
-    fontSize: 14,
+  exerciseDetails: {
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
   },
-  exerciseItemNotes: {
-    fontSize: 13,
-    color: colors.textSecondary,
+  exerciseNotes: {
+    fontSize: typography.size.sm,
+    color: colors.textTertiary,
     marginTop: 4,
     fontStyle: 'italic',
   },
-  textArea: {
-    height: 80,
-    paddingTop: 12,
+  removeButton: {
+    padding: spacing.xs,
   },
-  addExerciseSection: {
-    backgroundColor: '#2A2A30',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
+  addExerciseCard: {
+    backgroundColor: glass.backgroundLight,
+    borderWidth: 1,
+    borderColor: glass.border,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    marginBottom: spacing.xl,
+    ...shadows.sm,
   },
-  addExerciseButton: {
+  addExerciseHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    backgroundColor: '#0F1A2E',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderStyle: 'dashed',
-  },
-  addExerciseButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
-    marginLeft: 8,
-  },
-  helpSection: {
-    flexDirection: 'row',
-    backgroundColor: '#2E2416',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'flex-start',
-  },
-  helpText: {
-    flex: 1,
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginLeft: 8,
-    lineHeight: 18,
-  },
-  exercisePickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2A2A30',
-    borderWidth: 1,
-    borderColor: '#3A3A42',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 12,
-  },
-  exercisePickerButtonText: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginLeft: 10,
-  },
-  exercisePickerButtonTextSelected: {
-    color: colors.text,
-    fontWeight: '500',
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
   },
   orText: {
-    fontSize: 13,
-    color: colors.textSecondary,
+    fontSize: typography.size.sm,
+    color: colors.textTertiary,
     textAlign: 'center',
-    marginBottom: 10,
+    marginVertical: spacing.md,
   },
-  templateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#2A2A30',
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  templateButtonText: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
-    marginLeft: 10,
-  },
-  saveTemplateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2A2A30',
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 16,
-    gap: 8,
-  },
-  saveTemplateButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.primary,
+  saveTemplateContainer: {
+    marginBottom: spacing.xl,
   },
 });
 

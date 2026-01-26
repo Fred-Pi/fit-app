@@ -1,5 +1,5 @@
 import React from 'react';
-import { colors } from '../utils/theme'
+import { colors, glass, spacing, typography, radius } from '../utils/theme'
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -51,28 +51,30 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius['2xl'],
+    marginRight: spacing.sm,
+    borderWidth: 1,
+    borderColor: glass.border,
   },
   inactiveChip: {
-    backgroundColor: '#2A2A30',
+    backgroundColor: glass.backgroundLight,
   },
   icon: {
-    marginRight: 6,
+    marginRight: spacing.sm,
   },
   label: {
-    fontSize: 14,
+    fontSize: typography.size.sm,
     letterSpacing: 0.2,
   },
   activeLabel: {
     color: colors.text,
-    fontWeight: '700',
+    fontWeight: typography.weight.bold,
   },
   inactiveLabel: {
     color: colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: typography.weight.medium,
   },
 });
 

@@ -8,9 +8,14 @@ import {
   StyleSheet,
   SectionList,
   Alert,
-} from 'react-native'
-import { colors } from '../utils/theme';
+  Pressable,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
+import ModalHeader from './ModalHeader';
+import GlassButton from './GlassButton';
+import { modalStyles, placeholderColor } from '../styles/modalStyles';
 import {
   EXERCISE_DATABASE,
   EXERCISE_CATEGORIES,
@@ -46,8 +51,8 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customExercises, setCustomExercises] = useState<Exercise[]>([]);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // Load custom exercises when modal opens
   useEffect(() => {
     if (visible) {
       loadCustomExercises();
@@ -63,12 +68,10 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
     }
   };
 
-  // Get all exercises (built-in + custom)
   const allExercises = useMemo(() => {
     return getAllExercises(customExercises);
   }, [customExercises]);
 
-  // Filter exercises based on search query
   const filteredExercises = useMemo(() => {
     if (!searchQuery.trim()) {
       return allExercises;
@@ -78,7 +81,6 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
     );
   }, [searchQuery, allExercises]);
 
-  // Group exercises by category for SectionList
   const exerciseSections = useMemo<ExerciseSection[]>(() => {
     const sections: ExerciseSection[] = [];
 
@@ -130,12 +132,14 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
 
   const renderExerciseItem = ({ item }: { item: Exercise }) => {
     const isCustom = isCustomExercise(item.id);
+    const isSelected = currentExerciseName === item.name;
 
     return (
-      <TouchableOpacity
-        style={[
+      <Pressable
+        style={({ pressed }) => [
           styles.exerciseItem,
-          currentExerciseName === item.name && styles.exerciseItemSelected,
+          isSelected && styles.exerciseItemSelected,
+          pressed && styles.exerciseItemPressed,
         ]}
         onPress={() => handleSelectFromDatabase(item)}
       >
@@ -143,9 +147,12 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
           <View style={styles.exerciseNameRow}>
             <Text style={styles.exerciseName}>{item.name}</Text>
             {isCustom && (
-              <View style={styles.customBadge}>
+              <LinearGradient
+                colors={[colors.analyticsLight, colors.analytics]}
+                style={styles.customBadge}
+              >
                 <Text style={styles.customBadgeText}>Custom</Text>
-              </View>
+              </LinearGradient>
             )}
           </View>
           {item.defaultSets && item.defaultReps && (
@@ -154,16 +161,20 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
             </Text>
           )}
         </View>
-        <Ionicons name="chevron-forward" size={20} color="#A0A0A8" />
-      </TouchableOpacity>
+        <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+      </Pressable>
     );
   };
 
   const renderSectionHeader = ({ section }: { section: ExerciseSection }) => (
     <View style={styles.sectionHeader}>
-      <Ionicons name={section.icon as any} size={20} color={section.color} />
+      <View style={[styles.sectionIcon, { backgroundColor: section.color + '20' }]}>
+        <Ionicons name={section.icon as any} size={18} color={section.color} />
+      </View>
       <Text style={styles.sectionTitle}>{section.title}</Text>
-      <Text style={styles.sectionCount}>({section.data.length})</Text>
+      <View style={styles.sectionCount}>
+        <Text style={styles.sectionCountText}>{section.data.length}</Text>
+      </View>
     </View>
   );
 
@@ -174,74 +185,81 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose}>
-            <Text style={styles.cancelButton}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Exercise Database</Text>
-          <View style={styles.placeholder} />
-        </View>
+      <View style={modalStyles.container}>
+        <ModalHeader
+          title="Exercise Database"
+          onCancel={handleClose}
+          showSave={false}
+        />
 
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={20} color="#A0A0A8" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search exercises..."
-            placeholderTextColor="#A0A0A8"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#A0A0A8" />
-            </TouchableOpacity>
-          )}
-        </View>
+        <View style={styles.searchSection}>
+          <View style={[
+            styles.searchContainer,
+            focusedField === 'search' && styles.searchContainerFocused,
+          ]}>
+            <Ionicons name="search" size={20} color={colors.primary} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search exercises..."
+              placeholderTextColor={placeholderColor}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onFocus={() => setFocusedField('search')}
+              onBlur={() => setFocusedField(null)}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
+              </Pressable>
+            )}
+          </View>
 
-        {/* Custom Exercise Section */}
-        <View style={styles.customSection}>
+          {/* Custom Exercise Section */}
           {!showCustomInput ? (
-            <TouchableOpacity
-              style={styles.customButton}
+            <GlassButton
+              title="Enter Custom Exercise"
               onPress={() => setShowCustomInput(true)}
-            >
-              <Ionicons name="add-circle-outline" size={24} color="#3A9BFF" />
-              <Text style={styles.customButtonText}>Enter Custom Exercise</Text>
-            </TouchableOpacity>
+              variant="success"
+              icon="add-circle"
+              fullWidth
+            />
           ) : (
             <View style={styles.customInputContainer}>
               <TextInput
-                style={styles.customInput}
+                style={[
+                  modalStyles.input,
+                  focusedField === 'custom' && modalStyles.inputFocused,
+                ]}
                 placeholder="Enter custom exercise name..."
-                placeholderTextColor="#A0A0A8"
+                placeholderTextColor={placeholderColor}
                 value={customName}
                 onChangeText={setCustomName}
+                onFocus={() => setFocusedField('custom')}
+                onBlur={() => setFocusedField(null)}
                 autoFocus
                 autoCapitalize="words"
                 onSubmitEditing={handleCustomExercise}
                 returnKeyType="done"
               />
               <View style={styles.customActions}>
-                <TouchableOpacity
-                  style={styles.customCancelButton}
+                <GlassButton
+                  title="Cancel"
                   onPress={() => {
                     setCustomName('');
                     setShowCustomInput(false);
                   }}
-                >
-                  <Text style={styles.customCancelText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.customSaveButton}
+                  variant="secondary"
+                  size="sm"
+                />
+                <GlassButton
+                  title="Add"
                   onPress={handleCustomExercise}
-                >
-                  <Text style={styles.customSaveText}>Add</Text>
-                </TouchableOpacity>
+                  variant="success"
+                  size="sm"
+                />
               </View>
             </View>
           )}
@@ -259,10 +277,10 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
             showsVerticalScrollIndicator={false}
           />
         ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={48} color="#A0A0A8" />
-            <Text style={styles.emptyText}>No exercises found</Text>
-            <Text style={styles.emptySubtext}>
+          <View style={modalStyles.emptyState}>
+            <Ionicons name="search" size={48} color={colors.textTertiary} />
+            <Text style={modalStyles.emptyStateText}>No exercises found</Text>
+            <Text style={[modalStyles.emptyStateText, { marginTop: spacing.xs }]}>
               Try a different search term or add a custom exercise
             </Text>
           </View>
@@ -273,149 +291,101 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1E1E22',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A42',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  cancelButton: {
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
-  placeholder: {
-    width: 60,
+  searchSection: {
+    padding: spacing.lg,
+    gap: spacing.md,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2A2A30',
-    borderRadius: 10,
-    margin: 16,
-    marginBottom: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderWidth: 1,
-    borderColor: '#3A3A42',
+    borderColor: glass.border,
+  },
+  searchContainerFocused: {
+    borderColor: colors.primary,
+    backgroundColor: glass.background,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: typography.size.base,
     color: colors.text,
-  },
-  customSection: {
-    marginHorizontal: 16,
-    marginBottom: 8,
-  },
-  customButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2A2A30',
-    borderRadius: 10,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderStyle: 'dashed',
-  },
-  customButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
-    marginLeft: 8,
   },
   customInputContainer: {
-    backgroundColor: '#2A2A30',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: '#3A3A42',
-  },
-  customInput: {
-    fontSize: 16,
-    color: colors.text,
-    paddingVertical: 8,
-    marginBottom: 12,
+    borderColor: glass.border,
+    gap: spacing.md,
   },
   customActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 12,
-  },
-  customCancelButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  customCancelText: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  customSaveButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  customSaveText: {
-    fontSize: 15,
-    color: colors.text,
-    fontWeight: '600',
+    gap: spacing.md,
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: spacing['3xl'],
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E1E22',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#3A3A42',
+    borderBottomColor: glass.border,
+  },
+  sectionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.bold,
     color: colors.text,
     flex: 1,
   },
   sectionCount: {
-    fontSize: 14,
+    backgroundColor: glass.backgroundLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+  },
+  sectionCountText: {
+    fontSize: typography.size.xs,
     color: colors.textSecondary,
+    fontWeight: typography.weight.semibold,
   },
   exerciseItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: '#2A2A30',
-    marginHorizontal: 16,
-    marginTop: 8,
-    borderRadius: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    backgroundColor: glass.backgroundLight,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#3A3A42',
+    borderColor: glass.border,
   },
   exerciseItemSelected: {
     borderColor: colors.primary,
-    backgroundColor: '#2A3340',
+    backgroundColor: colors.primaryMuted,
+  },
+  exerciseItemPressed: {
+    backgroundColor: glass.background,
   },
   exerciseInfo: {
     flex: 1,
@@ -423,48 +393,28 @@ const styles = StyleSheet.create({
   exerciseNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
     marginBottom: 4,
   },
   exerciseName: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.medium,
     color: colors.text,
   },
   customBadge: {
-    backgroundColor: '#A855F7',
-    paddingHorizontal: 6,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: radius.sm,
   },
   customBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: typography.size.xs,
+    fontWeight: typography.weight.bold,
     color: colors.text,
     textTransform: 'uppercase',
   },
   exerciseDefaults: {
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
   },
 });
 
