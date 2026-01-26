@@ -6,15 +6,18 @@ import {
   ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import Card from '../components/Card';
-import ProgressBar from '../components/ProgressBar';
+import GlassCard from '../components/GlassCard';
+import GlassButton from '../components/GlassButton';
+import AnimatedProgressBar from '../components/AnimatedProgressBar';
+import AnimatedNumber from '../components/AnimatedNumber';
 import SwipeableRow from '../components/SwipeableRow';
 import ExpandableFAB from '../components/ExpandableFAB';
 import { CardSkeleton, ListSkeleton } from '../components/SkeletonLoader';
 import { getTodayDate } from '../services/storage';
 import { Meal } from '../types';
-import { colors } from '../utils/theme';
+import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { formatNumber } from '../utils/formatters';
 import { warningHaptic } from '../utils/haptics';
@@ -71,7 +74,7 @@ const NutritionScreen = () => {
       message: `Are you sure you want to delete "${meal.name}"? This cannot be undone.`,
       confirmText: 'Delete',
       icon: 'restaurant',
-      iconColor: '#FF3B30',
+      iconColor: colors.error,
       onConfirm: async () => {
         await deleteMeal(meal.id);
       },
@@ -100,86 +103,140 @@ const NutritionScreen = () => {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={[
         styles.contentContainer,
-        { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
+        { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingBottom: 120 }
       ]}>
         {/* Daily Summary */}
-        <Card>
-          <Text style={styles.sectionTitle}>Today's Summary</Text>
+        <GlassCard accent="rose" glowIntensity="medium">
+          <View style={styles.cardHeader}>
+            <LinearGradient
+              colors={[colors.nutritionLight, colors.nutrition]}
+              style={styles.iconGradient}
+            >
+              <Ionicons name="flame" size={22} color={colors.text} />
+            </LinearGradient>
+            <Text style={styles.sectionTitle}>Today's Summary</Text>
+          </View>
+
           <View style={styles.summaryContainer}>
-            <ProgressBar
+            <AnimatedProgressBar
               current={totalCalories}
               target={todayNutrition?.calorieTarget || user?.dailyCalorieTarget || 2200}
               unit="cal"
-              color="#FF6B6B"
+              theme="rose"
             />
           </View>
+
           <View style={styles.macrosContainer}>
-            <View style={styles.macroItem}>
-              <Text style={styles.macroValue}>{formatNumber(Math.round(totalProtein))}g</Text>
-              <Text style={styles.macroLabel}>Protein</Text>
-            </View>
-            <View style={styles.macroItem}>
-              <Text style={styles.macroValue}>{formatNumber(Math.round(totalCarbs))}g</Text>
-              <Text style={styles.macroLabel}>Carbs</Text>
-            </View>
-            <View style={styles.macroItem}>
-              <Text style={styles.macroValue}>{formatNumber(Math.round(totalFats))}g</Text>
-              <Text style={styles.macroLabel}>Fats</Text>
-            </View>
+            <MacroItem
+              value={totalProtein}
+              label="Protein"
+              color={colors.primary}
+              icon="egg"
+            />
+            <View style={styles.macroDivider} />
+            <MacroItem
+              value={totalCarbs}
+              label="Carbs"
+              color={colors.warning}
+              icon="leaf"
+            />
+            <View style={styles.macroDivider} />
+            <MacroItem
+              value={totalFats}
+              label="Fats"
+              color={colors.nutrition}
+              icon="water"
+            />
           </View>
-        </Card>
+        </GlassCard>
 
         {/* Meals List */}
         <View style={styles.mealsHeader}>
           <Text style={styles.mealsTitle}>Meals</Text>
+          <Text style={styles.mealCount}>
+            {todayNutrition?.meals.length || 0} logged
+          </Text>
         </View>
 
         {!todayNutrition?.meals.length ? (
-          <Card>
+          <GlassCard accent="none" glowIntensity="none">
             <View style={styles.emptyContainer}>
-              <Ionicons name="restaurant-outline" size={48} color="#CCC" />
+              <LinearGradient
+                colors={[colors.nutritionMuted, 'transparent']}
+                style={styles.emptyIconBg}
+              >
+                <Ionicons name="restaurant-outline" size={40} color={colors.textTertiary} />
+              </LinearGradient>
               <Text style={styles.emptyText}>No meals logged today</Text>
+              <Text style={styles.emptySubtext}>Tap the button below to add your first meal</Text>
+              <View style={styles.emptyButtonContainer}>
+                <GlassButton
+                  title="Add First Meal"
+                  icon="add"
+                  onPress={() => openAddMeal()}
+                  variant="primary"
+                />
+              </View>
             </View>
-          </Card>
+          </GlassCard>
         ) : (
-          todayNutrition.meals.map((meal) => (
+          todayNutrition.meals.map((meal, index) => (
             <SwipeableRow
               key={meal.id}
-              onEdit={() => {
-                openEditMeal(meal);
-              }}
+              onEdit={() => openEditMeal(meal)}
               onDelete={() => handleDeleteMeal(meal)}
             >
-              <Card>
+              <GlassCard
+                accent="none"
+                glowIntensity="none"
+                style={styles.mealCard}
+              >
                 <View style={styles.mealHeader}>
-                  <Text style={styles.mealName}>{meal.name}</Text>
-                  <Text style={styles.mealTime}>
-                    {new Date(meal.time).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </Text>
+                  <View style={styles.mealInfo}>
+                    <Text style={styles.mealName}>{meal.name}</Text>
+                    <View style={styles.mealTimeContainer}>
+                      <Ionicons name="time-outline" size={14} color={colors.textTertiary} />
+                      <Text style={styles.mealTime}>
+                        {new Date(meal.time).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.mealCaloriesBadge}>
+                    <Text style={styles.mealCalories}>{formatNumber(meal.calories)}</Text>
+                    <Text style={styles.mealCaloriesUnit}>cal</Text>
+                  </View>
                 </View>
                 <View style={styles.mealMacros}>
-                  <Text style={styles.mealCalories}>{formatNumber(meal.calories)} cal</Text>
-                  <Text style={styles.mealMacroDetail}>
-                    P: {formatNumber(meal.protein)}g • C: {formatNumber(meal.carbs)}g • F: {formatNumber(meal.fats)}g
-                  </Text>
+                  <View style={styles.mealMacroPill}>
+                    <Text style={styles.mealMacroValue}>{formatNumber(meal.protein)}g</Text>
+                    <Text style={styles.mealMacroLabel}>protein</Text>
+                  </View>
+                  <View style={styles.mealMacroPill}>
+                    <Text style={styles.mealMacroValue}>{formatNumber(meal.carbs)}g</Text>
+                    <Text style={styles.mealMacroLabel}>carbs</Text>
+                  </View>
+                  <View style={styles.mealMacroPill}>
+                    <Text style={styles.mealMacroValue}>{formatNumber(meal.fats)}g</Text>
+                    <Text style={styles.mealMacroLabel}>fats</Text>
+                  </View>
                 </View>
-              </Card>
+              </GlassCard>
             </SwipeableRow>
           ))
         )}
       </ScrollView>
 
       <ExpandableFAB
-        mainColor="#FF6B6B"
+        mainColor={colors.nutrition}
         actions={[
           {
             icon: 'restaurant',
             label: 'Add Meal',
             onPress: () => openAddMeal(),
-            color: '#FF6B6B',
+            color: colors.nutrition,
           },
         ]}
       />
@@ -187,93 +244,197 @@ const NutritionScreen = () => {
   );
 };
 
+// Macro Item Component
+const MacroItem = ({ value, label, color, icon }: {
+  value: number;
+  label: string;
+  color: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}) => (
+  <View style={styles.macroItem}>
+    <View style={[styles.macroIconBg, { backgroundColor: color + '20' }]}>
+      <Ionicons name={icon} size={16} color={color} />
+    </View>
+    <AnimatedNumber
+      value={value}
+      decimals={0}
+      suffix="g"
+      size="md"
+      color={colors.text}
+    />
+    <Text style={styles.macroLabel}>{label}</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
   contentContainer: {
-    padding: 20,
-    paddingBottom: 80,
+    padding: spacing.xl,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  iconGradient: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.lg,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.bold,
     color: colors.text,
-    marginBottom: 18,
     letterSpacing: 0.2,
   },
   summaryContainer: {
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   macrosContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingTop: 16,
+    alignItems: 'center',
+    paddingTop: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
+    borderTopColor: glass.border,
   },
   macroItem: {
     alignItems: 'center',
+    flex: 1,
   },
-  macroValue: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
+  macroIconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
   },
   macroLabel: {
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  macroDivider: {
+    width: 1,
+    height: 50,
+    backgroundColor: glass.border,
   },
   mealsHeader: {
-    marginVertical: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginTop: spacing.lg,
+    marginBottom: spacing.lg,
   },
   mealsTitle: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: typography.size['2xl'],
+    fontWeight: typography.weight.bold,
     color: colors.text,
-    letterSpacing: 0.2,
+    letterSpacing: -0.5,
+  },
+  mealCount: {
+    fontSize: typography.size.sm,
+    color: colors.textSecondary,
   },
   emptyContainer: {
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: spacing['4xl'],
+  },
+  emptyIconBg: {
+    width: 80,
+    height: 80,
+    borderRadius: radius['2xl'],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
   },
   emptyText: {
-    fontSize: 17,
+    fontSize: typography.size.lg,
     color: colors.textSecondary,
-    marginTop: 16,
-    fontWeight: '500',
+    fontWeight: typography.weight.semibold,
+  },
+  emptySubtext: {
+    fontSize: typography.size.sm,
+    color: colors.textTertiary,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  emptyButtonContainer: {
+    marginTop: spacing.xl,
+  },
+  mealCard: {
+    marginBottom: spacing.sm,
   },
   mealHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',
+    marginBottom: spacing.md,
+  },
+  mealInfo: {
+    flex: 1,
   },
   mealName: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
     letterSpacing: 0.2,
   },
-  mealTime: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontWeight: '500',
+  mealTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
   },
-  mealMacros: {
-    marginTop: 4,
+  mealTime: {
+    fontSize: typography.size.sm,
+    color: colors.textTertiary,
+  },
+  mealCaloriesBadge: {
+    backgroundColor: colors.nutritionMuted,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.lg,
+    alignItems: 'center',
   },
   mealCalories: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FF6B6B',
-    marginBottom: 4,
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.bold,
+    color: colors.nutrition,
   },
-  mealMacroDetail: {
-    fontSize: 14,
-    color: colors.textSecondary,
+  mealCaloriesUnit: {
+    fontSize: typography.size.xs,
+    color: colors.nutrition,
+    marginTop: -2,
+  },
+  mealMacros: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  mealMacroPill: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    backgroundColor: glass.backgroundLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.md,
+    gap: spacing.xs,
+  },
+  mealMacroValue: {
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.semibold,
+    color: colors.text,
+  },
+  mealMacroLabel: {
+    fontSize: typography.size.xs,
+    color: colors.textTertiary,
   },
 });
 

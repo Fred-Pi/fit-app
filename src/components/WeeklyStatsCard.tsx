@@ -1,11 +1,14 @@
 import React from 'react';
-import { colors } from '../utils/theme'
 import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import GlassCard from './GlassCard';
+import AnimatedProgressBar from './AnimatedProgressBar';
+import AnimatedNumber from './AnimatedNumber';
+import EmptyState from './EmptyState';
 import { WeeklyStats, WeekComparison } from '../types';
 import { formatWeekRange } from '../utils/dateUtils';
-import ProgressBar from './ProgressBar';
-import EmptyState from './EmptyState';
+import { colors, glass, spacing, typography, radius } from '../utils/theme';
 
 interface WeeklyStatsCardProps {
   currentWeek: WeeklyStats;
@@ -20,219 +23,213 @@ const WeeklyStatsCard: React.FC<WeeklyStatsCardProps> = ({
 }) => {
   const weekRangeText = formatWeekRange(currentWeek.weekStart, currentWeek.weekEnd);
 
-  // Calculate progress percentages
-  const calorieProgress = currentWeek.calorieTarget > 0
-    ? (currentWeek.totalCalories / currentWeek.calorieTarget) * 100
-    : 0;
-
-  const stepProgress = currentWeek.stepGoal > 0
-    ? (currentWeek.totalSteps / currentWeek.stepGoal) * 100
-    : 0;
-
-  // Render comparison indicator
-  const renderComparison = (value: number, percent: number, metric: string) => {
-    if (!previousWeek || value === 0) {
-      return null;
-    }
+  const renderComparison = (value: number, percent: number) => {
+    if (!previousWeek || value === 0) return null;
 
     const isPositive = value > 0;
     const isNegative = value < 0;
-    const color = isPositive ? colors.success : isNegative ? '#FF5E6D' : colors.textSecondary;
-    const icon = isPositive ? 'arrow-up' : isNegative ? 'arrow-down' : 'remove';
+    const color = isPositive ? colors.success : isNegative ? colors.error : colors.textSecondary;
+    const bgColor = isPositive ? colors.successMuted : isNegative ? colors.errorMuted : glass.backgroundLight;
+    const icon = isPositive ? 'trending-up' : isNegative ? 'trending-down' : 'remove';
     const sign = isPositive ? '+' : '';
 
     return (
-      <View style={styles.comparisonContainer}>
+      <View style={[styles.comparisonContainer, { backgroundColor: bgColor }]}>
         <Ionicons name={icon} size={14} color={color} />
         <Text style={[styles.comparisonText, { color }]}>
-          {sign}{value.toLocaleString()} ({sign}{percent}%)
+          {sign}{Math.abs(percent)}%
         </Text>
       </View>
     );
   };
 
+  const hasNoActivity = currentWeek.totalWorkouts === 0 &&
+    currentWeek.totalCalories === 0 &&
+    currentWeek.totalSteps === 0;
+
   return (
-    <View style={styles.card}>
+    <GlassCard accent="cyan" glowIntensity="subtle">
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Ionicons name="calendar-outline" size={20} color="#3A9BFF" />
-          <Text style={styles.headerTitle}>This Week</Text>
-        </View>
-        <Text style={styles.weekRange}>{weekRangeText}</Text>
-      </View>
-
-      {/* Workouts Section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Ionicons name="barbell-outline" size={20} color="#3A9BFF" />
-          <Text style={styles.sectionTitle}>Workouts</Text>
-        </View>
-        <View style={styles.workoutStats}>
-          <Text style={styles.workoutCount}>
-            {currentWeek.totalWorkouts} completed
-          </Text>
-          {comparison && renderComparison(
-            comparison.workouts,
-            comparison.workoutsPercent,
-            'workouts'
-          )}
-        </View>
-        {currentWeek.daysActive > 0 && (
-          <Text style={styles.daysActive}>
-            {currentWeek.daysActive} {currentWeek.daysActive === 1 ? 'day' : 'days'} active
-          </Text>
-        )}
-      </View>
-
-      {/* Calories Section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Ionicons name="restaurant-outline" size={20} color="#FF5E6D" />
-          <Text style={styles.sectionTitle}>Calories</Text>
-        </View>
-        <ProgressBar
-          current={currentWeek.totalCalories}
-          target={currentWeek.calorieTarget}
-          color="#FF5E6D"
-          unit="cal"
-        />
-        <View style={styles.statsRow}>
-          <Text style={styles.avgText}>
-            Avg: {currentWeek.avgCalories.toLocaleString()}/day
-          </Text>
-          {comparison && renderComparison(
-            comparison.calories,
-            comparison.caloriesPercent,
-            'calories'
-          )}
+          <LinearGradient
+            colors={[colors.cyanLight, colors.cyan]}
+            style={styles.iconGradient}
+          >
+            <Ionicons name="calendar" size={20} color={colors.text} />
+          </LinearGradient>
+          <View>
+            <Text style={styles.headerTitle}>This Week</Text>
+            <Text style={styles.weekRange}>{weekRangeText}</Text>
+          </View>
         </View>
       </View>
 
-      {/* Steps Section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Ionicons name="footsteps-outline" size={20} color="#32D760" />
-          <Text style={styles.sectionTitle}>Steps</Text>
-        </View>
-        <ProgressBar
-          current={currentWeek.totalSteps}
-          target={currentWeek.stepGoal}
-          color="#32D760"
-          unit="steps"
-        />
-        <View style={styles.statsRow}>
-          <Text style={styles.avgText}>
-            Avg: {currentWeek.avgSteps.toLocaleString()}/day
-          </Text>
-          {comparison && renderComparison(
-            comparison.steps,
-            comparison.stepsPercent,
-            'steps'
-          )}
-        </View>
-      </View>
-
-      {/* Empty State */}
-      {currentWeek.totalWorkouts === 0 && currentWeek.totalCalories === 0 && currentWeek.totalSteps === 0 && (
+      {hasNoActivity ? (
         <EmptyState
           icon="information-circle-outline"
-          iconSize={24}
-          iconColor="#A0A0A8"
+          iconSize={32}
+          iconColor={colors.textTertiary}
           title="No activity this week yet"
           subtitle="Start logging workouts, nutrition, and steps!"
         />
+      ) : (
+        <>
+          {/* Workouts Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIconBadge}>
+                <Ionicons name="barbell" size={16} color={colors.workout} />
+              </View>
+              <Text style={styles.sectionTitle}>Workouts</Text>
+              {comparison && renderComparison(comparison.workouts, comparison.workoutsPercent)}
+            </View>
+            <View style={styles.workoutContent}>
+              <AnimatedNumber
+                value={currentWeek.totalWorkouts}
+                size="lg"
+                suffix={currentWeek.totalWorkouts === 1 ? 'workout' : 'workouts'}
+                color={colors.workout}
+              />
+              {currentWeek.daysActive > 0 && (
+                <Text style={styles.daysActive}>
+                  {currentWeek.daysActive} {currentWeek.daysActive === 1 ? 'day' : 'days'} active
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* Calories Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIconBadge}>
+                <Ionicons name="restaurant" size={16} color={colors.nutrition} />
+              </View>
+              <Text style={styles.sectionTitle}>Calories</Text>
+              {comparison && renderComparison(comparison.calories, comparison.caloriesPercent)}
+            </View>
+            <AnimatedProgressBar
+              current={currentWeek.totalCalories}
+              target={currentWeek.calorieTarget}
+              theme="rose"
+              height={10}
+              compact
+            />
+            <Text style={styles.avgText}>
+              Avg: {currentWeek.avgCalories.toLocaleString()}/day
+            </Text>
+          </View>
+
+          {/* Steps Section */}
+          <View style={[styles.section, styles.lastSection]}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIconBadge}>
+                <Ionicons name="footsteps" size={16} color={colors.steps} />
+              </View>
+              <Text style={styles.sectionTitle}>Steps</Text>
+              {comparison && renderComparison(comparison.steps, comparison.stepsPercent)}
+            </View>
+            <AnimatedProgressBar
+              current={currentWeek.totalSteps}
+              target={currentWeek.stepGoal}
+              theme="green"
+              height={10}
+              compact
+            />
+            <Text style={styles.avgText}>
+              Avg: {currentWeek.avgSteps.toLocaleString()}/day
+            </Text>
+          </View>
+        </>
       )}
-    </View>
+    </GlassCard>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 12,
+    marginBottom: spacing.lg,
+    paddingBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    borderBottomColor: glass.border,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.md,
+  },
+  iconGradient: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.lg,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.bold,
     color: colors.text,
   },
   weekRange: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.medium,
     color: colors.textSecondary,
+    marginTop: 2,
   },
   section: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
+  },
+  lastSection: {
+    marginBottom: 0,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  sectionIconBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.md,
+    backgroundColor: glass.backgroundLight,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    flex: 1,
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
   },
-  workoutStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  workoutCount: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
+  workoutContent: {
+    paddingVertical: spacing.sm,
   },
   daysActive: {
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    marginTop: 2,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: spacing.xs,
   },
   avgText: {
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
+    marginTop: spacing.sm,
   },
   comparisonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.md,
   },
   comparisonText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.semibold,
   },
-  });
+});
 
 export default WeeklyStatsCard;

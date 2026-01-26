@@ -1,7 +1,9 @@
-import React from 'react';
-import { colors } from '../utils/theme'
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import GlassCard from './GlassCard';
+import { colors, glass, spacing, typography, radius } from '../utils/theme';
 
 interface StreakCardProps {
   currentStreak: number;
@@ -14,8 +16,43 @@ const StreakCard: React.FC<StreakCardProps> = ({
 }) => {
   const hasActiveStreak = currentStreak > 0;
   const isNewRecord = currentStreak > 0 && currentStreak >= longestStreak;
+  const flameScale = useRef(new Animated.Value(1)).current;
+  const flameOpacity = useRef(new Animated.Value(1)).current;
 
-  // Motivational messages based on streak
+  // Pulsing flame animation when active
+  useEffect(() => {
+    if (hasActiveStreak) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(flameScale, {
+              toValue: 1.15,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+            Animated.timing(flameOpacity, {
+              toValue: 0.8,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(flameScale, {
+              toValue: 1,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+            Animated.timing(flameOpacity, {
+              toValue: 1,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+          ]),
+        ])
+      ).start();
+    }
+  }, [hasActiveStreak]);
+
   const getMessage = () => {
     if (currentStreak === 0) return "Start your streak today!";
     if (currentStreak === 1) return "Great start! Keep it going!";
@@ -25,17 +62,30 @@ const StreakCard: React.FC<StreakCardProps> = ({
     return "Unstoppable!";
   };
 
+  const flameColor = hasActiveStreak ? colors.warning : colors.textTertiary;
+  const glowIntensity = hasActiveStreak ? (isNewRecord ? 'strong' : 'medium') : 'none';
+
   return (
-    <View style={styles.card}>
+    <GlassCard accent={hasActiveStreak ? 'gold' : 'none'} glowIntensity={glowIntensity}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Ionicons
-            name={hasActiveStreak ? "flame" : "flame-outline"}
-            size={24}
-            color={hasActiveStreak ? "#FF9500" : "#A0A0A8"}
-          />
-          <View>
+          <Animated.View style={[
+            styles.flameContainer,
+            { transform: [{ scale: flameScale }], opacity: flameOpacity }
+          ]}>
+            <LinearGradient
+              colors={hasActiveStreak ? ['#FFD93D', '#FF9500', '#FF6B35'] : [colors.textTertiary, colors.textMuted]}
+              style={styles.flameGradient}
+            >
+              <Ionicons
+                name={hasActiveStreak ? "flame" : "flame-outline"}
+                size={24}
+                color={colors.text}
+              />
+            </LinearGradient>
+          </Animated.View>
+          <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle}>
               {hasActiveStreak ? `${currentStreak} Day Streak` : "No Active Streak"}
             </Text>
@@ -43,34 +93,40 @@ const StreakCard: React.FC<StreakCardProps> = ({
           </View>
         </View>
         {isNewRecord && (
-          <View style={styles.recordBadge}>
+          <LinearGradient
+            colors={[colors.gold, colors.warning]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.recordBadge}
+          >
+            <Ionicons name="trophy" size={12} color="#000" />
             <Text style={styles.recordText}>BEST</Text>
-          </View>
+          </LinearGradient>
         )}
       </View>
 
       {/* Stats Row */}
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
-          <View style={styles.statIconRow}>
-            <Ionicons name="flame" size={18} color="#FF9500" />
-            <Text style={[
-              styles.statValue,
-              hasActiveStreak && styles.statValueActive
-            ]}>
-              {currentStreak}
-            </Text>
+          <View style={styles.statIconContainer}>
+            <Ionicons name="flame" size={18} color={colors.warning} />
           </View>
+          <Text style={[
+            styles.statValue,
+            hasActiveStreak && styles.statValueActive
+          ]}>
+            {currentStreak}
+          </Text>
           <Text style={styles.statLabel}>Current</Text>
         </View>
 
         <View style={styles.divider} />
 
         <View style={styles.statItem}>
-          <View style={styles.statIconRow}>
-            <Ionicons name="trophy" size={18} color="#FFD60A" />
-            <Text style={styles.statValue}>{longestStreak}</Text>
+          <View style={styles.statIconContainer}>
+            <Ionicons name="trophy" size={18} color={colors.gold} />
           </View>
+          <Text style={styles.statValue}>{longestStreak}</Text>
           <Text style={styles.statLabel}>Best</Text>
         </View>
       </View>
@@ -82,7 +138,10 @@ const StreakCard: React.FC<StreakCardProps> = ({
             {longestStreak - currentStreak} {longestStreak - currentStreak === 1 ? 'day' : 'days'} to beat your record
           </Text>
           <View style={styles.progressBar}>
-            <View
+            <LinearGradient
+              colors={['#FF9500', '#FFD60A']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={[
                 styles.progressFill,
                 { width: `${Math.min((currentStreak / longestStreak) * 100, 100)}%` }
@@ -91,110 +150,120 @@ const StreakCard: React.FC<StreakCardProps> = ({
           </View>
         </View>
       )}
-    </View>
+    </GlassCard>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.md,
+    flex: 1,
+  },
+  flameContainer: {
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
+  flameGradient: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.lg,
+  },
+  headerTextContainer: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.bold,
     color: colors.text,
   },
   motivationText: {
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
     marginTop: 2,
   },
   recordBadge: {
-    backgroundColor: colors.gold,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.md,
   },
   recordText: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: typography.size.xs,
+    fontWeight: typography.weight.extrabold,
     color: '#000000',
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    backgroundColor: '#2A2A30',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: glass.border,
   },
   statItem: {
     alignItems: 'center',
     flex: 1,
   },
-  statIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
+  statIconContainer: {
+    marginBottom: spacing.xs,
   },
   statValue: {
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: typography.size['3xl'],
+    fontWeight: typography.weight.extrabold,
     color: colors.text,
+    letterSpacing: -1,
   },
   statValueActive: {
-    color: '#FF9500',
+    color: colors.warning,
   },
   statLabel: {
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: typography.weight.medium,
+    marginTop: 2,
   },
   divider: {
     width: 1,
-    height: 40,
-    backgroundColor: colors.borderLight,
+    height: 50,
+    backgroundColor: glass.border,
   },
   progressSection: {
-    marginTop: 12,
-    paddingTop: 12,
+    marginTop: spacing.lg,
+    paddingTop: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
+    borderTopColor: glass.border,
   },
   progressText: {
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   progressBar: {
     height: 6,
-    backgroundColor: colors.borderLight,
-    borderRadius: 3,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.full,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: glass.border,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FF9500',
-    borderRadius: 3,
+    borderRadius: radius.full,
   },
 });
 

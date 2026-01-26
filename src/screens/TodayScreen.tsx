@@ -4,13 +4,15 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import Card from '../components/Card';
-import ProgressBar from '../components/ProgressBar';
+import { LinearGradient } from 'expo-linear-gradient';
+import GlassCard from '../components/GlassCard';
+import GlassButton from '../components/GlassButton';
+import AnimatedProgressBar from '../components/AnimatedProgressBar';
+import AnimatedNumber from '../components/AnimatedNumber';
 import WeeklyStatsCard from '../components/WeeklyStatsCard';
 import WeightChart from '../components/WeightChart';
 import StreakCard from '../components/StreakCard';
@@ -20,7 +22,7 @@ import { calculateWorkoutSuggestions, SuggestionData } from '../utils/workoutSug
 import { lightHaptic } from '../utils/haptics';
 import { getTodayDate, generateId } from '../services/storage';
 import { WorkoutLog, WorkoutTemplate } from '../types';
-import { colors } from '../utils/theme';
+import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import {
   useUserStore,
@@ -161,7 +163,7 @@ const TodayScreen = () => {
       style={styles.container}
       contentContainerStyle={[
         styles.contentContainer,
-        { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
+        { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingBottom: 120 }
       ]}
       refreshControl={
         <RefreshControl
@@ -173,6 +175,20 @@ const TodayScreen = () => {
         />
       }
     >
+      {/* Greeting Header */}
+      <View style={styles.greetingSection}>
+        <Text style={styles.greetingText}>
+          {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}
+        </Text>
+        <Text style={styles.dateText}>
+          {new Date(date).toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </Text>
+      </View>
+
       {/* Weekly Stats Card */}
       {currentWeekStats && (
         <WeeklyStatsCard
@@ -193,176 +209,222 @@ const TodayScreen = () => {
         <WorkoutSuggestionsCard suggestions={suggestions} />
       )}
 
-      <View style={styles.dateContainer}>
-        <Text style={styles.dateText}>
-          {new Date(date).toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </Text>
-      </View>
-
       {/* Cards Grid for tablet/desktop */}
       <View style={isWideScreen ? styles.cardsGrid : undefined}>
         {/* Workout Card */}
         <View style={isWideScreen ? styles.cardWrapper : undefined}>
-          <Card gradient>
+          <GlassCard accent="blue" glowIntensity={todayWorkout ? 'medium' : 'subtle'}>
             <View style={styles.cardHeader}>
-              <View style={styles.cardHeaderLeft}>
-                <Ionicons name="barbell" size={24} color={colors.workout} />
-                <Text style={styles.cardTitle}>Workout</Text>
+              <View style={styles.cardIconWrapper}>
+                <LinearGradient
+                  colors={[colors.workoutLight, colors.workout]}
+                  style={styles.iconGradient}
+                >
+                  <Ionicons name="barbell" size={20} color={colors.text} />
+                </LinearGradient>
               </View>
+              <Text style={styles.cardTitle}>Workout</Text>
             </View>
             {todayWorkout ? (
               <View style={styles.workoutContent}>
                 <Text style={styles.workoutName}>{todayWorkout.name}</Text>
-                <Text style={styles.workoutDetails}>
-                  {todayWorkout.exercises.length} exercises
-                  {todayWorkout.duration && ` • ${Math.round(todayWorkout.duration)} min`}
-                  {' • '}{todayWorkout.completed ? 'Completed' : 'In Progress'}
-                </Text>
+                <View style={styles.workoutBadges}>
+                  <View style={styles.workoutBadge}>
+                    <Ionicons name="fitness" size={14} color={colors.textSecondary} />
+                    <Text style={styles.workoutBadgeText}>
+                      {todayWorkout.exercises.length} exercises
+                    </Text>
+                  </View>
+                  {todayWorkout.duration && (
+                    <View style={styles.workoutBadge}>
+                      <Ionicons name="time" size={14} color={colors.textSecondary} />
+                      <Text style={styles.workoutBadgeText}>
+                        {Math.round(todayWorkout.duration)} min
+                      </Text>
+                    </View>
+                  )}
+                  <View style={[
+                    styles.statusBadge,
+                    { backgroundColor: todayWorkout.completed ? colors.successMuted : colors.warningMuted }
+                  ]}>
+                    <Text style={[
+                      styles.statusBadgeText,
+                      { color: todayWorkout.completed ? colors.success : colors.warning }
+                    ]}>
+                      {todayWorkout.completed ? 'Complete' : 'In Progress'}
+                    </Text>
+                  </View>
+                </View>
               </View>
             ) : (
               <>
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() => {
-                    lightHaptic();
-                    openAddWorkout();
-                  }}
-                >
-                  <Text style={styles.addButtonText}>+ Log Workout</Text>
-                </TouchableOpacity>
+                <GlassButton
+                  title="Log Workout"
+                  icon="add"
+                  onPress={() => openAddWorkout()}
+                  variant="primary"
+                  fullWidth
+                />
                 {/* Quick Repeat Section */}
                 {recentWorkoutsForRepeat.length > 0 && (
                   <View style={styles.quickRepeatSection}>
                     <Text style={styles.quickRepeatTitle}>Quick Repeat</Text>
                     {recentWorkoutsForRepeat.map(w => (
-                      <TouchableOpacity
+                      <GlassCard
                         key={w.id}
-                        style={styles.quickRepeatItem}
-                        onPress={() => {
-                          lightHaptic();
-                          handleQuickRepeat(w);
-                        }}
+                        accent="none"
+                        glowIntensity="none"
+                        padding="sm"
+                        onPress={() => handleQuickRepeat(w)}
+                        style={styles.quickRepeatCard}
                       >
-                        <Ionicons name="refresh" size={16} color={colors.primary} />
-                        <View style={styles.quickRepeatInfo}>
-                          <Text style={styles.quickRepeatName}>{w.name}</Text>
-                          <Text style={styles.quickRepeatMeta}>
-                            {w.exercises.length} exercises • {daysAgo(w.date)}
-                          </Text>
+                        <View style={styles.quickRepeatContent}>
+                          <Ionicons name="refresh" size={18} color={colors.primary} />
+                          <View style={styles.quickRepeatInfo}>
+                            <Text style={styles.quickRepeatName}>{w.name}</Text>
+                            <Text style={styles.quickRepeatMeta}>
+                              {w.exercises.length} exercises • {daysAgo(w.date)}
+                            </Text>
+                          </View>
+                          <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
                         </View>
-                      </TouchableOpacity>
+                      </GlassCard>
                     ))}
                   </View>
                 )}
               </>
             )}
-          </Card>
+          </GlassCard>
         </View>
 
         {/* Nutrition Card */}
         <View style={isWideScreen ? styles.cardWrapper : undefined}>
-          <Card gradient>
+          <GlassCard accent="rose" glowIntensity="subtle">
             <View style={styles.cardHeader}>
-              <View style={styles.cardHeaderLeft}>
-                <Ionicons name="nutrition" size={24} color={colors.nutrition} />
-                <Text style={styles.cardTitle}>Calories</Text>
+              <View style={styles.cardIconWrapper}>
+                <LinearGradient
+                  colors={[colors.nutritionLight, colors.nutrition]}
+                  style={styles.iconGradient}
+                >
+                  <Ionicons name="nutrition" size={20} color={colors.text} />
+                </LinearGradient>
               </View>
+              <Text style={styles.cardTitle}>Calories</Text>
             </View>
             <View style={styles.progressContainer}>
-              <ProgressBar
+              <AnimatedProgressBar
                 current={totalCalories}
                 target={todayNutrition?.calorieTarget || user?.dailyCalorieTarget || 2200}
                 unit="cal"
-                color={colors.nutrition}
+                theme="rose"
               />
             </View>
             {todayNutrition && todayNutrition.meals.length > 0 ? (
               <View style={styles.mealsPreview}>
-                <Text style={styles.mealsCount}>{todayNutrition.meals.length} meals logged</Text>
+                <View style={styles.mealsBadge}>
+                  <Ionicons name="restaurant" size={14} color={colors.nutrition} />
+                  <Text style={styles.mealsBadgeText}>
+                    {todayNutrition.meals.length} {todayNutrition.meals.length === 1 ? 'meal' : 'meals'} logged
+                  </Text>
+                </View>
               </View>
             ) : (
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => {
-                  lightHaptic();
-                  openAddMeal();
-                }}
-              >
-                <Text style={styles.addButtonText}>+ Add Meal</Text>
-              </TouchableOpacity>
+              <GlassButton
+                title="Add Meal"
+                icon="add"
+                onPress={() => openAddMeal()}
+                variant="secondary"
+                fullWidth
+              />
             )}
-          </Card>
+          </GlassCard>
         </View>
 
         {/* Steps Card */}
         <View style={isWideScreen ? styles.cardWrapper : undefined}>
-          <Card gradient>
+          <GlassCard accent="emerald" glowIntensity="subtle">
             <View style={styles.cardHeader}>
-              <View style={styles.cardHeaderLeft}>
-                <Ionicons name="footsteps" size={24} color={colors.steps} />
-                <Text style={styles.cardTitle}>Steps</Text>
+              <View style={styles.cardIconWrapper}>
+                <LinearGradient
+                  colors={[colors.stepsLight, colors.steps]}
+                  style={styles.iconGradient}
+                >
+                  <Ionicons name="footsteps" size={20} color={colors.text} />
+                </LinearGradient>
               </View>
+              <Text style={styles.cardTitle}>Steps</Text>
             </View>
             <View style={styles.progressContainer}>
-              <ProgressBar
+              <AnimatedProgressBar
                 current={todaySteps?.steps || 0}
                 target={todaySteps?.stepGoal || user?.dailyStepGoal || 10000}
                 unit="steps"
-                color={colors.steps}
+                theme="green"
               />
             </View>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => {
-                lightHaptic();
-                openUpdateSteps();
-              }}
-            >
-              <Text style={styles.addButtonText}>Update Steps</Text>
-            </TouchableOpacity>
-          </Card>
+            <GlassButton
+              title="Update Steps"
+              icon="pencil"
+              onPress={() => openUpdateSteps()}
+              variant="secondary"
+              fullWidth
+            />
+          </GlassCard>
         </View>
 
         {/* Weight Card */}
         <View style={isWideScreen ? styles.cardWrapper : undefined}>
-          <Card gradient>
+          <GlassCard accent="gold" glowIntensity="subtle">
             <View style={styles.cardHeader}>
-              <View style={styles.cardHeaderLeft}>
-                <Ionicons name="scale-outline" size={24} color={colors.gold} />
-                <Text style={styles.cardTitle}>Body Weight</Text>
+              <View style={styles.cardIconWrapper}>
+                <LinearGradient
+                  colors={[colors.goldLight, colors.gold]}
+                  style={styles.iconGradient}
+                >
+                  <Ionicons name="scale-outline" size={20} color={colors.text} />
+                </LinearGradient>
               </View>
+              <Text style={styles.cardTitle}>Body Weight</Text>
             </View>
             {todayWeight && todayWeight.weight > 0 ? (
               <View>
                 <View style={styles.weightDisplay}>
-                  <Text style={styles.weightValue}>{todayWeight.weight.toFixed(1)}</Text>
-                  <Text style={styles.weightUnit}>{todayWeight.unit}</Text>
+                  <AnimatedNumber
+                    value={todayWeight.weight}
+                    decimals={1}
+                    suffix={todayWeight.unit}
+                    size="xl"
+                    color={colors.gold}
+                  />
                 </View>
                 <WeightChart weights={recentWeights} unit={todayWeight.unit} goalWeight={user?.goalWeight} />
               </View>
             ) : (
               <View style={styles.emptyWeightState}>
+                <Ionicons name="trending-up" size={32} color={colors.textTertiary} />
                 <Text style={styles.emptyWeightText}>Track your weight to see trends</Text>
               </View>
             )}
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => {
-                lightHaptic();
-                openUpdateWeight();
-              }}
-            >
-              <Text style={styles.addButtonText}>Update Weight</Text>
-            </TouchableOpacity>
-          </Card>
+            <GlassButton
+              title="Update Weight"
+              icon="pencil"
+              onPress={() => openUpdateWeight()}
+              variant="secondary"
+              fullWidth
+            />
+          </GlassCard>
         </View>
       </View>
     </ScrollView>
   );
+};
+
+// Helper function for greeting
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
 };
 
 const styles = StyleSheet.create({
@@ -371,145 +433,157 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   contentContainer: {
-    padding: 20,
-    paddingBottom: 32,
+    padding: spacing.xl,
   },
-  dateContainer: {
-    marginBottom: 24,
-    paddingBottom: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.border,
+  greetingSection: {
+    marginBottom: spacing['2xl'],
+  },
+  greetingText: {
+    fontSize: typography.size['3xl'],
+    fontWeight: typography.weight.extrabold,
+    color: colors.text,
+    letterSpacing: -0.5,
+    marginBottom: spacing.xs,
   },
   dateText: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: 0.5,
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.medium,
+    color: colors.textSecondary,
   },
   cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
+    gap: spacing.md,
   },
-  cardHeaderLeft: {
-    flexDirection: 'row',
+  cardIconWrapper: {
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
+  iconGradient: {
+    width: 40,
+    height: 40,
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'center',
+    borderRadius: radius.lg,
   },
   cardTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.bold,
     color: colors.text,
     letterSpacing: 0.2,
   },
   workoutContent: {
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   workoutName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: spacing.sm,
   },
-  workoutDetails: {
-    fontSize: 14,
+  workoutBadges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  workoutBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: glass.backgroundLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.md,
+  },
+  workoutBadgeText: {
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
+  },
+  statusBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.md,
+  },
+  statusBadgeText: {
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.semibold,
   },
   progressContainer: {
-    marginBottom: 12,
+    marginBottom: spacing.lg,
   },
   mealsPreview: {
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
-  mealsCount: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  addButton: {
-    marginTop: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    backgroundColor: colors.primaryMuted,
-    borderRadius: 12,
+  mealsBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: `${colors.primary}50`,
-    borderStyle: 'dashed',
+    gap: spacing.sm,
+    backgroundColor: colors.nutritionMuted,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.lg,
+    alignSelf: 'flex-start',
   },
-  addButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.primary,
-    letterSpacing: 0.2,
+  mealsBadgeText: {
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.medium,
+    color: colors.nutrition,
   },
   weightDisplay: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 8,
-  },
-  weightValue: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: colors.gold,
-    marginRight: 8,
-  },
-  weightUnit: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.textSecondary,
+    marginBottom: spacing.md,
   },
   emptyWeightState: {
-    paddingVertical: 20,
+    paddingVertical: spacing['2xl'],
     alignItems: 'center',
+    gap: spacing.sm,
   },
   emptyWeightText: {
-    fontSize: 14,
-    color: colors.textSecondary,
+    fontSize: typography.size.sm,
+    color: colors.textTertiary,
     textAlign: 'center',
   },
   cardsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
+    gap: spacing.lg,
     justifyContent: 'space-between',
   },
   cardWrapper: {
     width: '48%',
   },
   quickRepeatSection: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: spacing.lg,
+    paddingTop: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: glass.border,
   },
   quickRepeatTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: 12,
+    fontSize: typography.size.xs,
+    fontWeight: typography.weight.semibold,
+    color: colors.textTertiary,
+    marginBottom: spacing.sm,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
-  quickRepeatItem: {
+  quickRepeatCard: {
+    marginBottom: spacing.sm,
+  },
+  quickRepeatContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: 10,
-    marginBottom: 8,
-    gap: 12,
+    gap: spacing.md,
   },
   quickRepeatInfo: {
     flex: 1,
   },
   quickRepeatName: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
   },
   quickRepeatMeta: {
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
     marginTop: 2,
   },
