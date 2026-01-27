@@ -103,26 +103,6 @@ const HeaderButton: React.FC<HeaderButtonProps> = ({
   variant,
   disabled = false,
 }) => {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () => {
-    Animated.spring(scale, {
-      toValue: 0.95,
-      useNativeDriver: true,
-      damping: 15,
-      stiffness: 300,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      useNativeDriver: true,
-      damping: 15,
-      stiffness: 300,
-    }).start();
-  };
-
   const handlePress = () => {
     if (disabled) return;
     lightHaptic();
@@ -134,37 +114,34 @@ const HeaderButton: React.FC<HeaderButtonProps> = ({
   return (
     <Pressable
       onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
       disabled={disabled}
+      style={({ pressed }) => pressed && { opacity: 0.8 }}
     >
-      <Animated.View style={{ transform: [{ scale }] }}>
-        {isPrimary ? (
-          <LinearGradient
-            colors={disabled
-              ? [glass.background, glass.backgroundDark]
-              : [colors.primary, colors.primaryHover]
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.button, styles.primaryButton]}
-          >
-            <Text style={[
-              styles.buttonText,
-              styles.primaryText,
-              disabled && styles.disabledText,
-            ]}>
-              {label}
-            </Text>
-          </LinearGradient>
-        ) : (
-          <View style={[styles.button, styles.ghostButton]}>
-            <Text style={[styles.buttonText, styles.ghostText]}>
-              {label}
-            </Text>
-          </View>
-        )}
-      </Animated.View>
+      {isPrimary ? (
+        <LinearGradient
+          colors={disabled
+            ? [glass.background, glass.backgroundDark]
+            : [colors.primary, colors.primaryHover]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.button, styles.primaryButton]}
+        >
+          <Text style={[
+            styles.buttonText,
+            styles.primaryText,
+            disabled && styles.disabledText,
+          ]}>
+            {label}
+          </Text>
+        </LinearGradient>
+      ) : (
+        <View style={[styles.button, styles.ghostButton]}>
+          <Text style={[styles.buttonText, styles.ghostText]}>
+            {label}
+          </Text>
+        </View>
+      )}
     </Pressable>
   );
 };
