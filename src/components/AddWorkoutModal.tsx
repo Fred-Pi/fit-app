@@ -18,6 +18,7 @@ import { WorkoutLog, ExerciseLog, SetLog, WorkoutTemplate, ExerciseTemplate } fr
 import { generateId, saveTemplate, getLastExercisePerformance } from '../services/storage';
 import { heavyHaptic, lightHaptic } from '../utils/haptics';
 import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
+import { useUserStore } from '../stores';
 import ModalHeader from './ModalHeader';
 import GlassButton from './GlassButton';
 import { modalStyles, placeholderColor } from '../styles/modalStyles';
@@ -44,6 +45,9 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
   userId,
   initialTemplate,
 }) => {
+  // Get user's preferred weight unit
+  const weightUnit = useUserStore((s) => s.user?.preferredWeightUnit) || 'kg';
+
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState<ExerciseLog[]>([]);
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -385,7 +389,7 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
                     <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
                     <Text style={styles.exerciseDetails}>
                       {exercise.sets.length} sets × {exercise.sets[0]?.reps} reps
-                      {exercise.sets[0]?.weight > 0 && ` @ ${exercise.sets[0].weight} lbs`}
+                      {exercise.sets[0]?.weight > 0 && ` @ ${exercise.sets[0].weight} ${weightUnit}`}
                     </Text>
                     {exercise.notes && (
                       <Text style={styles.exerciseNotes}>{exercise.notes}</Text>
@@ -449,7 +453,7 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
                 exerciseName={exerciseName}
                 lastPerformance={exerciseHistory}
                 loading={loadingHistory}
-                weightUnit="lbs"
+                weightUnit={weightUnit}
                 onApplySuggestion={(suggestedSets, suggestedReps, suggestedWeight) => {
                   setSets(suggestedSets.toString());
                   setReps(suggestedReps.toString());
@@ -494,7 +498,7 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
               </View>
 
               <View style={modalStyles.rowItem}>
-                <Text style={modalStyles.label}>Weight (lbs)</Text>
+                <Text style={modalStyles.label}>Weight ({weightUnit})</Text>
                 <TextInput
                   style={[
                     modalStyles.input,

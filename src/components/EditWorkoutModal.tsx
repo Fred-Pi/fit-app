@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { WorkoutLog, ExerciseLog, SetLog } from '../types';
 import { generateId, getLastExercisePerformance } from '../services/storage';
 import { successHaptic } from '../utils/haptics';
+import { useUserStore } from '../stores';
 import ExercisePicker from './ExercisePicker';
 import WorkoutTimer from './WorkoutTimer';
 import ExerciseHistoryIndicator from './ExerciseHistoryIndicator';
@@ -33,6 +34,9 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
   onSave,
   workout,
 }) => {
+  // Get user's preferred weight unit
+  const weightUnit = useUserStore((s) => s.user?.preferredWeightUnit) || 'kg';
+
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState<ExerciseLog[]>([]);
 
@@ -225,7 +229,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
                     </Text>
                     <Text style={styles.exerciseItemDetails}>
                       {exercise.sets.length} sets × {exercise.sets[0]?.reps} reps
-                      {exercise.sets[0]?.weight > 0 && ` @ ${exercise.sets[0].weight} lbs`}
+                      {exercise.sets[0]?.weight > 0 && ` @ ${exercise.sets[0].weight} ${weightUnit}`}
                     </Text>
                     {exercise.notes && (
                       <Text style={styles.exerciseItemNotes}>{exercise.notes}</Text>
@@ -281,7 +285,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
                   exerciseName={exerciseName}
                   lastPerformance={exerciseHistory}
                   loading={loadingHistory}
-                  weightUnit="lbs"
+                  weightUnit={weightUnit}
                   onApplySuggestion={(suggestedSets, suggestedReps, suggestedWeight) => {
                     setSets(suggestedSets.toString());
                     setReps(suggestedReps.toString());
@@ -317,7 +321,7 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
               </View>
 
               <View style={styles.rowItem}>
-                <Text style={styles.label}>Weight (lbs)</Text>
+                <Text style={styles.label}>Weight ({weightUnit})</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="0"
