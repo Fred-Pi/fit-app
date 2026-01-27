@@ -36,7 +36,7 @@ const StrengthCalculator: React.FC<StrengthCalculatorProps> = ({ user }) => {
   const [showRepTable, setShowRepTable] = useState(false)
 
   const exercises = getExercisesWithStandards()
-  const unit = user?.preferredWeightUnit || 'lbs'
+  const unit = user?.preferredWeightUnit || 'kg'
 
   useEffect(() => {
     loadLatestBodyWeight()

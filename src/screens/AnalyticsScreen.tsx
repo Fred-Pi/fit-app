@@ -194,7 +194,7 @@ const AnalyticsScreen = () => {
           <View style={styles.prDetails}>
             <View style={styles.prStat}>
               <Text style={styles.prValue}>
-                {pr.weight} {user?.preferredWeightUnit || 'lbs'}
+                {pr.weight} {user?.preferredWeightUnit || 'kg'}
               </Text>
               <Text style={styles.prLabel}>× {pr.reps} reps</Text>
             </View>
@@ -369,7 +369,7 @@ const AnalyticsScreen = () => {
                 <TrainingVolumeChart
                   volumeData={volumeData}
                   stats={volumeStats}
-                  unit={user?.preferredWeightUnit || 'lbs'}
+                  unit={user?.preferredWeightUnit || 'kg'}
                 />
 
                 {/* Workout Frequency Chart */}
@@ -547,7 +547,7 @@ const AnalyticsScreen = () => {
             {/* Exercise Progression Chart */}
             <ExerciseProgressionChart
               workouts={workouts}
-              unit={user?.preferredWeightUnit || 'lbs'}
+              unit={user?.preferredWeightUnit || 'kg'}
             />
 
             {/* 1RM Calculator & Strength Standards */}

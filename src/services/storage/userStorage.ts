@@ -57,7 +57,7 @@ export const createDefaultUser = (): User => {
     name: 'User',
     dailyCalorieTarget: 2200,
     dailyStepGoal: 10000,
-    preferredWeightUnit: 'lbs',
+    preferredWeightUnit: 'kg',
     created: new Date().toISOString(),
   };
 };

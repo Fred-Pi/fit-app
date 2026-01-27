@@ -218,7 +218,7 @@ const WorkoutDetailScreen = () => {
                         <View style={styles.setDetail}>
                           <Text style={styles.setDetailLabel}>Weight</Text>
                           <Text style={styles.setDetailValue}>
-                            {set.weight} {user?.preferredWeightUnit || 'lbs'}
+                            {set.weight} {user?.preferredWeightUnit || 'kg'}
                           </Text>
                         </View>
                       </>
@@ -235,7 +235,7 @@ const WorkoutDetailScreen = () => {
               <Text style={styles.exerciseSummaryText}>
                 {exercise.sets.length} sets • {exercise.sets[0]?.reps} reps
                 {exercise.sets[0]?.weight > 0 &&
-                  ` • ${exercise.sets[0].weight} ${user?.preferredWeightUnit || 'lbs'}`}
+                  ` • ${exercise.sets[0].weight} ${user?.preferredWeightUnit || 'kg'}`}
               </Text>
             </View>
 

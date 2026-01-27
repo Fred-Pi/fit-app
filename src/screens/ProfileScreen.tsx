@@ -8,15 +8,17 @@ import {
   TextInput,
   Alert,
   Share,
+  Pressable,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Card from '../components/Card';
+import GlassCard from '../components/GlassCard';
+import GlassButton from '../components/GlassButton';
 import { clearAllData, getWorkouts, getNutrition, getSteps, getWeights } from '../services/storage';
-import { colors } from '../utils/theme';
-import { createSampleData } from '../utils/sampleData';
-import { warningHaptic, successHaptic } from '../utils/haptics';
+import { colors, glass, spacing, typography, radius } from '../utils/theme';
+import { warningHaptic, successHaptic, lightHaptic } from '../utils/haptics';
 import {
   useUserStore,
   useUIStore,
@@ -77,27 +79,6 @@ const ProfileScreen = () => {
     });
     setIsEditing(false);
     Alert.alert('Success', 'Profile updated successfully');
-  };
-
-  const handleLoadSampleData = async () => {
-    try {
-      const success = await createSampleData();
-      if (success) {
-        // Invalidate caches so data is refreshed
-        invalidateWorkoutCache();
-        refreshUser();
-        Alert.alert(
-          'Success',
-          'Sample data loaded! Check the Today, Workouts, and Nutrition tabs to see it.',
-          [{ text: 'OK' }]
-        );
-      } else {
-        Alert.alert('Error', 'Failed to load sample data');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load sample data');
-      console.error('Error loading sample data:', error);
-    }
   };
 
   const handleExportData = async () => {
@@ -214,21 +195,33 @@ const ProfileScreen = () => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} keyboardDismissMode="on-drag">
       {/* Profile Info */}
-      <Card>
-        <View style={styles.header}>
-          <Text style={styles.sectionTitle}>Profile</Text>
+      <GlassCard accent="blue" glowIntensity="subtle">
+        <View style={styles.cardHeader}>
+          <View style={styles.cardIconWrapper}>
+            <LinearGradient
+              colors={[colors.primaryLight, colors.primary]}
+              style={styles.iconGradient}
+            >
+              <Ionicons name="person" size={20} color={colors.text} />
+            </LinearGradient>
+          </View>
+          <Text style={styles.cardTitle}>Profile</Text>
+          <View style={styles.headerSpacer} />
           {!isEditing ? (
-            <TouchableOpacity onPress={() => setIsEditing(true)}>
+            <Pressable
+              onPress={() => { lightHaptic(); setIsEditing(true); }}
+              style={styles.editButtonWrapper}
+            >
               <Text style={styles.editButton}>Edit</Text>
-            </TouchableOpacity>
+            </Pressable>
           ) : (
             <View style={styles.editActions}>
-              <TouchableOpacity onPress={() => setIsEditing(false)} style={styles.cancelButton}>
+              <Pressable onPress={() => setIsEditing(false)} style={styles.cancelButton}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
+              </Pressable>
+              <Pressable onPress={handleSave} style={styles.saveButton}>
                 <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           )}
         </View>
@@ -241,7 +234,7 @@ const ProfileScreen = () => {
               value={name}
               onChangeText={setName}
               placeholder="Enter your name"
-              placeholderTextColor="#98989D"
+              placeholderTextColor={colors.textMuted}
             />
           ) : (
             <Text style={styles.value}>{user.name}</Text>
@@ -257,7 +250,7 @@ const ProfileScreen = () => {
               onChangeText={setCalorieTarget}
               keyboardType="number-pad"
               placeholder="2200"
-              placeholderTextColor="#98989D"
+              placeholderTextColor={colors.textMuted}
             />
           ) : (
             <Text style={styles.value}>{user.dailyCalorieTarget} cal</Text>
@@ -273,7 +266,7 @@ const ProfileScreen = () => {
               onChangeText={setStepGoal}
               keyboardType="number-pad"
               placeholder="10000"
-              placeholderTextColor="#98989D"
+              placeholderTextColor={colors.textMuted}
             />
           ) : (
             <Text style={styles.value}>{user.dailyStepGoal.toLocaleString()} steps</Text>
@@ -289,7 +282,7 @@ const ProfileScreen = () => {
               onChangeText={setGoalWeight}
               keyboardType="decimal-pad"
               placeholder="Optional"
-              placeholderTextColor="#98989D"
+              placeholderTextColor={colors.textMuted}
             />
           ) : (
             <Text style={styles.value}>
@@ -301,12 +294,12 @@ const ProfileScreen = () => {
         <View style={styles.settingItem}>
           <Text style={styles.label}>Weight Unit</Text>
           <View style={styles.unitToggle}>
-            <TouchableOpacity
+            <Pressable
               style={[
                 styles.unitButton,
                 user.preferredWeightUnit === 'lbs' && styles.unitButtonActive,
               ]}
-              onPress={() => updateUser({ preferredWeightUnit: 'lbs' })}
+              onPress={() => { lightHaptic(); updateUser({ preferredWeightUnit: 'lbs' }); }}
             >
               <Text
                 style={[
@@ -316,13 +309,13 @@ const ProfileScreen = () => {
               >
                 lbs
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               style={[
                 styles.unitButton,
                 user.preferredWeightUnit === 'kg' && styles.unitButtonActive,
               ]}
-              onPress={() => updateUser({ preferredWeightUnit: 'kg' })}
+              onPress={() => { lightHaptic(); updateUser({ preferredWeightUnit: 'kg' }); }}
             >
               <Text
                 style={[
@@ -332,14 +325,24 @@ const ProfileScreen = () => {
               >
                 kg
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
-      </Card>
+      </GlassCard>
 
       {/* App Info */}
-      <Card>
-        <Text style={styles.sectionTitle}>About</Text>
+      <GlassCard accent="violet" glowIntensity="subtle">
+        <View style={styles.cardHeader}>
+          <View style={styles.cardIconWrapper}>
+            <LinearGradient
+              colors={[colors.analyticsLight, colors.analytics]}
+              style={styles.iconGradient}
+            >
+              <Ionicons name="information-circle" size={20} color={colors.text} />
+            </LinearGradient>
+          </View>
+          <Text style={styles.cardTitle}>About</Text>
+        </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoLabel}>Version</Text>
           <Text style={styles.infoValue}>1.0.0 (MVP)</Text>
@@ -354,11 +357,21 @@ const ProfileScreen = () => {
             })}
           </Text>
         </View>
-      </Card>
+      </GlassCard>
 
       {/* Workout Templates */}
-      <Card>
-        <Text style={styles.sectionTitle}>Workout Templates</Text>
+      <GlassCard accent="cyan" glowIntensity="subtle">
+        <View style={styles.cardHeader}>
+          <View style={styles.cardIconWrapper}>
+            <LinearGradient
+              colors={[colors.cyanLight, colors.cyan]}
+              style={styles.iconGradient}
+            >
+              <Ionicons name="document-text" size={20} color={colors.text} />
+            </LinearGradient>
+          </View>
+          <Text style={styles.cardTitle}>Workout Templates</Text>
+        </View>
         {templates.length > 0 ? (
           <>
             <Text style={styles.templatesCount}>
@@ -372,65 +385,70 @@ const ProfileScreen = () => {
                     {template.exercises.length} {template.exercises.length === 1 ? 'exercise' : 'exercises'}
                   </Text>
                 </View>
-                <TouchableOpacity
+                <Pressable
                   onPress={() => handleDeleteTemplate(template.id, template.name)}
                   style={styles.deleteTemplateButton}
                 >
-                  <Ionicons name="trash-outline" size={20} color="#FF5E6D" />
-                </TouchableOpacity>
+                  <Ionicons name="trash-outline" size={20} color={colors.error} />
+                </Pressable>
               </View>
             ))}
           </>
         ) : (
           <View style={styles.emptyTemplates}>
-            <Ionicons name="document-text-outline" size={40} color="#A0A0A8" />
+            <Ionicons name="document-text-outline" size={40} color={colors.textTertiary} />
             <Text style={styles.emptyTemplatesText}>No templates yet</Text>
             <Text style={styles.emptyTemplatesSubtext}>
               Create a workout and save it as a template to reuse it later
             </Text>
           </View>
         )}
-      </Card>
+      </GlassCard>
 
       {/* Your Data */}
-      <Card>
-        <Text style={styles.sectionTitle}>Your Data</Text>
-        <TouchableOpacity
-          style={styles.exportButton}
+      <GlassCard accent="emerald" glowIntensity="subtle">
+        <View style={styles.cardHeader}>
+          <View style={styles.cardIconWrapper}>
+            <LinearGradient
+              colors={[colors.stepsLight, colors.steps]}
+              style={styles.iconGradient}
+            >
+              <Ionicons name="cloud-download" size={20} color={colors.text} />
+            </LinearGradient>
+          </View>
+          <Text style={styles.cardTitle}>Your Data</Text>
+        </View>
+        <GlassButton
+          title="Export All Data"
+          icon="download-outline"
           onPress={handleExportData}
-        >
-          <Ionicons name="download-outline" size={20} color="#30D158" />
-          <Text style={styles.exportButtonText}>Export All Data</Text>
-        </TouchableOpacity>
-        <Text style={styles.testDescription}>
+          variant="success"
+          fullWidth
+        />
+        <Text style={styles.helpText}>
           Export your workouts, nutrition, and tracking data as JSON
         </Text>
-      </Card>
-
-      {/* Testing */}
-      <Card>
-        <Text style={styles.sectionTitle}>Testing</Text>
-        <TouchableOpacity
-          style={styles.testButton}
-          onPress={handleLoadSampleData}
-        >
-          <Ionicons name="flask-outline" size={20} color="#007AFF" />
-          <Text style={styles.testButtonText}>Load Sample Data</Text>
-        </TouchableOpacity>
-        <Text style={styles.testDescription}>
-          Adds sample workouts, meals, and steps for testing the app
-        </Text>
-      </Card>
+      </GlassCard>
 
       {/* Danger Zone */}
-      <Card style={styles.dangerCard}>
-        <Text style={styles.dangerTitle}>Delete Data</Text>
+      <GlassCard accent="rose" glowIntensity="subtle">
+        <View style={styles.cardHeader}>
+          <View style={styles.cardIconWrapper}>
+            <LinearGradient
+              colors={[colors.errorMuted, colors.error]}
+              style={styles.iconGradient}
+            >
+              <Ionicons name="warning" size={20} color={colors.text} />
+            </LinearGradient>
+          </View>
+          <Text style={styles.cardTitle}>Delete Data</Text>
+        </View>
         <Text style={styles.dangerSubtitle}>
           Choose what data to delete. This cannot be undone.
         </Text>
 
-        <TouchableOpacity
-          style={styles.dangerButton}
+        <Pressable
+          style={({ pressed }) => [styles.dangerButton, pressed && styles.dangerButtonPressed]}
           onPress={() =>
             showConfirmDialog(
               'Delete All Workouts?',
@@ -442,12 +460,12 @@ const ProfileScreen = () => {
             )
           }
         >
-          <Ionicons name="barbell" size={20} color="#FF3B30" />
+          <Ionicons name="barbell" size={20} color={colors.error} />
           <Text style={styles.dangerButtonText}>Delete All Workouts</Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
-          style={styles.dangerButton}
+        <Pressable
+          style={({ pressed }) => [styles.dangerButton, pressed && styles.dangerButtonPressed]}
           onPress={() =>
             showConfirmDialog(
               'Delete All Nutrition Data?',
@@ -459,12 +477,12 @@ const ProfileScreen = () => {
             )
           }
         >
-          <Ionicons name="nutrition" size={20} color="#FF3B30" />
+          <Ionicons name="nutrition" size={20} color={colors.error} />
           <Text style={styles.dangerButtonText}>Delete All Nutrition</Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
-          style={styles.dangerButton}
+        <Pressable
+          style={({ pressed }) => [styles.dangerButton, pressed && styles.dangerButtonPressed]}
           onPress={() =>
             showConfirmDialog(
               'Delete All Step Data?',
@@ -476,14 +494,15 @@ const ProfileScreen = () => {
             )
           }
         >
-          <Ionicons name="footsteps" size={20} color="#FF3B30" />
+          <Ionicons name="footsteps" size={20} color={colors.error} />
           <Text style={styles.dangerButtonText}>Delete All Steps</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         <View style={styles.divider} />
 
-        <TouchableOpacity
-          style={[styles.dangerButton, styles.dangerButtonCritical]}
+        <GlassButton
+          title="Reset All Data"
+          icon="warning"
           onPress={() =>
             showConfirmDialog(
               'Reset Everything?',
@@ -494,13 +513,10 @@ const ProfileScreen = () => {
               colors.error
             )
           }
-        >
-          <Ionicons name="warning" size={20} color="#FFFFFF" />
-          <Text style={[styles.dangerButtonText, styles.dangerButtonTextCritical]}>
-            Reset All Data
-          </Text>
-        </TouchableOpacity>
-      </Card>
+          variant="danger"
+          fullWidth
+        />
+      </GlassCard>
     </ScrollView>
   );
 };
@@ -516,233 +532,211 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   contentContainer: {
-    padding: 20,
-    paddingBottom: 32,
+    padding: spacing.xl,
+    paddingBottom: spacing['4xl'],
   },
-  header: {
+  cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
+    gap: spacing.md,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+  cardIconWrapper: {
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
+  iconGradient: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.lg,
+  },
+  cardTitle: {
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.bold,
     color: colors.text,
     letterSpacing: 0.2,
   },
+  headerSpacer: {
+    flex: 1,
+  },
+  editButtonWrapper: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
   editButton: {
-    fontSize: 16,
+    fontSize: typography.size.base,
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: typography.weight.semibold,
   },
   editActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
   },
   cancelButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   cancelButtonText: {
-    fontSize: 16,
+    fontSize: typography.size.base,
     color: colors.textSecondary,
   },
   saveButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   saveButtonText: {
-    fontSize: 16,
+    fontSize: typography.size.base,
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: typography.weight.semibold,
   },
   settingItem: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   label: {
-    fontSize: 14,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   value: {
-    fontSize: 16,
+    fontSize: typography.size.base,
     color: colors.text,
-    fontWeight: '500',
+    fontWeight: typography.weight.medium,
   },
   input: {
-    fontSize: 16,
+    fontSize: typography.size.base,
     color: colors.text,
     borderWidth: 1,
-    borderColor: colors.borderLight,
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: colors.surfaceElevated,
+    borderColor: glass.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    backgroundColor: glass.backgroundLight,
   },
   infoItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
   },
   infoLabel: {
-    fontSize: 15,
+    fontSize: typography.size.base,
     color: colors.textSecondary,
   },
   infoValue: {
-    fontSize: 15,
+    fontSize: typography.size.base,
     color: colors.text,
   },
   unitToggle: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.sm,
   },
   unitButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: colors.surfaceElevated,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radius.lg,
+    backgroundColor: glass.backgroundLight,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: glass.border,
   },
   unitButtonActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
   unitButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.semibold,
     color: colors.textSecondary,
   },
   unitButtonTextActive: {
     color: colors.text,
   },
-  dangerCard: {
-    marginTop: 8,
-    borderColor: colors.error,
-    borderWidth: 1,
-  },
-  dangerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.error,
-    marginBottom: 10,
-    letterSpacing: 0.2,
-  },
   dangerSubtitle: {
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
     lineHeight: 18,
   },
   dangerButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#3A1C1C',
-    borderRadius: 8,
-    marginBottom: 8,
+    padding: spacing.md,
+    backgroundColor: colors.errorMuted,
+    borderRadius: radius.lg,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: `${colors.error}30`,
+  },
+  dangerButtonPressed: {
+    backgroundColor: `${colors.error}40`,
   },
   dangerButtonText: {
-    fontSize: 15,
+    fontSize: typography.size.base,
     color: colors.error,
-    marginLeft: 8,
-    fontWeight: '500',
-  },
-  dangerButtonCritical: {
-    backgroundColor: colors.error,
-  },
-  dangerButtonTextCritical: {
-    color: colors.text,
+    marginLeft: spacing.sm,
+    fontWeight: typography.weight.medium,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.borderLight,
-    marginVertical: 12,
+    backgroundColor: glass.border,
+    marginVertical: spacing.md,
   },
-  exportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#1A2E1F',
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  exportButtonText: {
-    fontSize: 15,
-    color: '#30D158',
-    marginLeft: 8,
-    fontWeight: '500',
-  },
-  testButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#0F1A2E',
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  testButtonText: {
-    fontSize: 15,
-    color: colors.primary,
-    marginLeft: 8,
-    fontWeight: '500',
-  },
-  testDescription: {
-    fontSize: 13,
+  helpText: {
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
     lineHeight: 18,
+    marginTop: spacing.sm,
   },
   templatesCount: {
-    fontSize: 14,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   templateItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 12,
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: 8,
-    marginBottom: 8,
+    padding: spacing.md,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.lg,
+    marginBottom: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: glass.border,
   },
   templateInfo: {
     flex: 1,
   },
   templateName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
     marginBottom: 2,
   },
   templateDetails: {
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
   },
   deleteTemplateButton: {
-    padding: 8,
-    backgroundColor: 'rgba(255, 94, 109, 0.1)',
-    borderRadius: 8,
+    padding: spacing.sm,
+    backgroundColor: colors.errorMuted,
+    borderRadius: radius.md,
   },
   emptyTemplates: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingVertical: spacing['2xl'],
   },
   emptyTemplatesText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.semibold,
     color: colors.textSecondary,
-    marginTop: 12,
-    marginBottom: 6,
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
   },
   emptyTemplatesSubtext: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: typography.size.sm,
+    color: colors.textTertiary,
     textAlign: 'center',
     lineHeight: 18,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
   },
 });
 
