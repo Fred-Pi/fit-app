@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import GlassCard from './GlassCard';
@@ -16,42 +16,6 @@ const StreakCard: React.FC<StreakCardProps> = ({
 }) => {
   const hasActiveStreak = currentStreak > 0;
   const isNewRecord = currentStreak > 0 && currentStreak >= longestStreak;
-  const flameScale = useRef(new Animated.Value(1)).current;
-  const flameOpacity = useRef(new Animated.Value(1)).current;
-
-  // Pulsing flame animation when active
-  useEffect(() => {
-    if (hasActiveStreak) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.parallel([
-            Animated.timing(flameScale, {
-              toValue: 1.15,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-            Animated.timing(flameOpacity, {
-              toValue: 0.8,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.parallel([
-            Animated.timing(flameScale, {
-              toValue: 1,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-            Animated.timing(flameOpacity, {
-              toValue: 1,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-          ]),
-        ])
-      ).start();
-    }
-  }, [hasActiveStreak]);
 
   const getMessage = () => {
     if (currentStreak === 0) return "Start your streak today!";
@@ -70,10 +34,7 @@ const StreakCard: React.FC<StreakCardProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Animated.View style={[
-            styles.flameContainer,
-            { transform: [{ scale: flameScale }], opacity: flameOpacity }
-          ]}>
+          <View style={styles.flameContainer}>
             <LinearGradient
               colors={hasActiveStreak ? ['#FFD93D', '#FF9500', '#FF6B35'] : [colors.textTertiary, colors.textMuted]}
               style={styles.flameGradient}
@@ -84,7 +45,7 @@ const StreakCard: React.FC<StreakCardProps> = ({
                 color={colors.text}
               />
             </LinearGradient>
-          </Animated.View>
+          </View>
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle}>
               {hasActiveStreak ? `${currentStreak} Day Streak` : "No Active Streak"}
