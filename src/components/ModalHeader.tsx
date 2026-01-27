@@ -42,17 +42,18 @@ const ModalHeader: React.FC<ModalHeaderProps> = ({
     <View style={[styles.container, { paddingTop: Math.max(insets.top, spacing.md) }]}>
       {/* Blur background for iOS, solid for others */}
       {Platform.OS === 'ios' ? (
-        <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill}>
+        <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} pointerEvents="none">
           <View style={styles.blurOverlay} />
         </BlurView>
       ) : (
-        <View style={styles.solidBackground} />
+        <View style={styles.solidBackground} pointerEvents="none" />
       )}
 
       {/* Bottom gradient fade */}
       <LinearGradient
         colors={['transparent', colors.background]}
         style={styles.bottomFade}
+        pointerEvents="none"
       />
 
       <View style={styles.content}>
@@ -71,7 +72,7 @@ const ModalHeader: React.FC<ModalHeaderProps> = ({
         {/* Right side: accessory + save */}
         <View style={styles.rightSection}>
           {rightAccessory}
-          {shouldShowSave && (
+          {shouldShowSave && onSave && (
             <HeaderButton
               label={saveText}
               onPress={onSave}
