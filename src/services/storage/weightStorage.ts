@@ -4,6 +4,7 @@
 
 import { DailyWeight } from '../../types';
 import { getDb } from './db';
+import { syncService } from '../sync';
 
 export const getWeights = async (userId: string): Promise<DailyWeight[]> => {
   try {
@@ -77,6 +78,18 @@ export const saveWeight = async (weight: DailyWeight): Promise<void> => {
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [weight.id, weight.userId, weight.date, weight.weight, weight.unit, weight.source, weight.created]
     );
+
+    // Queue for cloud sync
+    await syncService.queueMutation('daily_weights', weight.id, 'UPSERT', {
+      id: weight.id,
+      user_id: weight.userId,
+      date: weight.date,
+      weight: weight.weight,
+      unit: weight.unit,
+      source: weight.source,
+      created_at: weight.created,
+      updated_at: new Date().toISOString(),
+    });
   } catch (error) {
     console.error('Error saving weight:', error);
   }
@@ -86,6 +99,9 @@ export const deleteWeight = async (weightId: string): Promise<void> => {
   try {
     const db = await getDb();
     await db.runAsync('DELETE FROM daily_weights WHERE id = ?', [weightId]);
+
+    // Queue for cloud sync
+    await syncService.queueMutation('daily_weights', weightId, 'DELETE');
   } catch (error) {
     console.error('Error deleting weight:', error);
   }

@@ -4,6 +4,7 @@
 
 import { DailyNutrition, Meal } from '../../types';
 import { getDb } from './db';
+import { syncService } from '../sync';
 
 const loadNutritionMeals = async (nutritionId: string): Promise<Meal[]> => {
   const db = await getDb();
@@ -114,6 +115,16 @@ export const saveNutrition = async (nutrition: DailyNutrition): Promise<void> =>
           [meal.id, nutrition.id, meal.name, meal.calories, meal.protein, meal.carbs, meal.fats, meal.time]
         );
       }
+    });
+
+    // Queue for cloud sync
+    await syncService.queueMutation('daily_nutrition', nutrition.id, 'UPSERT', {
+      id: nutrition.id,
+      user_id: nutrition.userId,
+      date: nutrition.date,
+      calorie_target: nutrition.calorieTarget,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Error saving nutrition:', error);

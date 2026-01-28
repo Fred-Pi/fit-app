@@ -10,6 +10,7 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 import { ThemeProvider } from './src/utils/ThemeContext';
 import { initializeDatabase, migrateFromAsyncStorage } from './src/services/database';
 import { useUserStore, useAuthStore } from './src/stores';
+import { syncService } from './src/services/sync';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { colors } from './src/utils/theme';
 
@@ -34,6 +35,9 @@ export default function App() {
         // Initialize auth (check for existing session)
         await initializeAuth();
 
+        // Initialize sync service (network monitoring)
+        await syncService.initialize();
+
         // Check if onboarding was completed (only relevant for authenticated users)
         const onboardingComplete = await AsyncStorage.getItem(ONBOARDING_KEY);
 
@@ -56,6 +60,11 @@ export default function App() {
     }
 
     prepare();
+
+    // Cleanup sync service on unmount
+    return () => {
+      syncService.cleanup();
+    };
   }, [initializeUser, initializeAuth]);
 
   const handleOnboardingComplete = async (userData: {

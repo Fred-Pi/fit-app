@@ -5,6 +5,7 @@
 import { PersonalRecord, WorkoutLog } from '../../types';
 import { getDb } from './db';
 import { generateId } from './utils';
+import { syncService } from '../sync';
 
 export const getPersonalRecords = async (userId: string): Promise<PersonalRecord[]> => {
   try {
@@ -47,6 +48,18 @@ export const savePersonalRecord = async (pr: PersonalRecord): Promise<void> => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [pr.id, pr.userId, pr.exerciseName, pr.weight, pr.reps, pr.date, pr.workoutId || null, pr.created]
     );
+
+    // Queue for cloud sync
+    await syncService.queueMutation('personal_records', pr.id, 'UPSERT', {
+      id: pr.id,
+      user_id: pr.userId,
+      exercise_name: pr.exerciseName,
+      weight: pr.weight,
+      reps: pr.reps,
+      date: pr.date,
+      workout_id: pr.workoutId || null,
+      created_at: pr.created,
+    });
   } catch (error) {
     console.error('Error saving personal record:', error);
   }
@@ -56,6 +69,9 @@ export const deletePersonalRecord = async (prId: string): Promise<void> => {
   try {
     const db = await getDb();
     await db.runAsync('DELETE FROM personal_records WHERE id = ?', [prId]);
+
+    // Queue for cloud sync
+    await syncService.queueMutation('personal_records', prId, 'DELETE');
   } catch (error) {
     console.error('Error deleting personal record:', error);
   }

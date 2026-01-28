@@ -4,6 +4,7 @@
 
 import { Achievement, MuscleGroup } from '../../types';
 import { getDb } from './db';
+import { syncService } from '../sync';
 import { isDateInRange } from './utils';
 import { getWeekDates } from '../../utils/dateUtils';
 import { achievementDefinitions } from '../../data/achievements';
@@ -61,6 +62,18 @@ export const saveAchievements = async (achievements: Achievement[]): Promise<voi
         );
       }
     });
+
+    // Queue each achievement for cloud sync
+    for (const a of achievements) {
+      await syncService.queueMutation('achievements', a.id, 'UPSERT', {
+        id: a.id,
+        user_id: a.userId,
+        achievement_id: a.id,
+        current_value: a.currentValue,
+        is_unlocked: a.isUnlocked,
+        unlocked_date: a.unlockedDate || null,
+      });
+    }
   } catch (error) {
     console.error('Error saving achievements:', error);
   }

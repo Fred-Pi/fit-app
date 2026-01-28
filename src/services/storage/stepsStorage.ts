@@ -4,6 +4,7 @@
 
 import { DailySteps } from '../../types';
 import { getDb } from './db';
+import { syncService } from '../sync';
 
 export const getSteps = async (userId: string): Promise<DailySteps[]> => {
   try {
@@ -73,6 +74,18 @@ export const saveSteps = async (steps: DailySteps): Promise<void> => {
        VALUES (?, ?, ?, ?, ?, ?)`,
       [steps.id, steps.userId, steps.date, steps.steps, steps.stepGoal, steps.source]
     );
+
+    // Queue for cloud sync
+    await syncService.queueMutation('daily_steps', steps.id, 'UPSERT', {
+      id: steps.id,
+      user_id: steps.userId,
+      date: steps.date,
+      steps: steps.steps,
+      step_goal: steps.stepGoal,
+      source: steps.source,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
   } catch (error) {
     console.error('Error saving steps:', error);
   }

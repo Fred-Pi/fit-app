@@ -4,6 +4,7 @@
 
 import { Exercise, MuscleGroup } from '../../types';
 import { getDb } from './db';
+import { syncService } from '../sync';
 
 export const getCustomExercises = async (userId: string): Promise<Exercise[]> => {
   try {
@@ -44,6 +45,17 @@ export const saveCustomExercise = async (exercise: Exercise): Promise<void> => {
        VALUES (?, ?, ?, ?, ?, ?)`,
       [exercise.id, exercise.userId, exercise.name, exercise.category, exercise.defaultSets || null, exercise.defaultReps || null]
     );
+
+    // Queue for cloud sync
+    await syncService.queueMutation('custom_exercises', exercise.id, 'UPSERT', {
+      id: exercise.id,
+      user_id: exercise.userId,
+      name: exercise.name,
+      category: exercise.category,
+      default_sets: exercise.defaultSets || null,
+      default_reps: exercise.defaultReps || null,
+      created_at: new Date().toISOString(),
+    });
   } catch (error) {
     console.error('Error saving custom exercise:', error);
   }
@@ -57,6 +69,9 @@ export const deleteCustomExercise = async (exerciseId: string): Promise<void> =>
   try {
     const db = await getDb();
     await db.runAsync('DELETE FROM custom_exercises WHERE id = ?', [exerciseId]);
+
+    // Queue for cloud sync
+    await syncService.queueMutation('custom_exercises', exerciseId, 'DELETE');
   } catch (error) {
     console.error('Error deleting custom exercise:', error);
   }

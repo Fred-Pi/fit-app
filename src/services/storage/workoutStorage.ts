@@ -5,6 +5,7 @@
 import { WorkoutLog, ExerciseLog, SetLog } from '../../types';
 import { getDb } from './db';
 import { generateId } from './utils';
+import { syncService } from '../sync';
 
 // Helper to load exercises and sets for a workout
 const loadWorkoutExercises = async (workoutId: string): Promise<ExerciseLog[]> => {
@@ -135,6 +136,19 @@ export const saveWorkout = async (workout: WorkoutLog): Promise<void> => {
         }
       }
     });
+
+    // Queue for cloud sync (workout_logs table, Supabase expects snake_case)
+    await syncService.queueMutation('workout_logs', workout.id, 'UPSERT', {
+      id: workout.id,
+      user_id: workout.userId,
+      date: workout.date,
+      name: workout.name,
+      duration: workout.duration || null,
+      notes: workout.notes || null,
+      completed: workout.completed,
+      created_at: workout.created,
+      updated_at: new Date().toISOString(),
+    });
   } catch (error) {
     console.error('Error saving workout:', error);
   }
@@ -145,6 +159,9 @@ export const deleteWorkout = async (workoutId: string): Promise<void> => {
     const db = await getDb();
     // Cascade delete handles exercises and sets
     await db.runAsync('DELETE FROM workout_logs WHERE id = ?', [workoutId]);
+
+    // Queue for cloud sync
+    await syncService.queueMutation('workout_logs', workoutId, 'DELETE');
   } catch (error) {
     console.error('Error deleting workout:', error);
   }

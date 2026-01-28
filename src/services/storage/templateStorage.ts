@@ -4,6 +4,7 @@
 
 import { WorkoutTemplate, ExerciseTemplate } from '../../types';
 import { getDb } from './db';
+import { syncService } from '../sync';
 
 const loadTemplateExercises = async (templateId: string): Promise<ExerciseTemplate[]> => {
   const db = await getDb();
@@ -83,6 +84,14 @@ export const saveTemplate = async (template: WorkoutTemplate): Promise<void> => 
         );
       }
     });
+
+    // Queue for cloud sync
+    await syncService.queueMutation('workout_templates', template.id, 'UPSERT', {
+      id: template.id,
+      user_id: template.userId,
+      name: template.name,
+      created_at: template.created,
+    });
   } catch (error) {
     console.error('Error saving template:', error);
   }
@@ -92,6 +101,9 @@ export const deleteTemplate = async (templateId: string): Promise<void> => {
   try {
     const db = await getDb();
     await db.runAsync('DELETE FROM workout_templates WHERE id = ?', [templateId]);
+
+    // Queue for cloud sync
+    await syncService.queueMutation('workout_templates', templateId, 'DELETE');
   } catch (error) {
     console.error('Error deleting template:', error);
   }
