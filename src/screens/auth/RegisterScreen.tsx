@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import GlassButton from '../../components/GlassButton';
 import { colors, glass, spacing, typography, radius } from '../../utils/theme';
 import { useAuthStore } from '../../stores';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
-import { signInWithGoogle, signInWithApple, isAppleSignInAvailable } from '../../services/supabase';
+import { signInWithGoogle } from '../../services/supabase';
 
 type RegisterScreenProps = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'>;
@@ -34,12 +34,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [appleAvailable, setAppleAvailable] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
-
-  useEffect(() => {
-    isAppleSignInAvailable().then(setAppleAvailable);
-  }, []);
 
   const handleRegister = async () => {
     if (!name.trim()) {
@@ -83,18 +78,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     setOauthLoading(true);
     try {
       const { error } = await signInWithGoogle();
-      if (error) {
-        Alert.alert('Sign In Failed', error.message);
-      }
-    } finally {
-      setOauthLoading(false);
-    }
-  };
-
-  const handleAppleSignIn = async () => {
-    setOauthLoading(true);
-    try {
-      const { error } = await signInWithApple();
       if (error) {
         Alert.alert('Sign In Failed', error.message);
       }
@@ -230,17 +213,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               icon="logo-google"
               disabled={oauthLoading || isLoading}
             />
-            {appleAvailable && (
-              <GlassButton
-                title={oauthLoading ? 'Signing in...' : 'Continue with Apple'}
-                onPress={handleAppleSignIn}
-                variant="secondary"
-                size="lg"
-                fullWidth
-                icon="logo-apple"
-                disabled={oauthLoading || isLoading}
-              />
-            )}
           </View>
 
           <View style={styles.loginContainer}>
