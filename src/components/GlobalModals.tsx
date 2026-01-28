@@ -28,6 +28,7 @@ import UpdateStepsModal from './UpdateStepsModal';
 import UpdateWeightModal from './UpdateWeightModal';
 import TemplatePicker from './TemplatePicker';
 import ConfirmDialog from './ConfirmDialog';
+import WelcomeModal from './WelcomeModal';
 
 const GlobalModals: React.FC = () => {
   // UI Store
@@ -206,6 +207,13 @@ const GlobalModals: React.FC = () => {
         onCancel={closeModal}
         icon={confirmDialogConfig?.icon as keyof typeof Ionicons.glyphMap}
         iconColor={confirmDialogConfig?.iconColor}
+      />
+
+      {/* Welcome Modal */}
+      <WelcomeModal
+        visible={activeModal === 'welcome'}
+        userName={user?.name || 'there'}
+        onDismiss={closeModal}
       />
     </>
   );

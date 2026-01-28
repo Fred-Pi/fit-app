@@ -6,14 +6,18 @@
  */
 
 import { create } from 'zustand';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../types';
 import { getUser, saveUser, initializeApp } from '../services/storage';
+
+const WELCOME_SHOWN_KEY = '@fittrack:lastWelcomeShown';
 
 interface UserState {
   // State
   user: User | null;
   isLoading: boolean;
   isInitialized: boolean;
+  lastWelcomeShown: number | null;
 
   // Actions
   initialize: () => Promise<User>;
@@ -23,12 +27,18 @@ interface UserState {
   setStepGoal: (goal: number) => Promise<void>;
   setGoalWeight: (weight: number | undefined) => Promise<void>;
   refreshUser: () => Promise<void>;
+  shouldShowWelcome: () => boolean;
+  markWelcomeShown: () => Promise<void>;
+  loadWelcomeState: () => Promise<void>;
 }
+
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 export const useUserStore = create<UserState>((set, get) => ({
   user: null,
   isLoading: true,
   isInitialized: false,
+  lastWelcomeShown: null,
 
   initialize: async () => {
     if (get().isInitialized && get().user) {
@@ -82,5 +92,39 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   setGoalWeight: async (weight) => {
     await get().updateUser({ goalWeight: weight });
+  },
+
+  loadWelcomeState: async () => {
+    try {
+      const stored = await AsyncStorage.getItem(WELCOME_SHOWN_KEY);
+      if (stored) {
+        set({ lastWelcomeShown: parseInt(stored, 10) });
+      }
+    } catch (error) {
+      console.error('Failed to load welcome state:', error);
+    }
+  },
+
+  shouldShowWelcome: () => {
+    const { lastWelcomeShown } = get();
+    const now = Date.now();
+
+    // First time user or never shown
+    if (lastWelcomeShown === null) {
+      return true;
+    }
+
+    // Check if 7+ days have passed
+    return now - lastWelcomeShown >= SEVEN_DAYS_MS;
+  },
+
+  markWelcomeShown: async () => {
+    const now = Date.now();
+    try {
+      await AsyncStorage.setItem(WELCOME_SHOWN_KEY, now.toString());
+      set({ lastWelcomeShown: now });
+    } catch (error) {
+      console.error('Failed to save welcome state:', error);
+    }
   },
 }));

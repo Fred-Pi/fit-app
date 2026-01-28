@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -44,6 +44,12 @@ const TodayScreen = () => {
   const openAddMeal = useUIStore((s) => s.openAddMeal);
   const openUpdateSteps = useUIStore((s) => s.openUpdateSteps);
   const openUpdateWeight = useUIStore((s) => s.openUpdateWeight);
+  const openWelcome = useUIStore((s) => s.openWelcome);
+
+  // User Store - Welcome tracking
+  const shouldShowWelcome = useUserStore((s) => s.shouldShowWelcome);
+  const markWelcomeShown = useUserStore((s) => s.markWelcomeShown);
+  const loadWelcomeState = useUserStore((s) => s.loadWelcomeState);
 
   // Workout Store
   const workouts = useWorkoutStore((s) => s.workouts);
@@ -100,6 +106,22 @@ const TodayScreen = () => {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Welcome modal check - runs once on mount
+  const welcomeChecked = useRef(false);
+  useEffect(() => {
+    if (welcomeChecked.current || !user) return;
+    welcomeChecked.current = true;
+
+    const checkWelcome = async () => {
+      await loadWelcomeState();
+      if (shouldShowWelcome()) {
+        openWelcome();
+        await markWelcomeShown();
+      }
+    };
+    checkWelcome();
+  }, [user, loadWelcomeState, shouldShowWelcome, openWelcome, markWelcomeShown]);
 
   // Reload on focus
   useFocusEffect(

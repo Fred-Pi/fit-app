@@ -47,6 +47,9 @@ const ProfileScreen = () => {
   const deleteTemplate = useWorkoutStore((s) => s.deleteTemplate);
   const invalidateWorkoutCache = useWorkoutStore((s) => s.invalidateCache);
 
+  // Auth Store
+  const signOut = useAuthStore((s) => s.signOut);
+
   // Initialize form values when user loads
   useEffect(() => {
     if (user) {
@@ -187,6 +190,19 @@ const ProfileScreen = () => {
       'Delete Template',
       'document-text',
       colors.error
+    );
+  };
+
+  const handleLogout = () => {
+    showConfirmDialog(
+      'Log Out?',
+      'Are you sure you want to log out of your account?',
+      async () => {
+        await signOut();
+      },
+      'Log Out',
+      'log-out-outline',
+      colors.warning
     );
   };
 
@@ -363,6 +379,28 @@ const ProfileScreen = () => {
             })}
           </Text>
         </View>
+      </GlassCard>
+
+      {/* Account */}
+      <GlassCard accent="gold" glowIntensity="subtle">
+        <View style={styles.cardHeader}>
+          <View style={styles.cardIconWrapper}>
+            <LinearGradient
+              colors={[colors.goldLight, colors.gold]}
+              style={styles.iconGradient}
+            >
+              <Ionicons name="person-circle" size={20} color={colors.text} />
+            </LinearGradient>
+          </View>
+          <Text style={styles.cardTitle}>Account</Text>
+        </View>
+        <GlassButton
+          title="Log Out"
+          icon="log-out-outline"
+          onPress={handleLogout}
+          variant="secondary"
+          fullWidth
+        />
       </GlassCard>
 
       {/* Workout Templates */}

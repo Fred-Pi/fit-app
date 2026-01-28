@@ -16,7 +16,8 @@ export type ModalType =
   | 'updateSteps'
   | 'updateWeight'
   | 'templatePicker'
-  | 'confirmDialog';
+  | 'confirmDialog'
+  | 'welcome';
 
 export interface ConfirmDialogConfig {
   title: string;
@@ -60,6 +61,9 @@ interface UIState {
 
   // Actions - Confirm Dialog
   openConfirmDialog: (config: ConfirmDialogConfig) => void;
+
+  // Actions - Welcome Modal
+  openWelcome: () => void;
 
   // Actions - Date
   setCurrentDate: (date: string) => void;
@@ -149,6 +153,13 @@ export const useUIStore = create<UIState>((set, get) => ({
     set({
       activeModal: 'confirmDialog',
       confirmDialogConfig: config,
+    });
+  },
+
+  // Welcome Modal
+  openWelcome: () => {
+    set({
+      activeModal: 'welcome',
     });
   },
 
