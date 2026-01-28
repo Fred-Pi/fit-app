@@ -34,7 +34,9 @@
       "themeColor": "#3A9BFF"
     },
     "plugins": [
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-web-browser"
     ]
   }
 }
