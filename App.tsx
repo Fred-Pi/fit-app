@@ -5,11 +5,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import AppNavigator from './src/navigation/AppNavigator';
+import RootNavigator from './src/navigation/RootNavigator';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import { ThemeProvider } from './src/utils/ThemeContext';
 import { initializeDatabase, migrateFromAsyncStorage } from './src/services/database';
-import { useUserStore } from './src/stores';
+import { useUserStore, useAuthStore } from './src/stores';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { colors } from './src/utils/theme';
 
@@ -21,16 +21,21 @@ export default function App() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const initializeUser = useUserStore((state) => state.initialize);
   const updateUser = useUserStore((state) => state.updateUser);
+  const initializeAuth = useAuthStore((state) => state.initialize);
+  const session = useAuthStore((state) => state.session);
 
   useEffect(() => {
     async function prepare() {
       try {
-        // Check if onboarding was completed
-        const onboardingComplete = await AsyncStorage.getItem(ONBOARDING_KEY);
-
         // Initialize SQLite database and run migration from AsyncStorage
         await initializeDatabase();
         await migrateFromAsyncStorage();
+
+        // Initialize auth (check for existing session)
+        await initializeAuth();
+
+        // Check if onboarding was completed (only relevant for authenticated users)
+        const onboardingComplete = await AsyncStorage.getItem(ONBOARDING_KEY);
 
         // Initialize user store (creates default user if needed)
         await initializeUser();
@@ -51,7 +56,7 @@ export default function App() {
     }
 
     prepare();
-  }, [initializeUser]);
+  }, [initializeUser, initializeAuth]);
 
   const handleOnboardingComplete = async (userData: {
     name: string;
@@ -111,16 +116,19 @@ export default function App() {
     );
   }
 
+  // Show onboarding only if user is authenticated and hasn't completed it
+  const shouldShowOnboarding = session && showOnboarding;
+
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <ThemeProvider>
             <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-              {showOnboarding ? (
+              {shouldShowOnboarding ? (
                 <OnboardingScreen onComplete={handleOnboardingComplete} />
               ) : (
-                <AppNavigator />
+                <RootNavigator />
               )}
             </Animated.View>
             <StatusBar style="light" />
