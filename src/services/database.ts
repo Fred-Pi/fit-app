@@ -236,6 +236,24 @@ export const initializeDatabase = async (): Promise<void> => {
       unlocked_date TEXT,
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+    -- Sync queue for offline changes
+    CREATE TABLE IF NOT EXISTS sync_queue (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      table_name TEXT NOT NULL,
+      record_id TEXT NOT NULL,
+      operation TEXT NOT NULL CHECK(operation IN ('UPSERT', 'DELETE')),
+      payload TEXT,
+      created_at TEXT NOT NULL,
+      processed_at TEXT,
+      error TEXT
+    );
+
+    -- Sync metadata for tracking last sync time per table
+    CREATE TABLE IF NOT EXISTS sync_metadata (
+      table_name TEXT PRIMARY KEY,
+      last_sync_at TEXT
+    );
   `);
 
   // Create indexes for performance
@@ -258,6 +276,10 @@ export const initializeDatabase = async (): Promise<void> => {
     CREATE INDEX IF NOT EXISTS idx_set_logs_exercise ON set_logs(exercise_log_id);
     CREATE INDEX IF NOT EXISTS idx_meals_nutrition ON meals(nutrition_id);
     CREATE INDEX IF NOT EXISTS idx_exercise_templates_template ON exercise_templates(template_id);
+
+    -- Sync queue indexes
+    CREATE INDEX IF NOT EXISTS idx_sync_queue_pending ON sync_queue(processed_at) WHERE processed_at IS NULL;
+    CREATE INDEX IF NOT EXISTS idx_sync_queue_table ON sync_queue(table_name, record_id);
   `);
 };
 
