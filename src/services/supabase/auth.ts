@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { supabase } from './client';
+import { supabase, isSupabaseConfigured } from './client';
 
 // Required for OAuth redirect handling
 WebBrowser.maybeCompleteAuthSession();
@@ -25,6 +25,10 @@ const getRedirectUri = () => {
  * Sign in with Google OAuth
  */
 export const signInWithGoogle = async (): Promise<{ error: Error | null }> => {
+  if (!isSupabaseConfigured) {
+    return { error: new Error('Supabase is not configured') };
+  }
+
   try {
     const redirectUri = getRedirectUri();
 
@@ -76,6 +80,10 @@ export const signInWithGoogle = async (): Promise<{ error: Error | null }> => {
  * Note: Only available on iOS
  */
 export const signInWithApple = async (): Promise<{ error: Error | null }> => {
+  if (!isSupabaseConfigured) {
+    return { error: new Error('Supabase is not configured') };
+  }
+
   if (Platform.OS !== 'ios') {
     return { error: new Error('Apple Sign In is only available on iOS') };
   }

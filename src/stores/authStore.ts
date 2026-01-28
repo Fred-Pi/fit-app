@@ -7,7 +7,7 @@
 
 import { create } from 'zustand';
 import { Session, User, AuthError } from '@supabase/supabase-js';
-import { supabase } from '../services/supabase';
+import { supabase, isSupabaseConfigured } from '../services/supabase';
 
 interface AuthState {
   // State
@@ -39,6 +39,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   initialize: async () => {
     if (get().isInitialized) {
+      return;
+    }
+
+    // If Supabase is not configured, skip auth initialization
+    if (!isSupabaseConfigured) {
+      console.warn('Supabase not configured - running in offline-only mode');
+      set({ isInitialized: true, isLoading: false });
       return;
     }
 

@@ -10,7 +10,7 @@
 
 import { Platform } from 'react-native';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
-import { supabase } from '../supabase';
+import { supabase, isSupabaseConfigured } from '../supabase';
 import { getDatabase } from '../database';
 
 // Supported table names for sync
@@ -111,7 +111,7 @@ class SyncService {
    * Process all pending items in the sync queue
    */
   async processQueue(): Promise<void> {
-    if (Platform.OS === 'web' || this.isSyncing || !this.isOnline) return;
+    if (Platform.OS === 'web' || this.isSyncing || !this.isOnline || !isSupabaseConfigured) return;
 
     const db = await getDatabase();
     if (!db) return;
@@ -190,7 +190,7 @@ class SyncService {
    * Pull changes from Supabase for a specific table
    */
   async pullChanges(tableName: SyncTableName, userId: string): Promise<unknown[]> {
-    if (!this.isOnline) return [];
+    if (!this.isOnline || !isSupabaseConfigured) return [];
 
     const db = await getDatabase();
     if (!db) return [];
@@ -246,7 +246,7 @@ class SyncService {
    * Full sync - pull all changes from all tables
    */
   async fullSync(userId: string): Promise<void> {
-    if (!this.isOnline) return;
+    if (!this.isOnline || !isSupabaseConfigured) return;
 
     // First, push any pending changes
     await this.processQueue();
