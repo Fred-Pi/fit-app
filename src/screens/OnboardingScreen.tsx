@@ -82,13 +82,18 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
   };
 
   const handleComplete = () => {
+    if (!name.trim()) {
+      return;
+    }
     successHaptic();
     onComplete({
-      name: name.trim() || 'User',
+      name: name.trim(),
       dailyCalorieTarget: parseInt(calorieTarget) || 2200,
       dailyStepGoal: parseInt(stepGoal) || 10000,
     });
   };
+
+  const canComplete = name.trim().length > 0;
 
   const renderDots = () => (
     <View style={styles.dotsContainer}>
@@ -260,7 +265,11 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
             variant="primary"
             size="lg"
             fullWidth
+            disabled={isLastSlide && !canComplete}
           />
+          {isLastSlide && !canComplete && (
+            <Text style={styles.nameRequiredHint}>Please enter your name to continue</Text>
+          )}
         </View>
       </View>
     </View>
@@ -426,6 +435,12 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     width: '100%',
+  },
+  nameRequiredHint: {
+    fontSize: typography.size.sm,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: spacing.md,
   },
 });
 
