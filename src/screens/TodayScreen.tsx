@@ -355,7 +355,7 @@ const TodayScreen = () => {
                 title="Add Meal"
                 icon="add"
                 onPress={() => openAddMeal()}
-                variant="secondary"
+                variant="primary"
                 fullWidth
               />
             )}
@@ -388,7 +388,7 @@ const TodayScreen = () => {
               title="Update Steps"
               icon="pencil"
               onPress={() => openUpdateSteps()}
-              variant="secondary"
+              variant="primary"
               fullWidth
             />
           </GlassCard>
@@ -431,7 +431,7 @@ const TodayScreen = () => {
               title="Update Weight"
               icon="pencil"
               onPress={() => openUpdateWeight()}
-              variant="secondary"
+              variant="primary"
               fullWidth
             />
           </GlassCard>
