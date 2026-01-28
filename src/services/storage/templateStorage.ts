@@ -29,7 +29,7 @@ const loadTemplateExercises = async (templateId: string): Promise<ExerciseTempla
   }));
 };
 
-export const getTemplates = async (): Promise<WorkoutTemplate[]> => {
+export const getTemplates = async (userId: string): Promise<WorkoutTemplate[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -37,7 +37,10 @@ export const getTemplates = async (): Promise<WorkoutTemplate[]> => {
       user_id: string;
       name: string;
       created: string;
-    }>('SELECT * FROM workout_templates ORDER BY created DESC');
+    }>(
+      'SELECT * FROM workout_templates WHERE user_id = ? ORDER BY created DESC',
+      [userId]
+    );
 
     const results: WorkoutTemplate[] = [];
     for (const row of rows) {

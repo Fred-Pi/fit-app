@@ -5,7 +5,7 @@
 import { DailySteps } from '../../types';
 import { getDb } from './db';
 
-export const getSteps = async (): Promise<DailySteps[]> => {
+export const getSteps = async (userId: string): Promise<DailySteps[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -15,7 +15,10 @@ export const getSteps = async (): Promise<DailySteps[]> => {
       steps: number;
       step_goal: number;
       source: string;
-    }>('SELECT * FROM daily_steps ORDER BY date DESC');
+    }>(
+      'SELECT * FROM daily_steps WHERE user_id = ? ORDER BY date DESC',
+      [userId]
+    );
 
     return rows.map(r => ({
       id: r.id,
@@ -31,7 +34,7 @@ export const getSteps = async (): Promise<DailySteps[]> => {
   }
 };
 
-export const getStepsByDate = async (date: string): Promise<DailySteps | null> => {
+export const getStepsByDate = async (date: string, userId: string): Promise<DailySteps | null> => {
   try {
     const db = await getDb();
     const row = await db.getFirstAsync<{
@@ -42,8 +45,8 @@ export const getStepsByDate = async (date: string): Promise<DailySteps | null> =
       step_goal: number;
       source: string;
     }>(
-      'SELECT * FROM daily_steps WHERE date = ?',
-      [date]
+      'SELECT * FROM daily_steps WHERE date = ? AND user_id = ?',
+      [date, userId]
     );
 
     if (!row) return null;
@@ -75,7 +78,7 @@ export const saveSteps = async (steps: DailySteps): Promise<void> => {
   }
 };
 
-export const getStepsInRange = async (startDate: string, endDate: string): Promise<DailySteps[]> => {
+export const getStepsInRange = async (startDate: string, endDate: string, userId: string): Promise<DailySteps[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -86,8 +89,8 @@ export const getStepsInRange = async (startDate: string, endDate: string): Promi
       step_goal: number;
       source: string;
     }>(
-      'SELECT * FROM daily_steps WHERE date BETWEEN ? AND ? ORDER BY date',
-      [startDate, endDate]
+      'SELECT * FROM daily_steps WHERE date BETWEEN ? AND ? AND user_id = ? ORDER BY date',
+      [startDate, endDate, userId]
     );
 
     return rows.map(r => ({

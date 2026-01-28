@@ -5,7 +5,7 @@
 import { DailyWeight } from '../../types';
 import { getDb } from './db';
 
-export const getWeights = async (): Promise<DailyWeight[]> => {
+export const getWeights = async (userId: string): Promise<DailyWeight[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -16,7 +16,10 @@ export const getWeights = async (): Promise<DailyWeight[]> => {
       unit: string;
       source: string;
       created: string;
-    }>('SELECT * FROM daily_weights ORDER BY date DESC');
+    }>(
+      'SELECT * FROM daily_weights WHERE user_id = ? ORDER BY date DESC',
+      [userId]
+    );
 
     return rows.map(r => ({
       id: r.id,
@@ -33,7 +36,7 @@ export const getWeights = async (): Promise<DailyWeight[]> => {
   }
 };
 
-export const getWeightByDate = async (date: string): Promise<DailyWeight | null> => {
+export const getWeightByDate = async (date: string, userId: string): Promise<DailyWeight | null> => {
   try {
     const db = await getDb();
     const row = await db.getFirstAsync<{
@@ -45,8 +48,8 @@ export const getWeightByDate = async (date: string): Promise<DailyWeight | null>
       source: string;
       created: string;
     }>(
-      'SELECT * FROM daily_weights WHERE date = ?',
-      [date]
+      'SELECT * FROM daily_weights WHERE date = ? AND user_id = ?',
+      [date, userId]
     );
 
     if (!row) return null;
@@ -88,7 +91,7 @@ export const deleteWeight = async (weightId: string): Promise<void> => {
   }
 };
 
-export const getWeightsInRange = async (startDate: string, endDate: string): Promise<DailyWeight[]> => {
+export const getWeightsInRange = async (startDate: string, endDate: string, userId: string): Promise<DailyWeight[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -100,8 +103,8 @@ export const getWeightsInRange = async (startDate: string, endDate: string): Pro
       source: string;
       created: string;
     }>(
-      'SELECT * FROM daily_weights WHERE date BETWEEN ? AND ? ORDER BY date ASC',
-      [startDate, endDate]
+      'SELECT * FROM daily_weights WHERE date BETWEEN ? AND ? AND user_id = ? ORDER BY date ASC',
+      [startDate, endDate, userId]
     );
 
     return rows.map(r => ({

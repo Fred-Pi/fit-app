@@ -6,7 +6,7 @@ import { PersonalRecord, WorkoutLog } from '../../types';
 import { getDb } from './db';
 import { generateId } from './utils';
 
-export const getPersonalRecords = async (): Promise<PersonalRecord[]> => {
+export const getPersonalRecords = async (userId: string): Promise<PersonalRecord[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -18,7 +18,10 @@ export const getPersonalRecords = async (): Promise<PersonalRecord[]> => {
       date: string;
       workout_id: string | null;
       created: string;
-    }>('SELECT * FROM personal_records ORDER BY weight DESC');
+    }>(
+      'SELECT * FROM personal_records WHERE user_id = ? ORDER BY weight DESC',
+      [userId]
+    );
 
     return rows.map(r => ({
       id: r.id,
@@ -58,7 +61,7 @@ export const deletePersonalRecord = async (prId: string): Promise<void> => {
   }
 };
 
-export const getPersonalRecordByExercise = async (exerciseName: string): Promise<PersonalRecord | null> => {
+export const getPersonalRecordByExercise = async (exerciseName: string, userId: string): Promise<PersonalRecord | null> => {
   try {
     const db = await getDb();
     const row = await db.getFirstAsync<{
@@ -71,8 +74,8 @@ export const getPersonalRecordByExercise = async (exerciseName: string): Promise
       workout_id: string | null;
       created: string;
     }>(
-      'SELECT * FROM personal_records WHERE LOWER(exercise_name) = LOWER(?)',
-      [exerciseName]
+      'SELECT * FROM personal_records WHERE LOWER(exercise_name) = LOWER(?) AND user_id = ?',
+      [exerciseName, userId]
     );
 
     if (!row) return null;
@@ -95,7 +98,7 @@ export const getPersonalRecordByExercise = async (exerciseName: string): Promise
 
 export const checkAndUpdatePRs = async (workout: WorkoutLog): Promise<PersonalRecord[]> => {
   const newPRs: PersonalRecord[] = [];
-  const existingPRs = await getPersonalRecords();
+  const existingPRs = await getPersonalRecords(workout.userId);
 
   for (const exercise of workout.exercises) {
     let bestSet = exercise.sets[0];

@@ -31,7 +31,7 @@ const loadNutritionMeals = async (nutritionId: string): Promise<Meal[]> => {
   }));
 };
 
-export const getNutrition = async (): Promise<DailyNutrition[]> => {
+export const getNutrition = async (userId: string): Promise<DailyNutrition[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -39,7 +39,10 @@ export const getNutrition = async (): Promise<DailyNutrition[]> => {
       user_id: string;
       date: string;
       calorie_target: number;
-    }>('SELECT * FROM daily_nutrition ORDER BY date DESC');
+    }>(
+      'SELECT * FROM daily_nutrition WHERE user_id = ? ORDER BY date DESC',
+      [userId]
+    );
 
     const results: DailyNutrition[] = [];
     for (const row of rows) {
@@ -59,7 +62,7 @@ export const getNutrition = async (): Promise<DailyNutrition[]> => {
   }
 };
 
-export const getNutritionByDate = async (date: string): Promise<DailyNutrition | null> => {
+export const getNutritionByDate = async (date: string, userId: string): Promise<DailyNutrition | null> => {
   try {
     const db = await getDb();
     const row = await db.getFirstAsync<{
@@ -68,8 +71,8 @@ export const getNutritionByDate = async (date: string): Promise<DailyNutrition |
       date: string;
       calorie_target: number;
     }>(
-      'SELECT * FROM daily_nutrition WHERE date = ?',
-      [date]
+      'SELECT * FROM daily_nutrition WHERE date = ? AND user_id = ?',
+      [date, userId]
     );
 
     if (!row) return null;
@@ -117,7 +120,7 @@ export const saveNutrition = async (nutrition: DailyNutrition): Promise<void> =>
   }
 };
 
-export const getNutritionInRange = async (startDate: string, endDate: string): Promise<DailyNutrition[]> => {
+export const getNutritionInRange = async (startDate: string, endDate: string, userId: string): Promise<DailyNutrition[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -126,8 +129,8 @@ export const getNutritionInRange = async (startDate: string, endDate: string): P
       date: string;
       calorie_target: number;
     }>(
-      'SELECT * FROM daily_nutrition WHERE date BETWEEN ? AND ? ORDER BY date',
-      [startDate, endDate]
+      'SELECT * FROM daily_nutrition WHERE date BETWEEN ? AND ? AND user_id = ? ORDER BY date',
+      [startDate, endDate, userId]
     );
 
     const results: DailyNutrition[] = [];

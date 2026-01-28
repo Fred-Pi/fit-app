@@ -77,7 +77,7 @@ const rowToWorkoutLog = async (row: {
   };
 };
 
-export const getWorkouts = async (): Promise<WorkoutLog[]> => {
+export const getWorkouts = async (userId: string): Promise<WorkoutLog[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -89,7 +89,10 @@ export const getWorkouts = async (): Promise<WorkoutLog[]> => {
       notes: string | null;
       completed: number;
       created: string;
-    }>('SELECT * FROM workout_logs ORDER BY date DESC, created DESC');
+    }>(
+      'SELECT * FROM workout_logs WHERE user_id = ? ORDER BY date DESC, created DESC',
+      [userId]
+    );
 
     return Promise.all(rows.map(rowToWorkoutLog));
   } catch (error) {
@@ -147,7 +150,7 @@ export const deleteWorkout = async (workoutId: string): Promise<void> => {
   }
 };
 
-export const getWorkoutsByDate = async (date: string): Promise<WorkoutLog[]> => {
+export const getWorkoutsByDate = async (date: string, userId: string): Promise<WorkoutLog[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -160,8 +163,8 @@ export const getWorkoutsByDate = async (date: string): Promise<WorkoutLog[]> => 
       completed: number;
       created: string;
     }>(
-      'SELECT * FROM workout_logs WHERE date = ? ORDER BY created DESC',
-      [date]
+      'SELECT * FROM workout_logs WHERE date = ? AND user_id = ? ORDER BY created DESC',
+      [date, userId]
     );
 
     return Promise.all(rows.map(rowToWorkoutLog));
@@ -171,7 +174,7 @@ export const getWorkoutsByDate = async (date: string): Promise<WorkoutLog[]> => 
   }
 };
 
-export const getWorkoutsInRange = async (startDate: string, endDate: string): Promise<WorkoutLog[]> => {
+export const getWorkoutsInRange = async (startDate: string, endDate: string, userId: string): Promise<WorkoutLog[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
@@ -184,8 +187,8 @@ export const getWorkoutsInRange = async (startDate: string, endDate: string): Pr
       completed: number;
       created: string;
     }>(
-      'SELECT * FROM workout_logs WHERE date BETWEEN ? AND ? ORDER BY date DESC',
-      [startDate, endDate]
+      'SELECT * FROM workout_logs WHERE date BETWEEN ? AND ? AND user_id = ? ORDER BY date DESC',
+      [startDate, endDate, userId]
     );
 
     return Promise.all(rows.map(rowToWorkoutLog));
