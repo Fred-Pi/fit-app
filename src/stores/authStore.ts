@@ -6,8 +6,11 @@
  */
 
 import { create } from 'zustand';
+import { Platform } from 'react-native';
 import { Session, User, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
+
+const isWeb = Platform.OS === 'web';
 
 interface AuthState {
   // State
@@ -139,8 +142,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   resetPassword: async (email) => {
     set({ isLoading: true });
     try {
+      // Use web URL for web, deep link for native
+      const redirectTo = isWeb
+        ? `${window.location.origin}/reset-password`
+        : 'fitapp://reset-password';
+      console.log('Password Reset Redirect URI:', redirectTo);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'fitapp://reset-password',
+        redirectTo,
       });
       return { error };
     } finally {

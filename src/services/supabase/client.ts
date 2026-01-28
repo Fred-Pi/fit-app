@@ -9,23 +9,25 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 // Check if Supabase is configured
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
+const isWeb = Platform.OS === 'web';
+
 // Custom storage adapter that uses SecureStore on native, AsyncStorage on web
 const ExpoSecureStoreAdapter = {
   getItem: async (key: string): Promise<string | null> => {
-    if (Platform.OS === 'web') {
+    if (isWeb) {
       return AsyncStorage.getItem(key);
     }
     return SecureStore.getItemAsync(key);
   },
   setItem: async (key: string, value: string): Promise<void> => {
-    if (Platform.OS === 'web') {
+    if (isWeb) {
       await AsyncStorage.setItem(key, value);
       return;
     }
     await SecureStore.setItemAsync(key, value);
   },
   removeItem: async (key: string): Promise<void> => {
-    if (Platform.OS === 'web') {
+    if (isWeb) {
       await AsyncStorage.removeItem(key);
       return;
     }
@@ -40,7 +42,8 @@ export const supabase: SupabaseClient = isSupabaseConfigured
         storage: ExpoSecureStoreAdapter,
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: false,
+        // On web, detect session from URL hash after OAuth redirect
+        detectSessionInUrl: isWeb,
       },
     })
   : (null as unknown as SupabaseClient);

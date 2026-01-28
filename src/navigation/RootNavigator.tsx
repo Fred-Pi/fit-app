@@ -1,10 +1,21 @@
 import React from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, LinkingOptions } from '@react-navigation/native';
+import * as Linking from 'expo-linking';
 import { useAuthStore } from '../stores';
 import { colors } from '../utils/theme';
 import AuthNavigator from './AuthNavigator';
 import AppNavigator from './AppNavigator';
+
+// Deep linking configuration
+const linking: LinkingOptions<ReactNavigation.RootParamList> = {
+  prefixes: [Linking.createURL('/'), 'fitapp://'],
+  config: {
+    screens: {
+      ResetPassword: 'reset-password',
+    },
+  },
+};
 
 const CustomDarkTheme = {
   ...DarkTheme,
@@ -37,7 +48,7 @@ const RootNavigator = () => {
   }
 
   return (
-    <NavigationContainer theme={CustomDarkTheme}>
+    <NavigationContainer theme={CustomDarkTheme} linking={linking}>
       {session ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
