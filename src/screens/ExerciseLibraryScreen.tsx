@@ -24,6 +24,7 @@ import SwipeableRow from '../components/SwipeableRow'
 import ExpandableFAB from '../components/ExpandableFAB'
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack'
 import { useScreenData } from '../hooks/useScreenData'
+import { useAuthStore } from '../stores/authStore'
 
 type ExerciseLibraryScreenNavigationProp = StackNavigationProp<
   WorkoutsStackParamList,
@@ -51,7 +52,9 @@ const ExerciseLibraryScreen = () => {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
 
   const fetchData = useCallback(async () => {
-    const exercises = await getCustomExercises()
+    const userId = useAuthStore.getState().user?.id
+    if (!userId) return
+    const exercises = await getCustomExercises(userId)
     setCustomExercises(exercises)
   }, [])
 
@@ -125,16 +128,19 @@ const ExerciseLibraryScreen = () => {
 
     // If name changed and should update workouts, update all workout references
     if (shouldUpdateWorkouts && selectedExercise) {
-      const workouts = await getWorkouts()
-      const updatedWorkouts = updateExerciseNameInWorkouts(
-        selectedExercise.name,
-        exercise.name,
-        workouts
-      )
+      const userId = useAuthStore.getState().user?.id
+      if (userId) {
+        const workouts = await getWorkouts(userId)
+        const updatedWorkouts = updateExerciseNameInWorkouts(
+          selectedExercise.name,
+          exercise.name,
+          workouts
+        )
 
-      // Save all updated workouts
-      for (const workout of updatedWorkouts) {
-        await saveWorkout(workout)
+        // Save all updated workouts
+        for (const workout of updatedWorkouts) {
+          await saveWorkout(workout)
+        }
       }
     }
 
@@ -143,7 +149,9 @@ const ExerciseLibraryScreen = () => {
   }
 
   const handleDeleteExercise = async (exercise: Exercise) => {
-    const workouts = await getWorkouts()
+    const userId = useAuthStore.getState().user?.id
+    if (!userId) return
+    const workouts = await getWorkouts(userId)
     const usageCount = getExerciseUsageCount(exercise.name, workouts)
 
     const message =

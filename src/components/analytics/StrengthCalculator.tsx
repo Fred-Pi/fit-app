@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons'
 import { User, DailyWeight } from '../../types'
 import { getWeights } from '../../services/storage'
+import { useAuthStore } from '../../stores/authStore'
 import { calculateOneRepMax, generateRepTable } from '../../utils/oneRepMax'
 import {
   getExercisesWithStandards,
@@ -43,7 +44,9 @@ const StrengthCalculator: React.FC<StrengthCalculatorProps> = ({ user }) => {
   }, [])
 
   const loadLatestBodyWeight = async () => {
-    const weights = await getWeights()
+    const userId = useAuthStore.getState().user?.id
+    if (!userId) return
+    const weights = await getWeights(userId)
     if (weights.length > 0) {
       const sorted = weights.sort((a, b) => b.date.localeCompare(a.date))
       setBodyWeight(sorted[0].weight)

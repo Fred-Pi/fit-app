@@ -17,6 +17,7 @@ import { Exercise, MuscleGroup } from '../types'
 import { EXERCISE_CATEGORIES } from '../data/exercises'
 import { generateCustomExerciseId, validateExerciseName } from '../utils/exerciseHelpers'
 import { successHaptic } from '../utils/haptics'
+import { useAuthStore } from '../stores/authStore'
 
 interface AddCustomExerciseModalProps {
   visible: boolean
@@ -79,8 +80,15 @@ const AddCustomExerciseModal: React.FC<AddCustomExerciseModalProps> = ({
     }
 
     // Create exercise object
+    const userId = useAuthStore.getState().user?.id
+    if (!userId) {
+      Alert.alert('Error', 'Please log in to add custom exercises')
+      return
+    }
+
     const exercise: Exercise = {
       id: generateCustomExerciseId(),
+      userId,
       name: name.trim(),
       category,
       ...(defaultSets && { defaultSets: parseInt(defaultSets) }),

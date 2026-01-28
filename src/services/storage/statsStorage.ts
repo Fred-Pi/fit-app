@@ -12,9 +12,9 @@ export const calculateWeeklyStats = async (
   weekEnd: string,
   user: User
 ): Promise<WeeklyStats> => {
-  const workouts = await getWorkoutsInRange(weekStart, weekEnd);
-  const nutrition = await getNutritionInRange(weekStart, weekEnd);
-  const steps = await getStepsInRange(weekStart, weekEnd);
+  const workouts = await getWorkoutsInRange(weekStart, weekEnd, user.id);
+  const nutrition = await getNutritionInRange(weekStart, weekEnd, user.id);
+  const steps = await getStepsInRange(weekStart, weekEnd, user.id);
 
   const totalWorkouts = workouts.filter(w => w.completed).length;
   const uniqueWorkoutDates = new Set(workouts.map(w => w.date));

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { WorkoutLog, DateRangeKey } from '../types'
 import { getWorkouts } from '../services/storage'
 import { getDateRange } from '../utils/analyticsCalculations'
+import { useAuthStore } from '../stores/authStore'
 
 export function useAnalyticsData(dateRange: DateRangeKey) {
   const [workouts, setWorkouts] = useState<WorkoutLog[]>([])
@@ -10,7 +11,12 @@ export function useAnalyticsData(dateRange: DateRangeKey) {
 
   const loadWorkouts = async () => {
     try {
-      const data = await getWorkouts()
+      const userId = useAuthStore.getState().user?.id
+      if (!userId) {
+        setLoading(false)
+        return
+      }
+      const data = await getWorkouts(userId)
       // Only include completed workouts
       const completed = data.filter(w => w.completed)
       setWorkouts(completed)

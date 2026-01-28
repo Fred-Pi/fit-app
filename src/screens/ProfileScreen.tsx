@@ -24,6 +24,7 @@ import {
   useUIStore,
   useWorkoutStore,
 } from '../stores';
+import { useAuthStore } from '../stores/authStore';
 
 const ProfileScreen = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -83,11 +84,16 @@ const ProfileScreen = () => {
 
   const handleExportData = async () => {
     try {
+      const userId = useAuthStore.getState().user?.id;
+      if (!userId) {
+        Alert.alert('Error', 'Please log in to export data');
+        return;
+      }
       const [workouts, nutrition, steps, weights] = await Promise.all([
-        getWorkouts(),
-        getNutrition(),
-        getSteps(),
-        getWeights(),
+        getWorkouts(userId),
+        getNutrition(userId),
+        getSteps(userId),
+        getWeights(userId),
       ]);
 
       const exportData = {

@@ -29,6 +29,7 @@ import Card from '../components/Card'
 import EditCustomExerciseModal from '../components/EditCustomExerciseModal'
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack'
 import { warningHaptic } from '../utils/haptics'
+import { useAuthStore } from '../stores/authStore'
 
 type ExerciseDetailScreenRouteProp = RouteProp<
   WorkoutsStackParamList,
@@ -53,7 +54,13 @@ const ExerciseDetailScreen = () => {
 
   const loadExerciseData = async () => {
     try {
-      const customExercises = await getCustomExercises()
+      const userId = useAuthStore.getState().user?.id
+      if (!userId) {
+        setLoading(false)
+        return
+      }
+
+      const customExercises = await getCustomExercises(userId)
       const all = getAllExercises(customExercises)
       setAllExercises(all)
 
@@ -66,7 +73,7 @@ const ExerciseDetailScreen = () => {
 
       setExercise(ex)
 
-      const workouts = await getWorkouts()
+      const workouts = await getWorkouts(userId)
       const history = getExerciseWorkoutHistory(ex.name, workouts)
       setWorkoutHistory(history)
     } catch (error) {
@@ -86,9 +93,12 @@ const ExerciseDetailScreen = () => {
   ) => {
     if (!exercise) return
 
+    const userId = useAuthStore.getState().user?.id
+    if (!userId) return
+
     // Update workouts if needed
     if (shouldUpdateWorkouts) {
-      const workouts = await getWorkouts()
+      const workouts = await getWorkouts(userId)
       const updatedWorkouts = workouts.map(workout => ({
         ...workout,
         exercises: workout.exercises.map(ex =>

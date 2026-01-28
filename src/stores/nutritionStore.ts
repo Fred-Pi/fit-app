@@ -54,7 +54,7 @@ export const useNutritionStore = create<NutritionState>((set, get) => ({
 
     set({ isLoading: true });
     try {
-      let nutrition = await getNutritionByDate(date);
+      let nutrition = await getNutritionByDate(date, userId);
 
       // Create if doesn't exist
       if (!nutrition) {

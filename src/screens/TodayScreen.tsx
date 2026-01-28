@@ -91,7 +91,7 @@ const TodayScreen = () => {
       fetchNutritionByDate(date, user.id, user.dailyCalorieTarget),
       fetchTodaySteps(date, user.id, user.dailyStepGoal),
       fetchTodayWeight(date, user.id, user.preferredWeightUnit),
-      fetchRecentWeights(date, 30),
+      fetchRecentWeights(date, 30, user.id),
       fetchWeeklyStats(user),
     ]);
   }, [user, date, fetchWorkouts, fetchNutritionByDate, fetchTodaySteps, fetchTodayWeight, fetchRecentWeights, fetchWeeklyStats]);

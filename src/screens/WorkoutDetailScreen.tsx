@@ -17,6 +17,7 @@ import { colors } from '../utils/theme';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, checkAndUpdatePRs, generateId } from '../services/storage';
 import { useUIStore } from '../stores';
 import { successHaptic } from '../utils/haptics';
+import { useAuthStore } from '../stores/authStore';
 
 type WorkoutDetailRouteProp = RouteProp<{ params: { workoutId: string } }, 'params'>;
 
@@ -42,7 +43,13 @@ const WorkoutDetailScreen = () => {
       const userData = await getUser();
       setUser(userData);
 
-      const workouts = await getWorkouts();
+      const userId = useAuthStore.getState().user?.id;
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
+      const workouts = await getWorkouts(userId);
       const foundWorkout = workouts.find(w => w.id === workoutId);
       setWorkout(foundWorkout || null);
     } catch (error) {

@@ -39,7 +39,7 @@ interface DailyTrackingState {
 
   // Actions - Weight
   fetchTodayWeight: (date: string, userId: string, unit: 'kg' | 'lbs') => Promise<DailyWeight>;
-  fetchRecentWeights: (endDate: string, days: number) => Promise<void>;
+  fetchRecentWeights: (endDate: string, days: number, userId: string) => Promise<void>;
   updateWeight: (weight: number) => Promise<void>;
 
   // Actions - Weekly Stats
@@ -60,7 +60,7 @@ export const useDailyTrackingStore = create<DailyTrackingState>((set, get) => ({
 
   fetchTodaySteps: async (date: string, userId: string, stepGoal: number) => {
     try {
-      let steps = await getStepsByDate(date);
+      let steps = await getStepsByDate(date, userId);
 
       if (!steps) {
         steps = {
@@ -97,7 +97,7 @@ export const useDailyTrackingStore = create<DailyTrackingState>((set, get) => ({
 
   fetchTodayWeight: async (date: string, userId: string, unit: 'kg' | 'lbs') => {
     try {
-      let weight = await getWeightByDate(date);
+      let weight = await getWeightByDate(date, userId);
 
       if (!weight) {
         weight = {
@@ -120,13 +120,13 @@ export const useDailyTrackingStore = create<DailyTrackingState>((set, get) => ({
     }
   },
 
-  fetchRecentWeights: async (endDate: string, days: number) => {
+  fetchRecentWeights: async (endDate: string, days: number, userId: string) => {
     try {
       const startDate = new Date(endDate);
       startDate.setDate(startDate.getDate() - days);
       const startDateStr = startDate.toISOString().split('T')[0];
 
-      const weights = await getWeightsInRange(startDateStr, endDate);
+      const weights = await getWeightsInRange(startDateStr, endDate, userId);
       set({ recentWeights: weights });
     } catch (error) {
       console.error('Failed to fetch recent weights:', error);

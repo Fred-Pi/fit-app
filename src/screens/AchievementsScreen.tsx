@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AchievementCard from '../components/AchievementCard';
 import { getAchievements, checkAndUpdateAchievements } from '../services/storage';
 import { Achievement, AchievementCategory } from '../types';
+import { useAuthStore } from '../stores/authStore';
 import { colors, spacing, radius } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useScreenData } from '../hooks/useScreenData';
@@ -27,8 +28,10 @@ const AchievementsScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState<FilterCategory>('All');
 
   const fetchData = useCallback(async () => {
-    await checkAndUpdateAchievements();
-    const data = await getAchievements();
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) return;
+    await checkAndUpdateAchievements(userId);
+    const data = await getAchievements(userId);
     setAchievements(data);
   }, []);
 

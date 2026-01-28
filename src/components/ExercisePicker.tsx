@@ -26,6 +26,7 @@ import {
 } from '../data/exercises';
 import { getCustomExercises } from '../services/storage';
 import { getAllExercises, isCustomExercise } from '../utils/exerciseHelpers';
+import { useAuthStore } from '../stores/authStore';
 
 interface ExercisePickerProps {
   visible: boolean;
@@ -61,7 +62,9 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
 
   const loadCustomExercises = async () => {
     try {
-      const exercises = await getCustomExercises();
+      const userId = useAuthStore.getState().user?.id;
+      if (!userId) return;
+      const exercises = await getCustomExercises(userId);
       setCustomExercises(exercises);
     } catch (error) {
       console.error('Error loading custom exercises:', error);

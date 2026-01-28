@@ -28,6 +28,13 @@ import {
   deleteCustomExercise as deleteCustomExerciseFromStorage,
 } from '../services/storage';
 import { calculateWorkoutStreak } from '../utils/analyticsCalculations';
+import { useAuthStore } from './authStore';
+
+// Helper to get current userId from auth store
+const getUserId = (): string | null => {
+  const { user } = useAuthStore.getState();
+  return user?.id ?? null;
+};
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
@@ -107,6 +114,9 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
 
   // Workouts
   fetchWorkouts: async (force = false) => {
+    const userId = getUserId();
+    if (!userId) return;
+
     const { lastFetched, isLoading } = get();
     const now = Date.now();
 
@@ -117,7 +127,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
 
     set({ isLoading: !get().lastFetched, isRefreshing: !!get().lastFetched });
     try {
-      const workouts = await getWorkouts();
+      const workouts = await getWorkouts(userId);
       const streakData = calculateWorkoutStreak(workouts);
 
       set({
@@ -135,6 +145,9 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
   },
 
   fetchWorkoutsByDate: async (date: string) => {
+    const userId = getUserId();
+    if (!userId) return [];
+
     const { workoutsByDateCache, workouts, lastFetched } = get();
 
     // Check cache first
@@ -152,7 +165,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     }
 
     // Otherwise fetch from storage
-    const dateWorkouts = await getWorkoutsByDate(date);
+    const dateWorkouts = await getWorkoutsByDate(date, userId);
     const newCache = new Map(workoutsByDateCache);
     newCache.set(date, dateWorkouts);
     set({ workoutsByDateCache: newCache });
@@ -256,10 +269,12 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
 
   // Templates
   fetchTemplates: async () => {
+    const userId = getUserId();
+    if (!userId) return;
     if (get().templatesLoaded) return;
 
     try {
-      const templates = await getTemplates();
+      const templates = await getTemplates(userId);
       set({ templates, templatesLoaded: true });
     } catch (error) {
       console.error('Failed to fetch templates:', error);
@@ -280,6 +295,9 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
 
   // Personal Records
   fetchPersonalRecords: async (force = false) => {
+    const userId = getUserId();
+    if (!userId) return;
+
     const { prsLoaded, isPRsLoading } = get();
 
     // Skip if already loaded and not forced
@@ -293,7 +311,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     });
 
     try {
-      const personalRecords = await getPersonalRecords();
+      const personalRecords = await getPersonalRecords(userId);
       set({ personalRecords, prsLoaded: true });
     } catch (error) {
       console.error('Failed to fetch personal records:', error);
@@ -310,10 +328,12 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
 
   // Custom Exercises
   fetchCustomExercises: async () => {
+    const userId = getUserId();
+    if (!userId) return;
     if (get().customExercisesLoaded) return;
 
     try {
-      const customExercises = await getCustomExercises();
+      const customExercises = await getCustomExercises(userId);
       set({ customExercises, customExercisesLoaded: true });
     } catch (error) {
       console.error('Failed to fetch custom exercises:', error);

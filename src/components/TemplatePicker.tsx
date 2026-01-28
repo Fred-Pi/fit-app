@@ -16,6 +16,7 @@ import { modalStyles } from '../styles/modalStyles';
 import { WorkoutTemplate } from '../types';
 import { getTemplates, deleteTemplate } from '../services/storage';
 import { warningHaptic } from '../utils/haptics';
+import { useAuthStore } from '../stores/authStore';
 
 interface TemplatePickerProps {
   visible: boolean;
@@ -39,7 +40,12 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
 
   const loadTemplates = async () => {
     setLoading(true);
-    const templateData = await getTemplates();
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    const templateData = await getTemplates(userId);
     setTemplates(templateData);
     setLoading(false);
   };

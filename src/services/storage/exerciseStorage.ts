@@ -5,19 +5,21 @@
 import { Exercise, MuscleGroup } from '../../types';
 import { getDb } from './db';
 
-export const getCustomExercises = async (): Promise<Exercise[]> => {
+export const getCustomExercises = async (userId: string): Promise<Exercise[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
+      user_id: string;
       name: string;
       category: string;
       default_sets: number | null;
       default_reps: number | null;
-    }>('SELECT * FROM custom_exercises ORDER BY name');
+    }>('SELECT * FROM custom_exercises WHERE user_id = ? ORDER BY name', [userId]);
 
     return rows.map(r => ({
       id: r.id,
+      userId: r.user_id,
       name: r.name,
       category: r.category as MuscleGroup,
       defaultSets: r.default_sets || undefined,
@@ -30,12 +32,17 @@ export const getCustomExercises = async (): Promise<Exercise[]> => {
 };
 
 export const saveCustomExercise = async (exercise: Exercise): Promise<void> => {
+  if (!exercise.userId) {
+    console.error('Cannot save custom exercise without userId');
+    return;
+  }
+
   try {
     const db = await getDb();
     await db.runAsync(
-      `INSERT OR REPLACE INTO custom_exercises (id, name, category, default_sets, default_reps)
-       VALUES (?, ?, ?, ?, ?)`,
-      [exercise.id, exercise.name, exercise.category, exercise.defaultSets || null, exercise.defaultReps || null]
+      `INSERT OR REPLACE INTO custom_exercises (id, user_id, name, category, default_sets, default_reps)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [exercise.id, exercise.userId, exercise.name, exercise.category, exercise.defaultSets || null, exercise.defaultReps || null]
     );
   } catch (error) {
     console.error('Error saving custom exercise:', error);
@@ -60,6 +67,7 @@ export const getCustomExerciseById = async (id: string): Promise<Exercise | null
     const db = await getDb();
     const row = await db.getFirstAsync<{
       id: string;
+      user_id: string;
       name: string;
       category: string;
       default_sets: number | null;
@@ -73,6 +81,7 @@ export const getCustomExerciseById = async (id: string): Promise<Exercise | null
 
     return {
       id: row.id,
+      userId: row.user_id,
       name: row.name,
       category: row.category as MuscleGroup,
       defaultSets: row.default_sets || undefined,

@@ -214,15 +214,18 @@ export const initializeDatabase = async (): Promise<void> => {
     -- Custom exercises
     CREATE TABLE IF NOT EXISTS custom_exercises (
       id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
       name TEXT NOT NULL,
       category TEXT NOT NULL,
       default_sets INTEGER,
-      default_reps INTEGER
+      default_reps INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
     -- Achievements
     CREATE TABLE IF NOT EXISTS achievements (
       id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
       title TEXT NOT NULL,
       description TEXT NOT NULL,
       icon TEXT NOT NULL,
@@ -230,7 +233,8 @@ export const initializeDatabase = async (): Promise<void> => {
       target_value INTEGER NOT NULL,
       current_value INTEGER DEFAULT 0,
       is_unlocked INTEGER DEFAULT 0,
-      unlocked_date TEXT
+      unlocked_date TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id)
     );
   `);
 

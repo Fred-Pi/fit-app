@@ -52,6 +52,7 @@ export type MuscleGroup =
 
 export interface Exercise {
   id: string;
+  userId?: string; // Only for custom exercises, undefined for predefined ones
   name: string;
   category: MuscleGroup;
   defaultSets?: number;
@@ -261,6 +262,7 @@ export interface AchievementDefinition {
 
 export interface Achievement {
   id: string;
+  userId: string;
   title: string;
   description: string;
   icon: string;

@@ -107,8 +107,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // Check if email confirmation is required
-      const needsEmailVerification =
-        !error && data.user && !data.session;
+      const needsEmailVerification = Boolean(
+        !error && data.user && !data.session
+      );
 
       return { error, needsEmailVerification };
     } finally {

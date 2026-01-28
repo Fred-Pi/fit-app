@@ -14,11 +14,12 @@ import { getSteps } from './stepsStorage';
 import { getNutrition } from './nutritionStorage';
 import { getCustomExercises } from './exerciseStorage';
 
-export const getAchievements = async (): Promise<Achievement[]> => {
+export const getAchievements = async (userId: string): Promise<Achievement[]> => {
   try {
     const db = await getDb();
     const rows = await db.getAllAsync<{
       id: string;
+      user_id: string;
       title: string;
       description: string;
       icon: string;
@@ -27,10 +28,11 @@ export const getAchievements = async (): Promise<Achievement[]> => {
       current_value: number;
       is_unlocked: number;
       unlocked_date: string | null;
-    }>('SELECT * FROM achievements');
+    }>('SELECT * FROM achievements WHERE user_id = ?', [userId]);
 
     return rows.map(r => ({
       id: r.id,
+      userId: r.user_id,
       title: r.title,
       description: r.description,
       icon: r.icon,
@@ -53,9 +55,9 @@ export const saveAchievements = async (achievements: Achievement[]): Promise<voi
     await db.withTransactionAsync(async () => {
       for (const a of achievements) {
         await db.runAsync(
-          `INSERT OR REPLACE INTO achievements (id, title, description, icon, category, target_value, current_value, is_unlocked, unlocked_date)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [a.id, a.title, a.description, a.icon, a.category, a.targetValue, a.currentValue, a.isUnlocked ? 1 : 0, a.unlockedDate || null]
+          `INSERT OR REPLACE INTO achievements (id, user_id, title, description, icon, category, target_value, current_value, is_unlocked, unlocked_date)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [a.id, a.userId, a.title, a.description, a.icon, a.category, a.targetValue, a.currentValue, a.isUnlocked ? 1 : 0, a.unlockedDate || null]
         );
       }
     });
@@ -64,14 +66,15 @@ export const saveAchievements = async (achievements: Achievement[]): Promise<voi
   }
 };
 
-export const initializeAchievements = async (): Promise<Achievement[]> => {
-  const existing = await getAchievements();
+export const initializeAchievements = async (userId: string): Promise<Achievement[]> => {
+  const existing = await getAchievements(userId);
   if (existing.length > 0) {
     return existing;
   }
 
   const achievements: Achievement[] = achievementDefinitions.map(def => ({
     ...def,
+    userId,
     currentValue: 0,
     isUnlocked: false,
   }));
@@ -80,14 +83,14 @@ export const initializeAchievements = async (): Promise<Achievement[]> => {
   return achievements;
 };
 
-export const checkAndUpdateAchievements = async (): Promise<Achievement[]> => {
-  const achievements = await initializeAchievements();
+export const checkAndUpdateAchievements = async (userId: string): Promise<Achievement[]> => {
+  const achievements = await initializeAchievements(userId);
   const newlyUnlocked: Achievement[] = [];
 
-  const workouts = await getWorkouts();
-  const prs = await getPersonalRecords();
-  const steps = await getSteps();
-  const nutrition = await getNutrition();
+  const workouts = await getWorkouts(userId);
+  const prs = await getPersonalRecords(userId);
+  const steps = await getSteps(userId);
+  const nutrition = await getNutrition(userId);
 
   const totalWorkouts = workouts.filter(w => w.completed).length;
   const streak = calculateWorkoutStreak(workouts);
@@ -101,7 +104,7 @@ export const checkAndUpdateAchievements = async (): Promise<Achievement[]> => {
   const muscleGroupsTrained = new Set<MuscleGroup>();
 
   const { EXERCISE_DATABASE } = await import('../../data/exercises');
-  const customExercises = await getCustomExercises();
+  const customExercises = await getCustomExercises(userId);
   const allExercises = [...EXERCISE_DATABASE, ...customExercises];
 
   weekWorkouts.forEach(workout => {
