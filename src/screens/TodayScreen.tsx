@@ -45,6 +45,7 @@ const TodayScreen = () => {
   const openUpdateSteps = useUIStore((s) => s.openUpdateSteps);
   const openUpdateWeight = useUIStore((s) => s.openUpdateWeight);
   const openWelcome = useUIStore((s) => s.openWelcome);
+  const openNamePrompt = useUIStore((s) => s.openNamePrompt);
 
   // User Store - Welcome tracking
   const shouldShowWelcome = useUserStore((s) => s.shouldShowWelcome);
@@ -107,21 +108,28 @@ const TodayScreen = () => {
     loadData();
   }, [loadData]);
 
-  // Welcome modal check - runs once on mount
-  const welcomeChecked = useRef(false);
+  // Name prompt & Welcome modal check - runs once on mount
+  const startupChecked = useRef(false);
   useEffect(() => {
-    if (welcomeChecked.current || !user) return;
-    welcomeChecked.current = true;
+    if (startupChecked.current || !user) return;
+    startupChecked.current = true;
 
-    const checkWelcome = async () => {
+    const checkStartupModals = async () => {
+      // First priority: check if user needs to set their name
+      if (user.name === 'User') {
+        openNamePrompt();
+        return;
+      }
+
+      // Second priority: check welcome popup
       await loadWelcomeState();
       if (shouldShowWelcome()) {
         openWelcome();
         await markWelcomeShown();
       }
     };
-    checkWelcome();
-  }, [user, loadWelcomeState, shouldShowWelcome, openWelcome, markWelcomeShown]);
+    checkStartupModals();
+  }, [user, loadWelcomeState, shouldShowWelcome, openWelcome, markWelcomeShown, openNamePrompt]);
 
   // Reload on focus
   useFocusEffect(

@@ -17,7 +17,8 @@ export type ModalType =
   | 'updateWeight'
   | 'templatePicker'
   | 'confirmDialog'
-  | 'welcome';
+  | 'welcome'
+  | 'namePrompt';
 
 export interface ConfirmDialogConfig {
   title: string;
@@ -64,6 +65,9 @@ interface UIState {
 
   // Actions - Welcome Modal
   openWelcome: () => void;
+
+  // Actions - Name Prompt Modal
+  openNamePrompt: () => void;
 
   // Actions - Date
   setCurrentDate: (date: string) => void;
@@ -160,6 +164,13 @@ export const useUIStore = create<UIState>((set, get) => ({
   openWelcome: () => {
     set({
       activeModal: 'welcome',
+    });
+  },
+
+  // Name Prompt Modal
+  openNamePrompt: () => {
+    set({
+      activeModal: 'namePrompt',
     });
   },
 

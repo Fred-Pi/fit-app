@@ -29,6 +29,7 @@ import UpdateWeightModal from './UpdateWeightModal';
 import TemplatePicker from './TemplatePicker';
 import ConfirmDialog from './ConfirmDialog';
 import WelcomeModal from './WelcomeModal';
+import NamePromptModal from './NamePromptModal';
 
 const GlobalModals: React.FC = () => {
   // UI Store
@@ -42,6 +43,7 @@ const GlobalModals: React.FC = () => {
 
   // User Store
   const user = useUserStore((s) => s.user);
+  const updateUser = useUserStore((s) => s.updateUser);
 
   // Workout Store
   const addWorkout = useWorkoutStore((s) => s.addWorkout);
@@ -134,6 +136,14 @@ const GlobalModals: React.FC = () => {
     closeModal();
   }, [confirmDialogConfig, closeModal]);
 
+  const handleNameSave = useCallback(
+    async (name: string) => {
+      await updateUser({ name });
+      closeModal();
+    },
+    [updateUser, closeModal]
+  );
+
   // Don't render anything if no user
   if (!user) return null;
 
@@ -214,6 +224,12 @@ const GlobalModals: React.FC = () => {
         visible={activeModal === 'welcome'}
         userName={user?.name || 'there'}
         onDismiss={closeModal}
+      />
+
+      {/* Name Prompt Modal */}
+      <NamePromptModal
+        visible={activeModal === 'namePrompt'}
+        onSave={handleNameSave}
       />
     </>
   );
