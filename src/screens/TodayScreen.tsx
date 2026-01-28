@@ -284,7 +284,8 @@ const TodayScreen = () => {
                   title="Log Workout"
                   icon="add"
                   onPress={() => openAddWorkout()}
-                  variant="primary"
+                  variant="secondary"
+                  tintColor={colors.workout}
                   fullWidth
                 />
                 {/* Quick Repeat Section */}
@@ -355,7 +356,8 @@ const TodayScreen = () => {
                 title="Add Meal"
                 icon="add"
                 onPress={() => openAddMeal()}
-                variant="primary"
+                variant="secondary"
+                tintColor={colors.nutrition}
                 fullWidth
               />
             )}
@@ -388,7 +390,8 @@ const TodayScreen = () => {
               title="Update Steps"
               icon="pencil"
               onPress={() => openUpdateSteps()}
-              variant="primary"
+              variant="secondary"
+              tintColor={colors.steps}
               fullWidth
             />
           </GlassCard>
@@ -431,7 +434,8 @@ const TodayScreen = () => {
               title="Update Weight"
               icon="pencil"
               onPress={() => openUpdateWeight()}
-              variant="primary"
+              variant="secondary"
+              tintColor={colors.gold}
               fullWidth
             />
           </GlassCard>

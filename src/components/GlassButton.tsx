@@ -29,6 +29,7 @@ interface GlassButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   haptic?: boolean;
+  tintColor?: string;
 }
 
 const variantConfig: Record<ButtonVariant, {
@@ -110,12 +111,22 @@ const GlassButton: React.FC<GlassButtonProps> = ({
   style,
   textStyle,
   haptic = true,
+  tintColor,
 }) => {
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;
 
   const config = variantConfig[variant];
   const sizeStyles = sizeConfig[size];
+
+  // Apply tint color to gradient if provided (works best with secondary variant)
+  const gradientColors = tintColor && !disabled
+    ? [`${tintColor}15`, `${tintColor}08`]
+    : config.gradient;
+
+  const glowColor = tintColor && !disabled
+    ? `${tintColor}30`
+    : config.glowColor;
 
   const handlePressIn = () => {
     Animated.parallel([
@@ -201,12 +212,12 @@ const GlassButton: React.FC<GlassButtonProps> = ({
         style={[
           { transform: [{ scale }], opacity },
           fullWidth && styles.fullWidth,
-          config.glowColor && !disabled && shadows.glow(config.glowColor, 0.2),
+          glowColor && !disabled && shadows.glow(glowColor, 0.2),
           style,
         ]}
       >
         <LinearGradient
-          colors={disabled ? [glass.background, glass.backgroundDark] : config.gradient as [string, string]}
+          colors={disabled ? [glass.background, glass.backgroundDark] : gradientColors as [string, string]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[
