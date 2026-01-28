@@ -1,6 +1,5 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { colors } from '../utils/theme';
 
 // Components
@@ -25,21 +24,9 @@ export type RootTabParamList = {
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-const CustomDarkTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    primary: colors.primary,
-    background: colors.background,
-    card: colors.surface,
-    text: colors.text,
-    border: 'transparent',
-  },
-};
-
 const AppNavigator = () => {
   return (
-    <NavigationContainer theme={CustomDarkTheme}>
+    <>
       <GlobalModals />
       <ErrorBoundary>
         <Tab.Navigator
@@ -64,29 +51,29 @@ const AppNavigator = () => {
             },
           }}
         >
-            <Tab.Screen
-              name="Today"
-              component={TodayScreen}
-              options={{ headerTitle: 'Today' }}
-            />
-            <Tab.Screen
-              name="Workouts"
-              component={WorkoutsStack}
-              options={{ headerShown: false }}
-            />
-            <Tab.Screen
-              name="Nutrition"
-              component={NutritionScreen}
-              options={{ headerTitle: 'Nutrition' }}
-            />
-            <Tab.Screen
-              name="Profile"
-              component={ProfileScreen}
-              options={{ headerTitle: 'Profile' }}
-            />
-          </Tab.Navigator>
+          <Tab.Screen
+            name="Today"
+            component={TodayScreen}
+            options={{ headerTitle: 'Today' }}
+          />
+          <Tab.Screen
+            name="Workouts"
+            component={WorkoutsStack}
+            options={{ headerShown: false }}
+          />
+          <Tab.Screen
+            name="Nutrition"
+            component={NutritionScreen}
+            options={{ headerTitle: 'Nutrition' }}
+          />
+          <Tab.Screen
+            name="Profile"
+            component={ProfileScreen}
+            options={{ headerTitle: 'Profile' }}
+          />
+        </Tab.Navigator>
       </ErrorBoundary>
-    </NavigationContainer>
+    </>
   );
 };
 
