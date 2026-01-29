@@ -105,10 +105,6 @@ export default function App() {
   if (!isReady || showOnboarding === null) {
     return (
       <View style={styles.loadingContainer}>
-        <LinearGradient
-          colors={[colors.background, colors.surface, colors.background]}
-          style={StyleSheet.absoluteFill}
-        />
         <View style={styles.loadingContent}>
           <View style={styles.loadingIcon}>
             <LinearGradient
