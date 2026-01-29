@@ -71,6 +71,12 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
         'We sent you a confirmation link. Please verify your email to continue.',
         [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
       );
+    } else {
+      Alert.alert(
+        'Account Created',
+        `Welcome to FitTrack, ${name.trim()}! Your account has been created successfully.`,
+        [{ text: 'Get Started' }]
+      );
     }
   };
 
