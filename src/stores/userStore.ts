@@ -11,6 +11,7 @@ import { User } from '../types';
 import { getUser, saveUser, initializeApp } from '../services/storage';
 
 const WELCOME_SHOWN_KEY = '@fittrack:lastWelcomeShown';
+const NAME_SET_KEY = '@fittrack:nameSet';
 
 interface UserState {
   // State
@@ -18,6 +19,7 @@ interface UserState {
   isLoading: boolean;
   isInitialized: boolean;
   lastWelcomeShown: number | null;
+  nameHasBeenSet: boolean;
 
   // Actions
   initialize: () => Promise<User>;
@@ -30,6 +32,9 @@ interface UserState {
   shouldShowWelcome: () => boolean;
   markWelcomeShown: () => Promise<void>;
   loadWelcomeState: () => Promise<void>;
+  shouldShowNamePrompt: () => boolean;
+  markNameSet: () => Promise<void>;
+  loadNameState: () => Promise<void>;
 }
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -39,6 +44,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   isLoading: true,
   isInitialized: false,
   lastWelcomeShown: null,
+  nameHasBeenSet: false,
 
   initialize: async () => {
     if (get().isInitialized && get().user) {
@@ -125,6 +131,32 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({ lastWelcomeShown: now });
     } catch (error) {
       console.error('Failed to save welcome state:', error);
+    }
+  },
+
+  loadNameState: async () => {
+    try {
+      const stored = await AsyncStorage.getItem(NAME_SET_KEY);
+      if (stored === 'true') {
+        set({ nameHasBeenSet: true });
+      }
+    } catch (error) {
+      console.error('Failed to load name state:', error);
+    }
+  },
+
+  shouldShowNamePrompt: () => {
+    const { user, nameHasBeenSet } = get();
+    // Show prompt if name is 'User' AND we haven't marked it as set before
+    return user?.name === 'User' && !nameHasBeenSet;
+  },
+
+  markNameSet: async () => {
+    try {
+      await AsyncStorage.setItem(NAME_SET_KEY, 'true');
+      set({ nameHasBeenSet: true });
+    } catch (error) {
+      console.error('Failed to save name state:', error);
     }
   },
 }));

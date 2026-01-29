@@ -44,6 +44,7 @@ const GlobalModals: React.FC = () => {
   // User Store
   const user = useUserStore((s) => s.user);
   const updateUser = useUserStore((s) => s.updateUser);
+  const markNameSet = useUserStore((s) => s.markNameSet);
 
   // Workout Store
   const addWorkout = useWorkoutStore((s) => s.addWorkout);
@@ -139,9 +140,10 @@ const GlobalModals: React.FC = () => {
   const handleNameSave = useCallback(
     async (name: string) => {
       await updateUser({ name });
+      await markNameSet();
       closeModal();
     },
-    [updateUser, closeModal]
+    [updateUser, markNameSet, closeModal]
   );
 
   // Don't render anything if no user

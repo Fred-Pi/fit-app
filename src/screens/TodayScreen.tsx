@@ -47,10 +47,13 @@ const TodayScreen = () => {
   const openWelcome = useUIStore((s) => s.openWelcome);
   const openNamePrompt = useUIStore((s) => s.openNamePrompt);
 
-  // User Store - Welcome tracking
+  // User Store - Welcome & Name tracking
   const shouldShowWelcome = useUserStore((s) => s.shouldShowWelcome);
   const markWelcomeShown = useUserStore((s) => s.markWelcomeShown);
   const loadWelcomeState = useUserStore((s) => s.loadWelcomeState);
+  const shouldShowNamePrompt = useUserStore((s) => s.shouldShowNamePrompt);
+  const markNameSet = useUserStore((s) => s.markNameSet);
+  const loadNameState = useUserStore((s) => s.loadNameState);
 
   // Workout Store
   const workouts = useWorkoutStore((s) => s.workouts);
@@ -115,21 +118,24 @@ const TodayScreen = () => {
     startupChecked.current = true;
 
     const checkStartupModals = async () => {
+      // Load persisted states first
+      await loadNameState();
+      await loadWelcomeState();
+
       // First priority: check if user needs to set their name
-      if (user.name === 'User') {
+      if (shouldShowNamePrompt()) {
         openNamePrompt();
         return;
       }
 
       // Second priority: check welcome popup
-      await loadWelcomeState();
       if (shouldShowWelcome()) {
         openWelcome();
         await markWelcomeShown();
       }
     };
     checkStartupModals();
-  }, [user, loadWelcomeState, shouldShowWelcome, openWelcome, markWelcomeShown, openNamePrompt]);
+  }, [user, loadWelcomeState, loadNameState, shouldShowWelcome, shouldShowNamePrompt, openWelcome, markWelcomeShown, openNamePrompt]);
 
   // Reload on focus
   useFocusEffect(
