@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import GlassCard from '../../components/GlassCard';
 import GlassButton from '../../components/GlassButton';
+import SuccessModal from '../../components/SuccessModal';
 import { colors, glass, spacing, typography, radius } from '../../utils/theme';
 import { useAuthStore } from '../../stores';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
@@ -35,6 +36,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Cross-platform alert helper
   const showAlert = (title: string, message: string, onDismiss?: () => void) => {
@@ -83,10 +85,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
           () => navigation.navigate('Login')
         );
       } else {
-        showAlert(
-          'Account Created',
-          `Welcome to FitTrack, ${name.trim()}! Your account has been created successfully.`
-        );
+        // Account created successfully - show nice modal
+        setShowSuccessModal(true);
       }
     } catch (err) {
       showAlert('Registration Failed', 'An unexpected error occurred. Please try again.');
@@ -246,6 +246,14 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       </KeyboardAvoidingView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]} />
+
+      <SuccessModal
+        visible={showSuccessModal}
+        title="Account Created!"
+        message={`Welcome to FitTrack, ${name.trim() || 'there'}! Your account is active and you're ready to start your fitness journey.`}
+        buttonText="Let's Go"
+        onDismiss={() => setShowSuccessModal(false)}
+      />
     </View>
   );
 };
