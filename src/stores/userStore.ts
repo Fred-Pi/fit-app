@@ -9,6 +9,13 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../types';
 import { getUser, saveUser, initializeApp } from '../services/storage';
+import {
+  fetchProfile,
+  updateProfile as updateSupabaseProfile,
+  ensureProfile,
+  isSupabaseConfigured,
+} from '../services/supabase';
+import { useAuthStore } from './authStore';
 
 const WELCOME_SHOWN_KEY = '@fittrack:lastWelcomeShown';
 const NAME_SET_KEY = '@fittrack:nameSet';
@@ -53,7 +60,37 @@ export const useUserStore = create<UserState>((set, get) => ({
 
     set({ isLoading: true });
     try {
-      const user = await initializeApp();
+      // First, try to get local user
+      let user = await initializeApp();
+
+      // If Supabase is configured and user is authenticated, sync with Supabase profile
+      const authUser = useAuthStore.getState().user;
+      if (isSupabaseConfigured && authUser) {
+        // Fetch or create profile in Supabase
+        const profile = await ensureProfile(
+          authUser.id,
+          authUser.user_metadata?.name || user.name || 'User',
+          authUser.email
+        );
+
+        if (profile) {
+          // Merge Supabase profile with local user (Supabase takes precedence)
+          user = {
+            ...user,
+            id: profile.id,
+            name: profile.name,
+            email: profile.email,
+            dailyCalorieTarget: profile.daily_calorie_target,
+            dailyStepGoal: profile.daily_step_goal,
+            preferredWeightUnit: profile.preferred_weight_unit,
+            goalWeight: profile.goal_weight,
+            created: profile.created_at,
+          };
+          // Save merged profile locally
+          await saveUser(user);
+        }
+      }
+
       set({ user, isInitialized: true });
       return user;
     } catch (error) {
@@ -80,7 +117,22 @@ export const useUserStore = create<UserState>((set, get) => ({
     if (!user) return;
 
     const updatedUser = { ...user, ...updates };
+
+    // Save locally
     await saveUser(updatedUser);
+
+    // Also sync to Supabase if configured and authenticated
+    const authUser = useAuthStore.getState().user;
+    if (isSupabaseConfigured && authUser) {
+      await updateSupabaseProfile(authUser.id, {
+        name: updates.name,
+        daily_calorie_target: updates.dailyCalorieTarget,
+        daily_step_goal: updates.dailyStepGoal,
+        preferred_weight_unit: updates.preferredWeightUnit,
+        goal_weight: updates.goalWeight,
+      });
+    }
+
     set({ user: updatedUser });
   },
 
