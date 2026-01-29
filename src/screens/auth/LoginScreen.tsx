@@ -94,8 +94,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 <Ionicons name="fitness" size={48} color={colors.text} />
               </LinearGradient>
             </View>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to continue your fitness journey</Text>
+            <Text style={styles.title}>Welcome to FitTrack</Text>
+            <Text style={styles.subtitle}>Sign in to start your fitness journey</Text>
           </View>
 
           <GlassCard accent="blue" glowIntensity="subtle" padding="lg">
