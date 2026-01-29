@@ -103,8 +103,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         },
       });
 
-      if (!error && data.user) {
-        // Create profile in profiles table
+      if (!error && data.user && data.session) {
+        // Only create profile if we have a session (no email verification required)
+        // Otherwise, profile will be created on first login via ensureProfile
         const { error: profileError } = await supabase.from('profiles').insert({
           id: data.user.id,
           name,
