@@ -8,7 +8,7 @@
 import { create } from 'zustand';
 import { Platform } from 'react-native';
 import { Session, User, AuthError } from '@supabase/supabase-js';
-import { supabase, isSupabaseConfigured } from '../services/supabase';
+import { supabase, isSupabaseConfigured, createProfile } from '../services/supabase';
 
 const isWeb = Platform.OS === 'web';
 
@@ -106,14 +106,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!error && data.user && data.session) {
         // Only create profile if we have a session (no email verification required)
         // Otherwise, profile will be created on first login via ensureProfile
-        const { error: profileError } = await supabase.from('profiles').insert({
-          id: data.user.id,
-          name,
-          email,
-        });
-
-        if (profileError) {
-          console.error('Failed to create profile:', profileError);
+        const profile = await createProfile(data.user.id, name, email);
+        if (!profile) {
+          console.error('Failed to create profile during signup');
         }
       }
 

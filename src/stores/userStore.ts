@@ -18,7 +18,7 @@ import {
 import { useAuthStore } from './authStore';
 
 const WELCOME_SHOWN_KEY = '@fittrack:lastWelcomeShown';
-const NAME_SET_KEY = '@fittrack:nameSet';
+const NAME_SET_KEY_PREFIX = '@fittrack:nameSet:';
 
 interface UserState {
   // State
@@ -54,17 +54,21 @@ export const useUserStore = create<UserState>((set, get) => ({
   nameHasBeenSet: false,
 
   initialize: async () => {
-    if (get().isInitialized && get().user) {
-      return get().user!;
+    const authUser = useAuthStore.getState().user;
+    const currentUser = get().user;
+
+    // If already initialized with the same user, return early
+    if (get().isInitialized && currentUser && authUser && currentUser.id === authUser.id) {
+      return currentUser;
     }
 
-    set({ isLoading: true });
+    // Reset state for new user
+    set({ isLoading: true, nameHasBeenSet: false });
     try {
       // First, try to get local user
       let user = await initializeApp();
 
       // If Supabase is configured and user is authenticated, sync with Supabase profile
-      const authUser = useAuthStore.getState().user;
       if (isSupabaseConfigured && authUser) {
         // Fetch or create profile in Supabase
         const profile = await ensureProfile(
@@ -188,7 +192,9 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   loadNameState: async () => {
     try {
-      const stored = await AsyncStorage.getItem(NAME_SET_KEY);
+      const { user } = get();
+      if (!user?.id) return;
+      const stored = await AsyncStorage.getItem(`${NAME_SET_KEY_PREFIX}${user.id}`);
       if (stored === 'true') {
         set({ nameHasBeenSet: true });
       }
@@ -205,7 +211,9 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   markNameSet: async () => {
     try {
-      await AsyncStorage.setItem(NAME_SET_KEY, 'true');
+      const { user } = get();
+      if (!user?.id) return;
+      await AsyncStorage.setItem(`${NAME_SET_KEY_PREFIX}${user.id}`, 'true');
       set({ nameHasBeenSet: true });
     } catch (error) {
       console.error('Failed to save name state:', error);
