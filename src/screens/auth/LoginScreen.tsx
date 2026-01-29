@@ -34,16 +34,29 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
+  // Cross-platform alert helper
+  const showAlert = (title: string, message: string) => {
+    if (Platform.OS === 'web') {
+      window.alert(`${title}\n\n${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please enter both email and password');
+      showAlert('Error', 'Please enter both email and password');
       return;
     }
 
-    const { error } = await signInWithEmail(email.trim(), password);
+    try {
+      const { error } = await signInWithEmail(email.trim(), password);
 
-    if (error) {
-      Alert.alert('Login Failed', error.message);
+      if (error) {
+        showAlert('Login Failed', error.message);
+      }
+    } catch (err) {
+      showAlert('Login Failed', 'An unexpected error occurred. Please try again.');
     }
   };
 
@@ -52,8 +65,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     try {
       const { error } = await signInWithGoogle();
       if (error) {
-        Alert.alert('Sign In Failed', error.message);
+        showAlert('Sign In Failed', error.message);
       }
+    } catch (err) {
+      showAlert('Sign In Failed', 'An unexpected error occurred. Please try again.');
     } finally {
       setOauthLoading(false);
     }

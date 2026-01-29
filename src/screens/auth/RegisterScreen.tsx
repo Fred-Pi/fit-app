@@ -67,27 +67,29 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       return;
     }
 
-    const { error, needsEmailVerification } = await signUpWithEmail(
-      email.trim(),
-      password,
-      name.trim()
-    );
-
-    console.log('Signup result:', { error, needsEmailVerification });
-
-    if (error) {
-      showAlert('Registration Failed', error.message);
-    } else if (needsEmailVerification) {
-      showAlert(
-        'Check Your Email',
-        'We sent you a confirmation link. Please verify your email to continue.',
-        () => navigation.navigate('Login')
+    try {
+      const { error, needsEmailVerification } = await signUpWithEmail(
+        email.trim(),
+        password,
+        name.trim()
       );
-    } else {
-      showAlert(
-        'Account Created',
-        `Welcome to FitTrack, ${name.trim()}! Your account has been created successfully.`
-      );
+
+      if (error) {
+        showAlert('Registration Failed', error.message);
+      } else if (needsEmailVerification) {
+        showAlert(
+          'Check Your Email',
+          'We sent you a confirmation link. Please verify your email to continue.',
+          () => navigation.navigate('Login')
+        );
+      } else {
+        showAlert(
+          'Account Created',
+          `Welcome to FitTrack, ${name.trim()}! Your account has been created successfully.`
+        );
+      }
+    } catch (err) {
+      showAlert('Registration Failed', 'An unexpected error occurred. Please try again.');
     }
   };
 
@@ -98,6 +100,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       if (error) {
         showAlert('Sign In Failed', error.message);
       }
+    } catch (err) {
+      showAlert('Sign In Failed', 'An unexpected error occurred. Please try again.');
     } finally {
       setOauthLoading(false);
     }
