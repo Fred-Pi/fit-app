@@ -36,24 +36,34 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
+  // Cross-platform alert helper
+  const showAlert = (title: string, message: string, onDismiss?: () => void) => {
+    if (Platform.OS === 'web') {
+      window.alert(`${title}\n\n${message}`);
+      onDismiss?.();
+    } else {
+      Alert.alert(title, message, [{ text: 'OK', onPress: onDismiss }]);
+    }
+  };
+
   const handleRegister = async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Please enter your name');
+      showAlert('Error', 'Please enter your name');
       return;
     }
 
     if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email');
+      showAlert('Error', 'Please enter your email');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      showAlert('Error', 'Password must be at least 6 characters');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      showAlert('Error', 'Passwords do not match');
       return;
     }
 
@@ -63,19 +73,20 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       name.trim()
     );
 
+    console.log('Signup result:', { error, needsEmailVerification });
+
     if (error) {
-      Alert.alert('Registration Failed', error.message);
+      showAlert('Registration Failed', error.message);
     } else if (needsEmailVerification) {
-      Alert.alert(
+      showAlert(
         'Check Your Email',
         'We sent you a confirmation link. Please verify your email to continue.',
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+        () => navigation.navigate('Login')
       );
     } else {
-      Alert.alert(
+      showAlert(
         'Account Created',
-        `Welcome to FitTrack, ${name.trim()}! Your account has been created successfully.`,
-        [{ text: 'Get Started' }]
+        `Welcome to FitTrack, ${name.trim()}! Your account has been created successfully.`
       );
     }
   };
@@ -85,7 +96,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     try {
       const { error } = await signInWithGoogle();
       if (error) {
-        Alert.alert('Sign In Failed', error.message);
+        showAlert('Sign In Failed', error.message);
       }
     } finally {
       setOauthLoading(false);
