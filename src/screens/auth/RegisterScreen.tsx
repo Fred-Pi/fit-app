@@ -10,7 +10,6 @@ import {
   Alert,
   Pressable,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -109,15 +108,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <LinearGradient
-        colors={[colors.background, colors.surface, colors.background]}
-        style={StyleSheet.absoluteFill}
-      />
-
-      {/* Decorative elements */}
-      <View style={styles.decorCircle1} />
-      <View style={styles.decorCircle2} />
-
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -137,7 +127,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
             <Text style={styles.subtitle}>Start your fitness journey today</Text>
           </View>
 
-          <GlassCard accent="none" glowIntensity="none" padding="lg">
+          <GlassCard accent="blue" glowIntensity="subtle" padding="lg">
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Name</Text>
               <View style={styles.inputContainer}>
@@ -276,26 +266,6 @@ const styles = StyleSheet.create({
     maxWidth: 500,
     alignSelf: 'center',
     width: '100%',
-  },
-  decorCircle1: {
-    position: 'absolute',
-    top: -100,
-    right: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: colors.primaryMuted,
-    opacity: 0.5,
-  },
-  decorCircle2: {
-    position: 'absolute',
-    bottom: 100,
-    left: -150,
-    width: 400,
-    height: 400,
-    borderRadius: 200,
-    backgroundColor: colors.analyticsMuted,
-    opacity: 0.3,
   },
   backButton: {
     width: 44,

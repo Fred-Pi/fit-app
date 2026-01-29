@@ -76,15 +76,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <LinearGradient
-        colors={[colors.background, colors.surface, colors.background]}
-        style={StyleSheet.absoluteFill}
-      />
-
-      {/* Decorative elements */}
-      <View style={styles.decorCircle1} />
-      <View style={styles.decorCircle2} />
-
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -107,7 +98,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <Text style={styles.subtitle}>Sign in to continue your fitness journey</Text>
           </View>
 
-          <GlassCard accent="none" glowIntensity="none" padding="lg">
+          <GlassCard accent="blue" glowIntensity="subtle" padding="lg">
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Email</Text>
               <View style={styles.inputContainer}>
@@ -215,26 +206,6 @@ const styles = StyleSheet.create({
     maxWidth: 500,
     alignSelf: 'center',
     width: '100%',
-  },
-  decorCircle1: {
-    position: 'absolute',
-    top: -100,
-    right: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: colors.primaryMuted,
-    opacity: 0.5,
-  },
-  decorCircle2: {
-    position: 'absolute',
-    bottom: 100,
-    left: -150,
-    width: 400,
-    height: 400,
-    borderRadius: 200,
-    backgroundColor: colors.analyticsMuted,
-    opacity: 0.3,
   },
   header: {
     alignItems: 'center',
