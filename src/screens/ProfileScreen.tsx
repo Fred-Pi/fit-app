@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
+import SyncStatus from '../components/SyncStatus';
 import { clearAllData, getWorkouts, getNutrition, getSteps, getWeights } from '../services/storage';
 import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import { warningHaptic, successHaptic, lightHaptic } from '../utils/haptics';
@@ -379,6 +380,9 @@ const ProfileScreen = () => {
             })}
           </Text>
         </View>
+        <View style={styles.divider} />
+        <Text style={styles.label}>Sync Status</Text>
+        <SyncStatus />
       </GlassCard>
 
       {/* Account */}
