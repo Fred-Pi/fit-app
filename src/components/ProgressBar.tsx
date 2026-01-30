@@ -21,7 +21,12 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   const isOverTarget = current > target;
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: target, now: current }}
+      accessibilityLabel={`Progress: ${Math.round(current)} of ${Math.round(target)}${unit ? ` ${unit}` : ''}`}
+    >
       <View style={styles.labelContainer}>
         <Text style={styles.current}>
           {Math.round(current).toLocaleString()}

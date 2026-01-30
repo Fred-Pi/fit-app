@@ -186,6 +186,8 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
                 pressed && styles.actionButtonPressed,
               ]}
               onPress={() => handleActionPress(action)}
+              accessibilityRole="button"
+              accessibilityLabel={action.label}
             >
               <View style={[styles.actionIconWrapper, { backgroundColor: (action.color || mainColor) + '20' }]}>
                 <Ionicons
@@ -215,6 +217,9 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           style={styles.fabPressable}
+          accessibilityRole="button"
+          accessibilityLabel={isSingleAction ? actions[0].label : (expanded ? 'Close menu' : 'Open actions menu')}
+          accessibilityState={{ expanded: !isSingleAction ? expanded : undefined }}
         >
           <LinearGradient
             colors={[mainColor, shadeColor(mainColor, -20)]}

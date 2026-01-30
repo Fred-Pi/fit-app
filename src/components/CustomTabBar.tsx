@@ -202,6 +202,9 @@ const TabButton: React.FC<TabButtonProps> = ({
       onPressOut={handlePressOut}
       activeOpacity={1}
       style={[styles.tabButton, { width: tabWidth }]}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: isFocused }}
+      accessibilityLabel={`${config.label} tab`}
     >
       <Animated.View
         style={[
