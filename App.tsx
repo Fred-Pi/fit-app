@@ -11,8 +11,12 @@ import { ThemeProvider } from './src/utils/ThemeContext';
 import { initializeDatabase, migrateFromAsyncStorage } from './src/services/database';
 import { useUserStore, useAuthStore } from './src/stores';
 import { syncService } from './src/services/sync';
-import ErrorBoundary from './src/components/ErrorBoundary';
+import ErrorFallback from './src/components/ErrorFallback';
 import { colors } from './src/utils/theme';
+import { initializeSentry, Sentry, captureError } from './src/services/sentry';
+
+// Initialize Sentry as early as possible
+initializeSentry();
 
 const ONBOARDING_KEY = '@fit_app_onboarding_complete';
 
@@ -125,7 +129,12 @@ export default function App() {
   const shouldShowOnboarding = session && showOnboarding;
 
   return (
-    <ErrorBoundary>
+    <Sentry.ErrorBoundary
+      fallback={({ error, resetError }) => (
+        <ErrorFallback error={error instanceof Error ? error : null} resetError={resetError} />
+      )}
+      onError={(error) => captureError(error instanceof Error ? error : new Error(String(error)))}
+    >
       <SafeAreaProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <ThemeProvider>
@@ -140,7 +149,7 @@ export default function App() {
           </ThemeProvider>
         </GestureHandlerRootView>
       </SafeAreaProvider>
-    </ErrorBoundary>
+    </Sentry.ErrorBoundary>
   );
 }
 
