@@ -405,7 +405,7 @@ npm run ios        # Run on iOS simulator
 npm run android    # Run on Android emulator
 npm run web        # Run in web browser
 npm run build:web  # Build for web production
-npm test           # Run tests (if configured)
+npm test           # Run tests
 ```
 
 ## Design Decisions
@@ -476,26 +476,55 @@ To reset the app:
 - **TypeScript errors**: Run `npx tsc --noEmit` to check
 - **Build fails**: Clear cache with `expo start -c`
 
+## Production Features
+
+### Error Monitoring (Sentry)
+- Production error tracking with Sentry
+- Automatic crash reporting
+- Configure via `EXPO_PUBLIC_SENTRY_DSN` environment variable
+
+### Data Export
+- Export all fitness data as JSON from Profile screen
+- Includes workouts, nutrition, steps, and weight history
+- Share via system share sheet
+
+### Cloud Sync (Optional)
+- Sync status indicator in Profile screen
+- Offline-first with background sync queue
+- Configure Supabase for cloud backup
+
+### Accessibility
+- Screen reader support for key components
+- Accessible labels on buttons, tabs, and interactive elements
+- Progress bar announcements
+
+### Testing
+- Unit tests for validation utilities
+- Store and analytics calculation tests
+- Run with `npm test`
+
 ## Future Enhancements
 
 Potential features for future development:
 
-1. **Body weight tracking** - Track weight changes over time with charts
-2. **Exercise progression charts** - Visual graphs showing weight/rep progress
-3. **Monthly statistics** - Extended time period analysis
-4. **Goal setting** - Custom fitness goals with tracking
-5. **HealthKit/Google Fit integration** - Automatic step syncing
-6. **Photo progress** - Before/after photos with timeline
-7. **Workout notes** - Add notes to individual workouts
-8. **Streak tracking** - Consecutive workout days
-9. **Export data** - CSV/JSON export for backup
-10. **Cloud sync** - Multi-device support with authentication
+1. **HealthKit/Google Fit integration** - Automatic step syncing
+2. **Photo progress** - Before/after photos with timeline
+3. **Biometric authentication** - Face ID/fingerprint app lock
+4. **Widgets** - iOS/Android home screen widgets
+5. **Push notifications** - Workout reminders
 
 ## Version History
 
-### Current Version (v1.1.0)
+### Current Version (v1.2.0)
 
-**Features:**
+**New in v1.2.0:**
+- ✅ Sentry error monitoring for production
+- ✅ Data export feature (JSON)
+- ✅ Sync status indicator
+- ✅ Improved accessibility support
+- ✅ Additional test coverage
+
+**Core Features:**
 - ✅ Workout logging with exercise database
 - ✅ Exercise library with custom exercise CRUD
 - ✅ Personal records tracking
