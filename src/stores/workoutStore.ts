@@ -70,6 +70,7 @@ interface WorkoutState {
   addWorkout: (workout: WorkoutLog) => Promise<PersonalRecord[]>;
   updateWorkout: (workout: WorkoutLog) => Promise<void>;
   deleteWorkout: (workoutId: string) => Promise<void>;
+  deleteMultipleWorkouts: (workoutIds: string[]) => Promise<void>;
   invalidateCache: () => void;
 
   // Actions - Templates
@@ -250,6 +251,39 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     }
 
     // Recalculate streaks
+    const streakData = calculateWorkoutStreak(updatedWorkouts);
+
+    set({
+      workouts: updatedWorkouts,
+      workoutsByDateCache: newCache,
+      currentStreak: streakData.current,
+      longestStreak: streakData.longest,
+    });
+  },
+
+  deleteMultipleWorkouts: async (workoutIds: string[]) => {
+    // Delete all workouts from storage
+    await Promise.all(workoutIds.map((id) => deleteWorkoutFromStorage(id)));
+
+    const { workouts, workoutsByDateCache } = get();
+    const idsSet = new Set(workoutIds);
+    const deletedWorkouts = workouts.filter((w) => idsSet.has(w.id));
+    const updatedWorkouts = workouts.filter((w) => !idsSet.has(w.id));
+
+    // Update date cache
+    const newCache = new Map(workoutsByDateCache);
+    const affectedDates = new Set(deletedWorkouts.map((w) => w.date));
+    for (const date of affectedDates) {
+      const dateWorkouts = newCache.get(date);
+      if (dateWorkouts) {
+        newCache.set(
+          date,
+          dateWorkouts.filter((w) => !idsSet.has(w.id))
+        );
+      }
+    }
+
+    // Recalculate streaks once
     const streakData = calculateWorkoutStreak(updatedWorkouts);
 
     set({

@@ -5,6 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
+  Pressable,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,13 +17,14 @@ import AnimatedProgressBar from '../components/AnimatedProgressBar';
 import AnimatedNumber from '../components/AnimatedNumber';
 import SwipeableRow from '../components/SwipeableRow';
 import ExpandableFAB from '../components/ExpandableFAB';
+import SelectionToolbar from '../components/SelectionToolbar';
 import { CardSkeleton, ListSkeleton } from '../components/SkeletonLoader';
 import { getTodayDate } from '../services/storage';
 import { Meal } from '../types';
 import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { formatNumber } from '../utils/formatters';
-import { warningHaptic } from '../utils/haptics';
+import { warningHaptic, lightHaptic } from '../utils/haptics';
 import {
   useUserStore,
   useUIStore,
@@ -51,12 +54,19 @@ const NutritionScreen: React.FC<NutritionScreenProps> = ({
   const openAddMeal = useUIStore((s) => s.openAddMeal);
   const openEditMeal = useUIStore((s) => s.openEditMeal);
   const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
+  const selectedMealIds = useUIStore((s) => s.selectedMealIds);
+  const toggleMealSelection = useUIStore((s) => s.toggleMealSelection);
+  const selectAllMeals = useUIStore((s) => s.selectAllMeals);
+  const clearMealSelection = useUIStore((s) => s.clearMealSelection);
 
   // Nutrition Store
   const todayNutrition = useNutritionStore((s) => s.todayNutrition);
   const isLoading = useNutritionStore((s) => s.isLoading);
   const fetchNutritionByDate = useNutritionStore((s) => s.fetchNutritionByDate);
   const deleteMeal = useNutritionStore((s) => s.deleteMeal);
+  const deleteMultipleMeals = useNutritionStore((s) => s.deleteMultipleMeals);
+
+  const isWeb = Platform.OS === 'web';
   const getTotalCalories = useNutritionStore((s) => s.getTotalCalories);
   const getTotalProtein = useNutritionStore((s) => s.getTotalProtein);
   const getTotalCarbs = useNutritionStore((s) => s.getTotalCarbs);
@@ -92,6 +102,27 @@ const NutritionScreen: React.FC<NutritionScreenProps> = ({
         await deleteMeal(meal.id);
       },
     });
+  };
+
+  const handleBatchDelete = () => {
+    if (selectedMealIds.length === 0) return;
+    warningHaptic();
+    openConfirmDialog({
+      title: `Delete ${selectedMealIds.length} Meal${selectedMealIds.length > 1 ? 's' : ''}?`,
+      message: `Are you sure you want to delete ${selectedMealIds.length} meal${selectedMealIds.length > 1 ? 's' : ''}? This cannot be undone.`,
+      confirmText: 'Delete All',
+      icon: 'restaurant',
+      iconColor: colors.error,
+      onConfirm: async () => {
+        await deleteMultipleMeals(selectedMealIds);
+        clearMealSelection();
+      },
+    });
+  };
+
+  const handleCheckboxPress = (mealId: string) => {
+    lightHaptic();
+    toggleMealSelection(mealId);
   };
 
   const handleMealPress = (meal: Meal) => {
@@ -147,36 +178,64 @@ const NutritionScreen: React.FC<NutritionScreenProps> = ({
           ) : (
             todayNutrition.meals.map((meal) => {
               const isSelected = selectedMealId === meal.id;
+              const isChecked = selectedMealIds.includes(meal.id);
               return (
-                <TouchableOpacity
-                  key={meal.id}
-                  style={[
-                    styles.listItem,
-                    isSelected && styles.listItemSelected,
-                  ]}
-                  onPress={() => handleMealPress(meal)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.listItemContent}>
-                    <Text style={styles.listItemName} numberOfLines={1}>
-                      {meal.name}
-                    </Text>
-                    <Text style={styles.listItemTime}>
-                      {new Date(meal.time).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}
-                    </Text>
-                  </View>
-                  <View style={styles.listItemRight}>
-                    <Text style={styles.listItemCalories}>{formatNumber(meal.calories)}</Text>
-                    <Text style={styles.listItemCaloriesUnit}>cal</Text>
-                  </View>
-                </TouchableOpacity>
+                <View key={meal.id} style={styles.listItemRow}>
+                  {/* Checkbox (web only) */}
+                  {isWeb && (
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.checkbox,
+                        isChecked && styles.checkboxChecked,
+                        pressed && styles.checkboxPressed,
+                      ]}
+                      onPress={() => handleCheckboxPress(meal.id)}
+                    >
+                      {isChecked && (
+                        <Ionicons name="checkmark" size={14} color={colors.text} />
+                      )}
+                    </Pressable>
+                  )}
+                  <TouchableOpacity
+                    style={[
+                      styles.listItem,
+                      isSelected && styles.listItemSelected,
+                      isWeb && styles.listItemWithCheckbox,
+                    ]}
+                    onPress={() => handleMealPress(meal)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.listItemContent}>
+                      <Text style={styles.listItemName} numberOfLines={1}>
+                        {meal.name}
+                      </Text>
+                      <Text style={styles.listItemTime}>
+                        {new Date(meal.time).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </Text>
+                    </View>
+                    <View style={styles.listItemRight}>
+                      <Text style={styles.listItemCalories}>{formatNumber(meal.calories)}</Text>
+                      <Text style={styles.listItemCaloriesUnit}>cal</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
               );
             })
           )}
         </ScrollView>
+
+        {/* Multi-select toolbar (web only) */}
+        <SelectionToolbar
+          selectedCount={selectedMealIds.length}
+          totalCount={todayNutrition?.meals.length || 0}
+          onSelectAll={() => selectAllMeals(todayNutrition?.meals.map((m) => m.id) || [])}
+          onClear={clearMealSelection}
+          onDelete={handleBatchDelete}
+          itemLabel="meal"
+        />
       </View>
     );
   }
@@ -608,7 +667,30 @@ const styles = StyleSheet.create({
     fontWeight: typography.weight.semibold,
     color: colors.text,
   },
+  listItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.textTertiary,
+    marginLeft: spacing.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    cursor: 'pointer' as any,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.nutrition,
+    borderColor: colors.nutrition,
+  },
+  checkboxPressed: {
+    opacity: 0.7,
+  },
   listItem: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -616,6 +698,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: glass.border,
+  },
+  listItemWithCheckbox: {
+    paddingLeft: spacing.md,
   },
   listItemSelected: {
     backgroundColor: colors.nutritionMuted,

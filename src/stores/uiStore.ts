@@ -47,6 +47,10 @@ interface UIState {
   selectedWorkoutId: string | null;
   selectedMealId: string | null;
 
+  // Desktop multi-select
+  selectedWorkoutIds: string[];
+  selectedMealIds: string[];
+
   // Desktop sidebar state
   sidebarCollapsed: boolean;
 
@@ -83,6 +87,14 @@ interface UIState {
   selectWorkout: (workoutId: string | null) => void;
   selectMeal: (mealId: string | null) => void;
 
+  // Actions - Desktop Multi-Select
+  toggleWorkoutSelection: (id: string) => void;
+  selectAllWorkouts: (ids: string[]) => void;
+  clearWorkoutSelection: () => void;
+  toggleMealSelection: (id: string) => void;
+  selectAllMeals: (ids: string[]) => void;
+  clearMealSelection: () => void;
+
   // Actions - Desktop Sidebar
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -97,6 +109,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   currentDate: new Date().toISOString().split('T')[0],
   selectedWorkoutId: null,
   selectedMealId: null,
+  selectedWorkoutIds: [],
+  selectedMealIds: [],
   sidebarCollapsed: false,
 
   closeModal: () => {
@@ -204,6 +218,43 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   selectMeal: (mealId) => {
     set({ selectedMealId: mealId });
+  },
+
+  // Desktop Multi-Select
+  toggleWorkoutSelection: (id) => {
+    set((state) => {
+      const ids = state.selectedWorkoutIds;
+      if (ids.includes(id)) {
+        return { selectedWorkoutIds: ids.filter((i) => i !== id) };
+      }
+      return { selectedWorkoutIds: [...ids, id] };
+    });
+  },
+
+  selectAllWorkouts: (ids) => {
+    set({ selectedWorkoutIds: ids });
+  },
+
+  clearWorkoutSelection: () => {
+    set({ selectedWorkoutIds: [] });
+  },
+
+  toggleMealSelection: (id) => {
+    set((state) => {
+      const ids = state.selectedMealIds;
+      if (ids.includes(id)) {
+        return { selectedMealIds: ids.filter((i) => i !== id) };
+      }
+      return { selectedMealIds: [...ids, id] };
+    });
+  },
+
+  selectAllMeals: (ids) => {
+    set({ selectedMealIds: ids });
+  },
+
+  clearMealSelection: () => {
+    set({ selectedMealIds: [] });
   },
 
   // Desktop Sidebar

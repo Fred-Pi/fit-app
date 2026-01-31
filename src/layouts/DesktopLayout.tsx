@@ -76,6 +76,9 @@ const LogSection: React.FC = () => {
 const WorkoutsSection: React.FC = () => {
   const selectedWorkoutId = useUIStore((s) => s.selectedWorkoutId);
   const selectWorkout = useUIStore((s) => s.selectWorkout);
+  const selectedWorkoutIds = useUIStore((s) => s.selectedWorkoutIds);
+
+  const hasMultipleSelected = selectedWorkoutIds.length > 1;
 
   return (
     <View style={styles.masterDetailContainer}>
@@ -86,7 +89,19 @@ const WorkoutsSection: React.FC = () => {
 
       {/* Detail: Selected Workout */}
       <View style={styles.detailPanel}>
-        {selectedWorkoutId ? (
+        {hasMultipleSelected ? (
+          <View style={styles.emptyDetail}>
+            <View style={styles.multiSelectBadge}>
+              <Text style={styles.multiSelectCount}>{selectedWorkoutIds.length}</Text>
+            </View>
+            <Text style={styles.emptyDetailTitle}>
+              {selectedWorkoutIds.length} workouts selected
+            </Text>
+            <Text style={styles.emptyDetailText}>
+              Use the toolbar below to delete selected items, or click a checkbox to deselect
+            </Text>
+          </View>
+        ) : selectedWorkoutId ? (
           <WorkoutDetailPanel
             workoutId={selectedWorkoutId}
             onClose={() => selectWorkout(null)}
@@ -118,6 +133,9 @@ const ProgressSection: React.FC = () => {
 const NutritionSection: React.FC = () => {
   const selectedMealId = useUIStore((s) => s.selectedMealId);
   const selectMeal = useUIStore((s) => s.selectMeal);
+  const selectedMealIds = useUIStore((s) => s.selectedMealIds);
+
+  const hasMultipleSelected = selectedMealIds.length > 1;
 
   return (
     <View style={styles.masterDetailContainer}>
@@ -128,7 +146,19 @@ const NutritionSection: React.FC = () => {
 
       {/* Detail: Selected Meal */}
       <View style={styles.detailPanel}>
-        {selectedMealId ? (
+        {hasMultipleSelected ? (
+          <View style={styles.emptyDetail}>
+            <View style={styles.multiSelectBadge}>
+              <Text style={styles.multiSelectCount}>{selectedMealIds.length}</Text>
+            </View>
+            <Text style={styles.emptyDetailTitle}>
+              {selectedMealIds.length} meals selected
+            </Text>
+            <Text style={styles.emptyDetailText}>
+              Use the toolbar below to delete selected items, or click a checkbox to deselect
+            </Text>
+          </View>
+        ) : selectedMealId ? (
           <MealDetailPanel
             mealId={selectedMealId}
             onClose={() => selectMeal(null)}
@@ -211,6 +241,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.sm,
     maxWidth: 300,
+  },
+  multiSelectBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  multiSelectCount: {
+    fontSize: typography.size['2xl'],
+    fontWeight: typography.weight.bold,
+    color: colors.text,
   },
 });
 

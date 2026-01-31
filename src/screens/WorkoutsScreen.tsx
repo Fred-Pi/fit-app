@@ -6,6 +6,8 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
+  Platform,
+  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,6 +18,7 @@ import Card from '../components/Card';
 import SwipeableRow from '../components/SwipeableRow';
 import ExpandableFAB from '../components/ExpandableFAB';
 import { ListSkeleton } from '../components/SkeletonLoader';
+import SelectionToolbar from '../components/SelectionToolbar';
 import { WorkoutLog } from '../types';
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
@@ -52,6 +55,10 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
   const openEditWorkout = useUIStore((s) => s.openEditWorkout);
   const openTemplatePicker = useUIStore((s) => s.openTemplatePicker);
   const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
+  const selectedWorkoutIds = useUIStore((s) => s.selectedWorkoutIds);
+  const toggleWorkoutSelection = useUIStore((s) => s.toggleWorkoutSelection);
+  const selectAllWorkouts = useUIStore((s) => s.selectAllWorkouts);
+  const clearWorkoutSelection = useUIStore((s) => s.clearWorkoutSelection);
 
   // Workout Store
   const workouts = useWorkoutStore((s) => s.workouts);
@@ -59,6 +66,9 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
   const isRefreshing = useWorkoutStore((s) => s.isRefreshing);
   const fetchWorkouts = useWorkoutStore((s) => s.fetchWorkouts);
   const deleteWorkout = useWorkoutStore((s) => s.deleteWorkout);
+  const deleteMultipleWorkouts = useWorkoutStore((s) => s.deleteMultipleWorkouts);
+
+  const isWeb = Platform.OS === 'web';
 
   // Initial load
   useEffect(() => {
@@ -91,6 +101,27 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
     });
   };
 
+  const handleBatchDelete = () => {
+    if (selectedWorkoutIds.length === 0) return;
+    warningHaptic();
+    openConfirmDialog({
+      title: `Delete ${selectedWorkoutIds.length} Workout${selectedWorkoutIds.length > 1 ? 's' : ''}?`,
+      message: `Are you sure you want to delete ${selectedWorkoutIds.length} workout${selectedWorkoutIds.length > 1 ? 's' : ''}? This cannot be undone.`,
+      confirmText: 'Delete All',
+      icon: 'barbell',
+      iconColor: '#FF3B30',
+      onConfirm: async () => {
+        await deleteMultipleWorkouts(selectedWorkoutIds);
+        clearWorkoutSelection();
+      },
+    });
+  };
+
+  const handleCheckboxPress = (workoutId: string) => {
+    lightHaptic();
+    toggleWorkoutSelection(workoutId);
+  };
+
   const handleWorkoutPress = (item: WorkoutLog) => {
     // If we have a selection callback (desktop master-detail mode), use it
     if (onSelectWorkout) {
@@ -112,20 +143,38 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
 
     // In list variant, use a simpler card without swipe
     if (variant === 'list') {
+      const isChecked = selectedWorkoutIds.includes(item.id);
       return (
-        <TouchableOpacity
-          onPress={() => handleWorkoutPress(item)}
-          activeOpacity={0.7}
-          style={[styles.listItem, isSelected && styles.listItemSelected]}
-        >
-          <View style={styles.workoutHeader}>
-            <Text style={styles.workoutName} numberOfLines={1}>{item.name}</Text>
-            <Text style={styles.workoutDate}>{formattedDate}</Text>
-          </View>
-          <Text style={styles.workoutDetail} numberOfLines={1}>
-            {item.exercises.length} exercises • {totalSets} sets
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.listItemRow}>
+          {/* Checkbox (web only) */}
+          {isWeb && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.checkbox,
+                isChecked && styles.checkboxChecked,
+                pressed && styles.checkboxPressed,
+              ]}
+              onPress={() => handleCheckboxPress(item.id)}
+            >
+              {isChecked && (
+                <Ionicons name="checkmark" size={14} color={colors.text} />
+              )}
+            </Pressable>
+          )}
+          <TouchableOpacity
+            onPress={() => handleWorkoutPress(item)}
+            activeOpacity={0.7}
+            style={[styles.listItem, isSelected && styles.listItemSelected, isWeb && styles.listItemWithCheckbox]}
+          >
+            <View style={styles.workoutHeader}>
+              <Text style={styles.workoutName} numberOfLines={1}>{item.name}</Text>
+              <Text style={styles.workoutDate}>{formattedDate}</Text>
+            </View>
+            <Text style={styles.workoutDetail} numberOfLines={1}>
+              {item.exercises.length} exercises • {totalSets} sets
+            </Text>
+          </TouchableOpacity>
+        </View>
       );
     }
 
@@ -236,6 +285,18 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
           ]}
         />
       )}
+
+      {/* Multi-select toolbar (web only, list variant) */}
+      {variant === 'list' && (
+        <SelectionToolbar
+          selectedCount={selectedWorkoutIds.length}
+          totalCount={displayWorkouts.length}
+          onSelectAll={() => selectAllWorkouts(displayWorkouts.map((w) => w.id))}
+          onClear={clearWorkoutSelection}
+          onDelete={handleBatchDelete}
+          itemLabel="workout"
+        />
+      )}
     </View>
   );
 };
@@ -256,13 +317,39 @@ const styles = StyleSheet.create({
     padding: 12,
     paddingBottom: 12,
   },
+  listItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.textTertiary,
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    cursor: 'pointer' as any,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  checkboxPressed: {
+    opacity: 0.7,
+  },
   listItem: {
+    flex: 1,
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 8,
     borderWidth: 1,
     borderColor: 'transparent',
+  },
+  listItemWithCheckbox: {
+    marginBottom: 0,
   },
   listItemSelected: {
     backgroundColor: 'rgba(59, 130, 246, 0.1)',

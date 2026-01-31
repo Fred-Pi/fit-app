@@ -24,6 +24,7 @@ interface NutritionState {
   addMeal: (meal: Meal) => Promise<void>;
   updateMeal: (meal: Meal) => Promise<void>;
   deleteMeal: (mealId: string) => Promise<void>;
+  deleteMultipleMeals: (mealIds: string[]) => Promise<void>;
   setCurrentDate: (date: string) => void;
   invalidateCache: () => void;
 
@@ -135,6 +136,28 @@ export const useNutritionStore = create<NutritionState>((set, get) => ({
     const updatedNutrition: DailyNutrition = {
       ...todayNutrition,
       meals: todayNutrition.meals.filter((m) => m.id !== mealId),
+    };
+
+    await saveNutrition(updatedNutrition);
+
+    // Update cache
+    const newCache = new Map(nutritionCache);
+    newCache.set(currentDate, updatedNutrition);
+
+    set({
+      todayNutrition: updatedNutrition,
+      nutritionCache: newCache,
+    });
+  },
+
+  deleteMultipleMeals: async (mealIds: string[]) => {
+    const { todayNutrition, nutritionCache, currentDate } = get();
+    if (!todayNutrition) return;
+
+    const idsSet = new Set(mealIds);
+    const updatedNutrition: DailyNutrition = {
+      ...todayNutrition,
+      meals: todayNutrition.meals.filter((m) => !idsSet.has(m.id)),
     };
 
     await saveNutrition(updatedNutrition);
