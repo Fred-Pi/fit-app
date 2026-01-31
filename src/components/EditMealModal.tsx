@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Modal,
   View,
   Text,
   TextInput,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Alert,
 } from 'react-native';
@@ -16,6 +13,7 @@ import { Meal } from '../types';
 import { successHaptic } from '../utils/haptics';
 import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
 import ModalHeader from './ModalHeader';
+import ResponsiveModal from './ResponsiveModal';
 import { modalStyles, placeholderColor } from '../styles/modalStyles';
 
 interface EditMealModalProps {
@@ -71,16 +69,12 @@ const EditMealModal: React.FC<EditMealModalProps> = ({ visible, onClose, onSave,
   };
 
   return (
-    <Modal
+    <ResponsiveModal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onClose={onClose}
+      size="md"
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={modalStyles.container}
-      >
+      <View style={styles.container}>
         <ModalHeader
           title="Edit Meal"
           onCancel={onClose}
@@ -212,12 +206,16 @@ const EditMealModal: React.FC<EditMealModalProps> = ({ visible, onClose, onSave,
             </Text>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </Modal>
+      </View>
+    </ResponsiveModal>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   macrosCard: {
     backgroundColor: glass.backgroundLight,
     borderWidth: 1,

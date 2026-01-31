@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import {
-  Modal,
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
-} from 'react-native'
-import { colors } from '../utils/theme'
-import { Picker } from '@react-native-picker/picker'
-import { Exercise, MuscleGroup } from '../types'
-import { EXERCISE_CATEGORIES } from '../data/exercises'
-import { generateCustomExerciseId, validateExerciseName } from '../utils/exerciseHelpers'
-import { successHaptic } from '../utils/haptics'
-import { useAuthStore } from '../stores/authStore'
+} from 'react-native';
+import { colors } from '../utils/theme';
+import { Picker } from '@react-native-picker/picker';
+import { Exercise, MuscleGroup } from '../types';
+import { EXERCISE_CATEGORIES } from '../data/exercises';
+import { generateCustomExerciseId, validateExerciseName } from '../utils/exerciseHelpers';
+import { successHaptic } from '../utils/haptics';
+import { useAuthStore } from '../stores/authStore';
+import ResponsiveModal from './ResponsiveModal';
 
 interface AddCustomExerciseModalProps {
   visible: boolean
@@ -116,16 +114,12 @@ const AddCustomExerciseModal: React.FC<AddCustomExerciseModalProps> = ({
   }
 
   return (
-    <Modal
+    <ResponsiveModal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={handleClose}
+      onClose={handleClose}
+      size="md"
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
+      <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose}>
             <Text style={styles.cancelButton}>Cancel</Text>
@@ -207,10 +201,10 @@ const AddCustomExerciseModal: React.FC<AddCustomExerciseModalProps> = ({
             </View>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </Modal>
-  )
-}
+      </View>
+    </ResponsiveModal>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

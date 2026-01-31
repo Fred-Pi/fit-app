@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Modal,
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   Alert,
-} from 'react-native'
+} from 'react-native';
 import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutLog, ExerciseLog, SetLog } from '../types';
 import { generateId, getLastExercisePerformance } from '../services/storage';
 import { successHaptic } from '../utils/haptics';
 import { useUserStore } from '../stores';
+import ResponsiveModal from './ResponsiveModal';
 import ExercisePicker from './ExercisePicker';
 import WorkoutTimer from './WorkoutTimer';
 import ExerciseHistoryIndicator from './ExerciseHistoryIndicator';
@@ -162,16 +161,13 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
   };
 
   return (
-    <Modal
+    <ResponsiveModal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onClose={onClose}
+      size="xl"
+      allowFullHeight
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
+      <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose}>
             <Text style={styles.cancelButton}>Cancel</Text>
@@ -364,7 +360,6 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
             </Text>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
 
       {/* Exercise Picker Modal */}
       <ExercisePicker
@@ -373,7 +368,8 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
         onSelectExercise={handleSelectExercise}
         currentExerciseName={exerciseName}
       />
-    </Modal>
+      </View>
+    </ResponsiveModal>
   );
 };
 

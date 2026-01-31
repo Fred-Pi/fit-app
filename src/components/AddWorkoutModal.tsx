@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Modal,
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Alert,
   Pressable,
@@ -21,6 +18,7 @@ import { colors, glass, radius, spacing, typography, shadows } from '../utils/th
 import { useUserStore } from '../stores';
 import ModalHeader from './ModalHeader';
 import GlassButton from './GlassButton';
+import ResponsiveModal from './ResponsiveModal';
 import { modalStyles, placeholderColor } from '../styles/modalStyles';
 import ExercisePicker from './ExercisePicker';
 import TemplatePicker from './TemplatePicker';
@@ -296,16 +294,13 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
   );
 
   return (
-    <Modal
+    <ResponsiveModal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={handleClose}
+      onClose={handleClose}
+      size="xl"
+      allowFullHeight
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={modalStyles.container}
-      >
+      <View style={styles.container}>
         <ModalHeader
           title="Log Workout"
           onCancel={handleClose}
@@ -577,7 +572,6 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
             </Text>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
 
       <TemplatePicker
         visible={showTemplatePicker}
@@ -596,11 +590,16 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
         visible={showRestTimer}
         onClose={() => setShowRestTimer(false)}
       />
-    </Modal>
+      </View>
+    </ResponsiveModal>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   timerAccessory: {
     flexDirection: 'row',
     alignItems: 'center',

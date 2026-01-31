@@ -63,6 +63,20 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     }
   }, [visible]);
 
+  // Handle Escape key on web
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !visible) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [visible]);
+
   const handleClose = () => {
     Animated.parallel([
       Animated.timing(scaleAnim, {

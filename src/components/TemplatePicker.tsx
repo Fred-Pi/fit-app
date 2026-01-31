@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Modal,
   View,
   Text,
   StyleSheet,
@@ -12,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
 import ModalHeader from './ModalHeader';
+import ResponsiveModal from './ResponsiveModal';
 import { modalStyles } from '../styles/modalStyles';
 import { WorkoutTemplate } from '../types';
 import { getTemplates, deleteTemplate } from '../services/storage';
@@ -124,13 +124,12 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
   );
 
   return (
-    <Modal
+    <ResponsiveModal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onClose={onClose}
+      size="lg"
     >
-      <View style={modalStyles.container}>
+      <View style={styles.container}>
         <ModalHeader
           title="Workout Templates"
           onCancel={onClose}
@@ -161,11 +160,15 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
           </View>
         )}
       </View>
-    </Modal>
+    </ResponsiveModal>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

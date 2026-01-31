@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Modal,
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
   Platform,
   Alert,
-} from 'react-native'
+} from 'react-native';
 import { colors, glass, radius, spacing, typography } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { successHaptic } from '../utils/haptics';
 import { validateBodyWeight } from '../utils/validation';
 import FormInput from './FormInput';
 import GlassButton from './GlassButton';
+import ResponsiveModal from './ResponsiveModal';
 
 interface UpdateWeightModalProps {
   visible: boolean;
@@ -62,82 +60,59 @@ const UpdateWeightModal: React.FC<UpdateWeightModalProps> = ({
   };
 
   return (
-    <Modal
+    <ResponsiveModal
       visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={handleClose}
+      onClose={handleClose}
+      size="sm"
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
-      >
-        <TouchableOpacity
-          style={styles.backdrop}
-          activeOpacity={1}
-          onPress={handleClose}
-          accessibilityLabel="Close"
-          accessibilityRole="button"
-        />
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="scale-outline" size={24} color="#FF9500" />
-            </View>
-            <Text style={styles.title}>Update Weight</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <Ionicons name="scale-outline" size={24} color="#FF9500" />
           </View>
+          <Text style={styles.title}>Update Weight</Text>
+        </View>
 
-          <View style={styles.content}>
-            <FormInput
-              label={`Body Weight (${unit})`}
-              variant="large"
-              placeholder="0"
-              value={weight}
-              onChangeText={setWeight}
-              keyboardType="decimal-pad"
-              autoFocus
-              selectTextOnFocus
-              hint="Enter your current body weight"
+        <View style={styles.content}>
+          <FormInput
+            label={`Body Weight (${unit})`}
+            variant="large"
+            placeholder="0"
+            value={weight}
+            onChangeText={setWeight}
+            keyboardType="decimal-pad"
+            autoFocus
+            selectTextOnFocus
+            hint="Enter your current body weight"
+          />
+        </View>
+
+        <View style={styles.actions}>
+          <View style={styles.buttonWrapper}>
+            <GlassButton
+              title="Cancel"
+              onPress={handleClose}
+              variant="secondary"
+              fullWidth
             />
           </View>
-
-          <View style={styles.actions}>
-            <View style={styles.buttonWrapper}>
-              <GlassButton
-                title="Cancel"
-                onPress={handleClose}
-                variant="secondary"
-                fullWidth
-              />
-            </View>
-            <View style={styles.buttonWrapper}>
-              <GlassButton
-                title="Save"
-                onPress={handleSave}
-                variant="primary"
-                fullWidth
-              />
-            </View>
+          <View style={styles.buttonWrapper}>
+            <GlassButton
+              title="Save"
+              onPress={handleSave}
+              variant="primary"
+              fullWidth
+            />
           </View>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      </View>
+    </ResponsiveModal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.overlay,
-  },
   container: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius['2xl'],
-    borderTopRightRadius: radius['2xl'],
     paddingBottom: Platform.OS === 'ios' ? 34 : spacing.xl,
   },
   header: {
