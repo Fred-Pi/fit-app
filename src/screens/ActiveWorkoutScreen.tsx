@@ -26,7 +26,7 @@ import { WorkoutsStackParamList } from '../navigation/WorkoutsStack';
 import { colors, glass, radius, spacing, typography } from '../utils/theme';
 import GlassButton from '../components/GlassButton';
 import ActiveExerciseCard from '../components/ActiveExerciseCard';
-import InlineExerciseSearch from '../components/InlineExerciseSearch';
+import ExercisePicker from '../components/ExercisePicker';
 import { lightHaptic, heavyHaptic } from '../utils/haptics';
 import { useUserStore } from '../stores';
 import { DesktopWorkoutOverlayContext } from '../layouts/DesktopLayout';
@@ -290,7 +290,7 @@ const ActiveWorkoutScreen: React.FC = () => {
           ))}
 
           {/* Add Exercise Section */}
-          <InlineExerciseSearch
+          <ExercisePicker
             onSelectExercise={handleAddExercise}
             existingExercises={exercises.map((e) => e.exerciseName)}
           />

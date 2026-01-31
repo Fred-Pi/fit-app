@@ -12,15 +12,13 @@ import {
 import { colors } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutLog, ExerciseLog, SetLog } from '../types';
-import { generateId, getLastExercisePerformance } from '../services/storage';
+import { generateId } from '../services/storage';
 import { successHaptic } from '../utils/haptics';
 import { useUserStore } from '../stores';
 import ResponsiveModal from './ResponsiveModal';
-import NumberInput from './NumberInput';
 import ExercisePicker from './ExercisePicker';
 import DraggableList, { DragHandle } from './DraggableList';
 import WorkoutTimer from './WorkoutTimer';
-import ExerciseHistoryIndicator from './ExerciseHistoryIndicator';
 
 interface EditWorkoutModalProps {
   visible: boolean;
@@ -40,32 +38,8 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
 
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState<ExerciseLog[]>([]);
-
-  // Current exercise being added
-  const [exerciseName, setExerciseName] = useState('');
-  const [sets, setSets] = useState('3');
-  const [reps, setReps] = useState('10');
-  const [weight, setWeight] = useState('');
-
-  // Notes
   const [workoutNotes, setWorkoutNotes] = useState('');
-  const [exerciseNotes, setExerciseNotes] = useState('');
-
-  // Exercise history
-  const [exerciseHistory, setExerciseHistory] = useState<{
-    date: string;
-    sets: number;
-    reps: number;
-    weight: number;
-    workoutName: string;
-  } | null>(null);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-
-  // Exercise picker
-  const [showExercisePicker, setShowExercisePicker] = useState(false);
-
-  // Workout duration
-  const [workoutDuration, setWorkoutDuration] = useState<number>(0); // in minutes
+  const [workoutDuration, setWorkoutDuration] = useState<number>(0);
 
   useEffect(() => {
     if (workout) {
@@ -76,64 +50,29 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
     }
   }, [workout, visible]);
 
-  const handleAddExercise = () => {
-    if (!exerciseName.trim()) {
-      Alert.alert('Error', 'Please enter an exercise name');
-      return;
-    }
-
-    const numSets = parseInt(sets) || 3;
-    const numReps = parseInt(reps) || 10;
-    const numWeight = parseInt(weight) || 0;
-
-    // Create sets array
-    const setsArray: SetLog[] = Array.from({ length: numSets }, () => ({
-      reps: numReps,
-      weight: numWeight,
-      completed: true,
-    }));
-
-    const newExercise: ExerciseLog = {
-      id: generateId(),
-      exerciseName: exerciseName.trim(),
-      sets: setsArray,
-      notes: exerciseNotes.trim() || undefined,
-    };
-
-    setExercises([...exercises, newExercise]);
-
-    // Reset exercise form
-    setExerciseName('');
-    setWeight('');
-    setExerciseNotes('');
-    setExerciseHistory(null);
-    Alert.alert('Success', `${exerciseName} added to workout`);
-  };
-
   const handleRemoveExercise = (id: string) => {
     setExercises(exercises.filter(ex => ex.id !== id));
   };
 
   const handleSelectExercise = (name: string, defaults?: { sets: number; reps: number }) => {
-    setExerciseName(name);
-    if (defaults) {
-      setSets(defaults.sets.toString());
-      setReps(defaults.reps.toString());
-    }
-    setShowExercisePicker(false);
-    loadExerciseHistory(name);
-  };
+    // Directly add the exercise to the list
+    const numSets = defaults?.sets || 3;
+    const numReps = defaults?.reps || 10;
 
-  const loadExerciseHistory = async (name: string) => {
-    if (!name.trim() || !workout) {
-      setExerciseHistory(null);
-      return;
-    }
+    const setsArray: SetLog[] = Array.from({ length: numSets }, () => ({
+      reps: numReps,
+      weight: 0,
+      completed: true,
+    }));
 
-    setLoadingHistory(true);
-    const history = await getLastExercisePerformance(name.trim(), workout.userId, workout.id);
-    setExerciseHistory(history);
-    setLoadingHistory(false);
+    const newExercise: ExerciseLog = {
+      id: generateId(),
+      exerciseName: name,
+      sets: setsArray,
+    };
+
+    setExercises([...exercises, newExercise]);
+    successHaptic();
   };
 
   const handleSave = () => {
@@ -249,114 +188,13 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
             </View>
           )}
 
-          {/* Add Exercise Form */}
+          {/* Add Exercise */}
           <View style={styles.addExerciseSection}>
             <Text style={styles.sectionTitle}>Add Exercise</Text>
-
-            <View style={styles.section}>
-              <Text style={styles.label}>Exercise Name *</Text>
-
-              {/* Exercise Picker Button */}
-              <TouchableOpacity
-                style={styles.exercisePickerButton}
-                onPress={() => setShowExercisePicker(true)}
-              >
-                <Ionicons name="search-outline" size={20} color="#3A9BFF" />
-                <Text style={[
-                  styles.exercisePickerButtonText,
-                  exerciseName && styles.exercisePickerButtonTextSelected
-                ]}>
-                  {exerciseName || 'Select from exercise database'}
-                </Text>
-                <Ionicons name="chevron-forward" size={20} color="#A0A0A8" />
-              </TouchableOpacity>
-
-              {/* Manual Entry */}
-              <Text style={styles.orText}>or enter custom name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Bench Press, Squat"
-                placeholderTextColor="#98989D"
-                value={exerciseName}
-                onChangeText={setExerciseName}
-                onBlur={() => loadExerciseHistory(exerciseName)}
-                autoCapitalize="words"
-              />
-
-              {/* Exercise History & Progressive Overload Suggestion */}
-              {exerciseName.trim() && (
-                <ExerciseHistoryIndicator
-                  exerciseName={exerciseName}
-                  lastPerformance={exerciseHistory}
-                  loading={loadingHistory}
-                  weightUnit={weightUnit}
-                  onApplySuggestion={(suggestedSets, suggestedReps, suggestedWeight) => {
-                    setSets(suggestedSets.toString());
-                    setReps(suggestedReps.toString());
-                    setWeight(suggestedWeight > 0 ? suggestedWeight.toString() : '');
-                  }}
-                />
-              )}
-            </View>
-
-            <View style={styles.row}>
-              <NumberInput
-                label="Sets"
-                value={sets}
-                onChangeText={setSets}
-                placeholder="3"
-                min={1}
-                max={20}
-                step={1}
-                maxLength={2}
-              />
-
-              <NumberInput
-                label="Reps"
-                value={reps}
-                onChangeText={setReps}
-                placeholder="10"
-                min={1}
-                max={100}
-                step={1}
-                maxLength={3}
-              />
-
-              <NumberInput
-                label={`Weight (${weightUnit})`}
-                value={weight}
-                onChangeText={setWeight}
-                placeholder="0"
-                min={0}
-                max={999}
-                step={2.5}
-                allowDecimal
-                maxLength={5}
-              />
-            </View>
-
-            {/* Exercise Notes */}
-            <View style={styles.section}>
-              <Text style={styles.label}>Exercise Notes (Optional)</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="Form cues, adjustments, etc."
-                placeholderTextColor="#98989D"
-                value={exerciseNotes}
-                onChangeText={setExerciseNotes}
-                multiline
-                numberOfLines={2}
-                textAlignVertical="top"
-              />
-            </View>
-
-            <TouchableOpacity
-              style={styles.addExerciseButton}
-              onPress={handleAddExercise}
-            >
-              <Ionicons name="add-circle" size={20} color="#007AFF" />
-              <Text style={styles.addExerciseButtonText}>Add Exercise</Text>
-            </TouchableOpacity>
+            <ExercisePicker
+              onSelectExercise={handleSelectExercise}
+              existingExercises={exercises.map((e) => e.exerciseName)}
+            />
           </View>
 
           <View style={styles.helpSection}>
@@ -367,13 +205,6 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
           </View>
         </ScrollView>
 
-      {/* Exercise Picker Modal */}
-      <ExercisePicker
-        visible={showExercisePicker}
-        onClose={() => setShowExercisePicker(false)}
-        onSelectExercise={handleSelectExercise}
-        currentExerciseName={exerciseName}
-      />
       </View>
     </ResponsiveModal>
   );
