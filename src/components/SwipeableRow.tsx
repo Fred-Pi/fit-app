@@ -5,6 +5,7 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { warningHaptic, lightHaptic } from '../utils/haptics';
 import ContextMenu, { ContextMenuItem } from './ContextMenu';
+import Tooltip from './Tooltip';
 
 interface SwipeableRowProps {
   children: React.ReactNode;
@@ -142,31 +143,35 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
           {isHovered && (
             <Animated.View style={[styles.hoverActions, { opacity: hoverOpacity }]}>
               {showEdit && onEdit && (
+                <Tooltip text="Edit" position="top">
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.hoverButton,
+                      styles.hoverEditButton,
+                      pressed && styles.hoverButtonPressed,
+                    ]}
+                    onPress={handleEditHover}
+                    accessibilityLabel="Edit"
+                    accessibilityRole="button"
+                  >
+                    <Ionicons name="pencil" size={16} color={colors.primary} />
+                  </Pressable>
+                </Tooltip>
+              )}
+              <Tooltip text="Delete" position="top">
                 <Pressable
                   style={({ pressed }) => [
                     styles.hoverButton,
-                    styles.hoverEditButton,
+                    styles.hoverDeleteButton,
                     pressed && styles.hoverButtonPressed,
                   ]}
-                  onPress={handleEditHover}
-                  accessibilityLabel="Edit"
+                  onPress={handleDeleteHover}
+                  accessibilityLabel="Delete"
                   accessibilityRole="button"
                 >
-                  <Ionicons name="pencil" size={16} color={colors.primary} />
+                  <Ionicons name="trash" size={16} color={colors.error} />
                 </Pressable>
-              )}
-              <Pressable
-                style={({ pressed }) => [
-                  styles.hoverButton,
-                  styles.hoverDeleteButton,
-                  pressed && styles.hoverButtonPressed,
-                ]}
-                onPress={handleDeleteHover}
-                accessibilityLabel="Delete"
-                accessibilityRole="button"
-              >
-                <Ionicons name="trash" size={16} color={colors.error} />
-              </Pressable>
+              </Tooltip>
             </Animated.View>
           )}
         </View>

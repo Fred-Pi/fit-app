@@ -17,6 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, glass, radius, spacing, typography } from '../utils/theme';
 import { lightHaptic } from '../utils/haptics';
+import Tooltip from './Tooltip';
 
 interface NumberInputProps {
   value: string;
@@ -113,28 +114,32 @@ const NumberInput: React.FC<NumberInputProps> = ({
 
   // Desktop: Show steppers
   if (isWeb) {
+    const stepLabel = allowDecimal ? step.toFixed(1) : step.toString();
+
     return (
       <View style={styles.container}>
         {label && <Text style={styles.label}>{label}</Text>}
         <View style={[styles.inputRow, isFocused && styles.inputRowFocused]}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.stepperButton,
-              styles.stepperLeft,
-              pressed && styles.stepperPressed,
-              numericValue <= min && styles.stepperDisabled,
-            ]}
-            onPress={handleDecrement}
-            disabled={numericValue <= min}
-            accessibilityLabel="Decrease value"
-            accessibilityRole="button"
-          >
-            <Ionicons
-              name="remove"
-              size={18}
-              color={numericValue <= min ? colors.textTertiary : colors.text}
-            />
-          </Pressable>
+          <Tooltip text={`-${stepLabel}`} position="top" delay={300}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.stepperButton,
+                styles.stepperLeft,
+                pressed && styles.stepperPressed,
+                numericValue <= min && styles.stepperDisabled,
+              ]}
+              onPress={handleDecrement}
+              disabled={numericValue <= min}
+              accessibilityLabel="Decrease value"
+              accessibilityRole="button"
+            >
+              <Ionicons
+                name="remove"
+                size={18}
+                color={numericValue <= min ? colors.textTertiary : colors.text}
+              />
+            </Pressable>
+          </Tooltip>
 
           <TextInput
             ref={inputRef}
@@ -154,24 +159,26 @@ const NumberInput: React.FC<NumberInputProps> = ({
             selectTextOnFocus
           />
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.stepperButton,
-              styles.stepperRight,
-              pressed && styles.stepperPressed,
-              numericValue >= max && styles.stepperDisabled,
-            ]}
-            onPress={handleIncrement}
-            disabled={numericValue >= max}
-            accessibilityLabel="Increase value"
-            accessibilityRole="button"
-          >
-            <Ionicons
-              name="add"
-              size={18}
-              color={numericValue >= max ? colors.textTertiary : colors.text}
-            />
-          </Pressable>
+          <Tooltip text={`+${stepLabel}`} position="top" delay={300}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.stepperButton,
+                styles.stepperRight,
+                pressed && styles.stepperPressed,
+                numericValue >= max && styles.stepperDisabled,
+              ]}
+              onPress={handleIncrement}
+              disabled={numericValue >= max}
+              accessibilityLabel="Increase value"
+              accessibilityRole="button"
+            >
+              <Ionicons
+                name="add"
+                size={18}
+                color={numericValue >= max ? colors.textTertiary : colors.text}
+              />
+            </Pressable>
+          </Tooltip>
         </View>
       </View>
     );
