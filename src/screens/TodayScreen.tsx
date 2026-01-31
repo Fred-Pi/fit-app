@@ -18,8 +18,9 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useActiveWorkoutStore } from '../stores';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
@@ -27,8 +28,8 @@ import AnimatedProgressBar from '../components/AnimatedProgressBar';
 import AnimatedNumber from '../components/AnimatedNumber';
 import { TodayScreenSkeleton } from '../components/SkeletonLoader';
 import { lightHaptic } from '../utils/haptics';
-import { getTodayDate, generateId } from '../services/storage';
-import { WorkoutLog, WorkoutTemplate } from '../types';
+import { getTodayDate } from '../services/storage';
+import { WorkoutLog } from '../types';
 import { colors, glass, spacing, typography, radius, shadows } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import {
@@ -47,13 +48,17 @@ interface TodayScreenProps {
 
 const TodayScreen: React.FC<TodayScreenProps> = ({ variant = 'full' }) => {
   const { contentMaxWidth } = useResponsive();
+  const navigation = useNavigation<any>();
   const date = getTodayDate();
 
   // User Store
   const user = useUserStore((s) => s.user);
 
+  // Active Workout Store
+  const startWorkout = useActiveWorkoutStore((s) => s.startWorkout);
+  const startFromRecent = useActiveWorkoutStore((s) => s.startFromRecent);
+
   // UI Store
-  const openAddWorkout = useUIStore((s) => s.openAddWorkout);
   const openAddMeal = useUIStore((s) => s.openAddMeal);
   const openUpdateWeight = useUIStore((s) => s.openUpdateWeight);
   const openWelcome = useUIStore((s) => s.openWelcome);
@@ -153,24 +158,15 @@ const TodayScreen: React.FC<TodayScreenProps> = ({ variant = 'full' }) => {
     return `${days} days ago`;
   };
 
-  const workoutToTemplate = (workout: WorkoutLog): WorkoutTemplate => ({
-    id: generateId(),
-    userId: workout.userId,
-    name: workout.name,
-    exercises: workout.exercises.map((ex, index) => ({
-      id: generateId(),
-      exerciseName: ex.exerciseName,
-      targetSets: ex.sets.length,
-      targetReps: ex.sets[0]?.reps || 10,
-      targetWeight: ex.sets[0]?.weight || 0,
-      order: index,
-    })),
-    created: new Date().toISOString(),
-  });
-
   const handleQuickRepeat = (workoutToRepeat: WorkoutLog) => {
-    const template = workoutToTemplate(workoutToRepeat);
-    openAddWorkout(template);
+    lightHaptic();
+    startFromRecent(workoutToRepeat);
+    navigation.navigate('Workouts', { screen: 'ActiveWorkout', params: { repeatWorkoutId: workoutToRepeat.id } });
+  };
+
+  const handleStartWorkout = () => {
+    lightHaptic();
+    navigation.navigate('Workouts', { screen: 'QuickStart' });
   };
 
   // Loading state
@@ -207,10 +203,7 @@ const TodayScreen: React.FC<TodayScreenProps> = ({ variant = 'full' }) => {
           {/* PRIMARY ACTION: Start Workout */}
           <TouchableOpacity
             style={styles.primaryCTA}
-            onPress={() => {
-              lightHaptic();
-              openAddWorkout();
-            }}
+            onPress={handleStartWorkout}
             activeOpacity={0.9}
           >
             <LinearGradient
@@ -414,10 +407,7 @@ const TodayScreen: React.FC<TodayScreenProps> = ({ variant = 'full' }) => {
       {/* PRIMARY ACTION: Start Workout */}
       <TouchableOpacity
         style={styles.primaryCTA}
-        onPress={() => {
-          lightHaptic();
-          openAddWorkout();
-        }}
+        onPress={handleStartWorkout}
         activeOpacity={0.9}
         accessibilityRole="button"
         accessibilityLabel="Start a new workout"

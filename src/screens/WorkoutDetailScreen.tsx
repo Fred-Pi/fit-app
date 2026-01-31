@@ -22,10 +22,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../components/GlassCard';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditWorkoutModal from '../components/EditWorkoutModal';
-import { WorkoutLog, User, WorkoutTemplate, ExerciseTemplate, PersonalRecord } from '../types'
+import { WorkoutLog, User, PersonalRecord } from '../types'
 import { colors, glass, spacing, typography, radius } from '../utils/theme';
-import { getWorkouts, saveWorkout, deleteWorkout, getUser, checkAndUpdatePRs, generateId } from '../services/storage';
-import { useUIStore, useWorkoutStore } from '../stores';
+import { getWorkouts, saveWorkout, deleteWorkout, getUser, checkAndUpdatePRs } from '../services/storage';
+import { useWorkoutStore, useActiveWorkoutStore } from '../stores';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { WorkoutsStackParamList } from '../navigation/WorkoutsStack';
 import { successHaptic, lightHaptic } from '../utils/haptics';
 import { useAuthStore } from '../stores/authStore';
 import { useResponsive } from '../hooks/useResponsive';
@@ -45,7 +47,7 @@ const WorkoutDetailScreen = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const openAddWorkout = useUIStore((s) => s.openAddWorkout);
+  const startFromRecent = useActiveWorkoutStore((s) => s.startFromRecent);
   const personalRecords = useWorkoutStore((s) => s.personalRecords);
 
   useEffect(() => {
@@ -128,27 +130,13 @@ const WorkoutDetailScreen = () => {
   };
 
   const handleDuplicate = () => {
-    if (!workout || !user) return;
-
-    // Convert workout to template format
-    const template: WorkoutTemplate = {
-      id: generateId(),
-      userId: user.id,
-      name: workout.name,
-      created: new Date().toISOString(),
-      exercises: workout.exercises.map((ex, index): ExerciseTemplate => ({
-        id: generateId(),
-        exerciseName: ex.exerciseName,
-        targetSets: ex.sets.length,
-        targetReps: ex.sets[0]?.reps || 10,
-        targetWeight: ex.sets[0]?.weight || undefined,
-        order: index,
-      })),
-    };
+    if (!workout) return;
 
     successHaptic();
-    openAddWorkout(template);
-    navigation.goBack();
+    startFromRecent(workout);
+    (navigation as StackNavigationProp<WorkoutsStackParamList>).navigate('ActiveWorkout', {
+      repeatWorkoutId: workout.id,
+    });
   };
 
   if (loading) {

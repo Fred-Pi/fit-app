@@ -17,11 +17,12 @@ import { Ionicons } from '@expo/vector-icons';
 import GlassCard from './GlassCard';
 import ConfirmDialog from './ConfirmDialog';
 import EditWorkoutModal from './EditWorkoutModal';
-import { WorkoutLog, User, WorkoutTemplate, ExerciseTemplate } from '../types';
+import { WorkoutLog, User } from '../types';
 import { colors, glass, spacing, typography, radius, getResponsiveTypography } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
-import { getWorkouts, saveWorkout, deleteWorkout as deleteWorkoutService, getUser, checkAndUpdatePRs, generateId } from '../services/storage';
-import { useUIStore, useWorkoutStore } from '../stores';
+import { getWorkouts, saveWorkout, deleteWorkout as deleteWorkoutService, getUser, checkAndUpdatePRs } from '../services/storage';
+import { useUIStore, useWorkoutStore, useActiveWorkoutStore } from '../stores';
+import { useNavigation } from '@react-navigation/native';
 import { successHaptic, lightHaptic } from '../utils/haptics';
 import { useAuthStore } from '../stores/authStore';
 
@@ -45,8 +46,9 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
 
   const { typographyScale } = useResponsive();
   const scaledType = getResponsiveTypography(typographyScale);
+  const navigation = useNavigation<any>();
 
-  const openAddWorkout = useUIStore((s) => s.openAddWorkout);
+  const startFromRecent = useActiveWorkoutStore((s) => s.startFromRecent);
   const selectWorkout = useUIStore((s) => s.selectWorkout);
   const personalRecords = useWorkoutStore((s) => s.personalRecords);
   const fetchWorkouts = useWorkoutStore((s) => s.fetchWorkouts);
@@ -122,25 +124,15 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
   };
 
   const handleDuplicate = () => {
-    if (!workout || !user) return;
-
-    const template: WorkoutTemplate = {
-      id: generateId(),
-      userId: user.id,
-      name: workout.name,
-      created: new Date().toISOString(),
-      exercises: workout.exercises.map((ex, index): ExerciseTemplate => ({
-        id: generateId(),
-        exerciseName: ex.exerciseName,
-        targetSets: ex.sets.length,
-        targetReps: ex.sets[0]?.reps || 10,
-        targetWeight: ex.sets[0]?.weight || undefined,
-        order: index,
-      })),
-    };
+    if (!workout) return;
 
     successHaptic();
-    openAddWorkout(template);
+    startFromRecent(workout);
+    // Navigate to the ActiveWorkout screen (works from desktop via nested navigation)
+    navigation.navigate('Workouts', {
+      screen: 'ActiveWorkout',
+      params: { repeatWorkoutId: workout.id },
+    });
   };
 
   if (loading) {

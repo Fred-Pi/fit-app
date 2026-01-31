@@ -3,24 +3,25 @@
  *
  * All modals are rendered at the root level and controlled via UIStore.
  * This eliminates scattered modal state across screens.
+ *
+ * Note: AddWorkoutModal has been replaced with a screen-based flow
+ * (QuickStartScreen → ActiveWorkoutScreen → WorkoutCompleteScreen)
  */
 
 import React, { useCallback } from 'react';
-import { Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import {
   useUIStore,
   useUserStore,
   useWorkoutStore,
   useNutritionStore,
   useDailyTrackingStore,
+  useActiveWorkoutStore,
 } from '../stores';
 import { WorkoutLog, Meal, WorkoutTemplate } from '../types';
-import { getTodayDate } from '../services/storage';
-import { successHaptic } from '../utils/haptics';
 
 // Modal Components
-import AddWorkoutModal from './AddWorkoutModal';
 import EditWorkoutModal from './EditWorkoutModal';
 import AddMealModal from './AddMealModal';
 import EditMealModal from './EditMealModal';
@@ -32,22 +33,24 @@ import WelcomeModal from './WelcomeModal';
 import NamePromptModal from './NamePromptModal';
 
 const GlobalModals: React.FC = () => {
+  const navigation = useNavigation<any>();
+
   // UI Store
   const activeModal = useUIStore((s) => s.activeModal);
   const closeModal = useUIStore((s) => s.closeModal);
   const editWorkoutData = useUIStore((s) => s.editWorkoutData);
   const editMealData = useUIStore((s) => s.editMealData);
-  const selectedTemplate = useUIStore((s) => s.selectedTemplate);
   const confirmDialogConfig = useUIStore((s) => s.confirmDialogConfig);
-  const openAddWorkout = useUIStore((s) => s.openAddWorkout);
 
   // User Store
   const user = useUserStore((s) => s.user);
   const updateUser = useUserStore((s) => s.updateUser);
   const markNameSet = useUserStore((s) => s.markNameSet);
 
+  // Active Workout Store
+  const startWorkout = useActiveWorkoutStore((s) => s.startWorkout);
+
   // Workout Store
-  const addWorkout = useWorkoutStore((s) => s.addWorkout);
   const updateWorkout = useWorkoutStore((s) => s.updateWorkout);
 
   // Nutrition Store
@@ -60,27 +63,7 @@ const GlobalModals: React.FC = () => {
   const updateSteps = useDailyTrackingStore((s) => s.updateSteps);
   const updateWeight = useDailyTrackingStore((s) => s.updateWeight);
 
-  // Get today's date
-  const date = getTodayDate();
-
   // Handlers
-  const handleAddWorkout = useCallback(
-    async (workout: WorkoutLog) => {
-      const newPRs = await addWorkout(workout);
-      closeModal();
-
-      if (newPRs.length > 0) {
-        successHaptic();
-        const prNames = newPRs.map((pr) => `${pr.exerciseName}: ${pr.weight} x ${pr.reps}`).join('\n');
-        Alert.alert(
-          'New Personal Record!',
-          `Congratulations! You set ${newPRs.length > 1 ? 'new PRs' : 'a new PR'}:\n\n${prNames}`
-        );
-      }
-    },
-    [addWorkout, closeModal]
-  );
-
   const handleEditWorkout = useCallback(
     async (workout: WorkoutLog) => {
       await updateWorkout(workout);
@@ -124,10 +107,14 @@ const GlobalModals: React.FC = () => {
   const handleSelectTemplate = useCallback(
     (template: WorkoutTemplate) => {
       closeModal();
-      // Open add workout modal with the selected template
-      openAddWorkout(template);
+      // Start workout with the selected template and navigate to ActiveWorkout
+      startWorkout(template);
+      navigation.navigate('Workouts', {
+        screen: 'ActiveWorkout',
+        params: { templateId: template.id },
+      });
     },
-    [closeModal, openAddWorkout]
+    [closeModal, startWorkout, navigation]
   );
 
   const handleConfirmDialogConfirm = useCallback(async () => {
@@ -151,16 +138,6 @@ const GlobalModals: React.FC = () => {
 
   return (
     <>
-      {/* Add Workout Modal */}
-      <AddWorkoutModal
-        visible={activeModal === 'addWorkout'}
-        onClose={closeModal}
-        onSave={handleAddWorkout}
-        date={date}
-        userId={user.id}
-        initialTemplate={selectedTemplate}
-      />
-
       {/* Edit Workout Modal */}
       <EditWorkoutModal
         visible={activeModal === 'editWorkout'}

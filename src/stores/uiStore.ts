@@ -9,7 +9,6 @@ import { create } from 'zustand';
 import { WorkoutLog, Meal, WorkoutTemplate } from '../types';
 
 export type ModalType =
-  | 'addWorkout'
   | 'editWorkout'
   | 'addMeal'
   | 'editMeal'
@@ -37,7 +36,6 @@ interface UIState {
   // Modal data
   editWorkoutData: WorkoutLog | null;
   editMealData: Meal | null;
-  selectedTemplate: WorkoutTemplate | null;
   confirmDialogConfig: ConfirmDialogConfig | null;
 
   // Current date context (for modals that need it)
@@ -56,7 +54,6 @@ interface UIState {
   closeAllModals: () => void;
 
   // Actions - Workout Modals
-  openAddWorkout: (template?: WorkoutTemplate | null) => void;
   openEditWorkout: (workout: WorkoutLog) => void;
   openTemplatePicker: () => void;
 
@@ -97,7 +94,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   activeModal: null,
   editWorkoutData: null,
   editMealData: null,
-  selectedTemplate: null,
   confirmDialogConfig: null,
   currentDate: new Date().toISOString().split('T')[0],
   selectedWorkoutId: null,
@@ -110,7 +106,6 @@ export const useUIStore = create<UIState>((set, get) => ({
       activeModal: null,
       editWorkoutData: null,
       editMealData: null,
-      selectedTemplate: null,
       confirmDialogConfig: null,
     });
   },
@@ -120,25 +115,15 @@ export const useUIStore = create<UIState>((set, get) => ({
       activeModal: null,
       editWorkoutData: null,
       editMealData: null,
-      selectedTemplate: null,
       confirmDialogConfig: null,
     });
   },
 
   // Workout Modals
-  openAddWorkout: (template = null) => {
-    set({
-      activeModal: 'addWorkout',
-      selectedTemplate: template,
-      editWorkoutData: null,
-    });
-  },
-
   openEditWorkout: (workout) => {
     set({
       activeModal: 'editWorkout',
       editWorkoutData: workout,
-      selectedTemplate: null,
     });
   },
 

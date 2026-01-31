@@ -8,3 +8,9 @@ export { useUIStore, type ModalType, type ConfirmDialogConfig } from './uiStore'
 export { useWorkoutStore } from './workoutStore';
 export { useNutritionStore } from './nutritionStore';
 export { useDailyTrackingStore } from './dailyTrackingStore';
+export {
+  useActiveWorkoutStore,
+  type ActiveSetLog,
+  type ActiveExerciseLog,
+  type ExerciseHistoryData,
+} from './activeWorkoutStore';

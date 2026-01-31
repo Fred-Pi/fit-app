@@ -51,9 +51,7 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
   const user = useUserStore((s) => s.user);
 
   // UI Store
-  const openAddWorkout = useUIStore((s) => s.openAddWorkout);
   const openEditWorkout = useUIStore((s) => s.openEditWorkout);
-  const openTemplatePicker = useUIStore((s) => s.openTemplatePicker);
   const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
   const selectedWorkoutIds = useUIStore((s) => s.selectedWorkoutIds);
   const toggleWorkoutSelection = useUIStore((s) => s.toggleWorkoutSelection);
@@ -263,15 +261,7 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
               label: 'New Workout',
               onPress: () => {
                 lightHaptic();
-                openAddWorkout();
-              },
-            },
-            {
-              icon: 'document-text',
-              label: 'From Template',
-              onPress: () => {
-                lightHaptic();
-                openTemplatePicker();
+                navigation.navigate('QuickStart');
               },
             },
             {
