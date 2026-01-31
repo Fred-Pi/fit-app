@@ -6,7 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RootNavigator from './src/navigation/RootNavigator';
-import OnboardingScreen from './src/screens/OnboardingScreen';
+import { OnboardingWizard, OnboardingData } from './src/screens/onboarding';
 import { ThemeProvider } from './src/utils/ThemeContext';
 import { initializeDatabase, migrateFromAsyncStorage } from './src/services/database';
 import { useUserStore, useAuthStore } from './src/stores';
@@ -71,20 +71,23 @@ export default function App() {
     };
   }, [initializeUser, initializeAuth]);
 
-  const handleOnboardingComplete = async (userData: {
-    name: string;
-    dailyCalorieTarget: number;
-    dailyStepGoal: number;
-  }) => {
+  const handleOnboardingComplete = async (userData: OnboardingData) => {
     try {
-      // Save onboarding completion
+      // Save onboarding completion flag
       await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
 
-      // Update user profile with onboarding data
+      // Update user profile with all onboarding data
       await updateUser({
         name: userData.name,
+        age: userData.age,
+        height: userData.height,
+        heightUnit: userData.heightUnit,
+        weight: userData.weight,
+        bmi: userData.bmi,
         dailyCalorieTarget: userData.dailyCalorieTarget,
         dailyStepGoal: userData.dailyStepGoal,
+        preferredWeightUnit: userData.weightUnit,
+        onboardingCompleted: new Date().toISOString(),
       });
 
       // Fade out and switch
@@ -140,7 +143,7 @@ export default function App() {
           <ThemeProvider>
             <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
               {shouldShowOnboarding ? (
-                <OnboardingScreen onComplete={handleOnboardingComplete} />
+                <OnboardingWizard onComplete={handleOnboardingComplete} />
               ) : (
                 <RootNavigator />
               )}

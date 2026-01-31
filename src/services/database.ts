@@ -22,7 +22,7 @@ import {
 } from '../types';
 
 const DATABASE_NAME = 'fitapp.db';
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 // Check if we're on a platform that supports SQLite
 const isNativePlatform = Platform.OS !== 'web';
@@ -85,10 +85,16 @@ export const initializeDatabase = async (): Promise<void> => {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT,
+      age INTEGER,
+      height REAL,
+      height_unit TEXT DEFAULT 'cm' CHECK(height_unit IN ('cm', 'ft')),
+      weight REAL,
+      bmi REAL,
       daily_calorie_target INTEGER DEFAULT 2200,
       daily_step_goal INTEGER DEFAULT 10000,
       preferred_weight_unit TEXT DEFAULT 'lbs' CHECK(preferred_weight_unit IN ('kg', 'lbs')),
       goal_weight REAL,
+      onboarding_completed TEXT,
       created TEXT NOT NULL
     );
 
@@ -281,6 +287,49 @@ export const initializeDatabase = async (): Promise<void> => {
     CREATE INDEX IF NOT EXISTS idx_sync_queue_pending ON sync_queue(processed_at) WHERE processed_at IS NULL;
     CREATE INDEX IF NOT EXISTS idx_sync_queue_table ON sync_queue(table_name, record_id);
   `);
+
+  // Run schema migrations for existing databases
+  await runSchemaMigrations(db);
+};
+
+/**
+ * Run schema migrations for existing databases
+ */
+const runSchemaMigrations = async (db: SQLite.SQLiteDatabase): Promise<void> => {
+  const currentVersion = await getSchemaVersion();
+
+  // Migration to version 2: Add onboarding fields to users table
+  if (currentVersion < 2) {
+    try {
+      // Check if columns exist before adding (SQLite doesn't support IF NOT EXISTS for ALTER TABLE)
+      const tableInfo = await db.getAllAsync<{ name: string }>('PRAGMA table_info(users)');
+      const existingColumns = tableInfo.map(col => col.name);
+
+      if (!existingColumns.includes('age')) {
+        await db.runAsync('ALTER TABLE users ADD COLUMN age INTEGER');
+      }
+      if (!existingColumns.includes('height')) {
+        await db.runAsync('ALTER TABLE users ADD COLUMN height REAL');
+      }
+      if (!existingColumns.includes('height_unit')) {
+        await db.runAsync("ALTER TABLE users ADD COLUMN height_unit TEXT DEFAULT 'cm'");
+      }
+      if (!existingColumns.includes('weight')) {
+        await db.runAsync('ALTER TABLE users ADD COLUMN weight REAL');
+      }
+      if (!existingColumns.includes('bmi')) {
+        await db.runAsync('ALTER TABLE users ADD COLUMN bmi REAL');
+      }
+      if (!existingColumns.includes('onboarding_completed')) {
+        await db.runAsync('ALTER TABLE users ADD COLUMN onboarding_completed TEXT');
+      }
+
+      await setSchemaVersion(2);
+      console.log('Schema migrated to version 2');
+    } catch (error) {
+      console.error('Schema migration to version 2 failed:', error);
+    }
+  }
 };
 
 /**

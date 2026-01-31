@@ -4,10 +4,16 @@ export interface User {
   id: string;
   name: string;
   email?: string;
+  age?: number;
+  height?: number; // stored in cm
+  heightUnit?: 'cm' | 'ft';
+  weight?: number; // stored in kg (initial weight from onboarding)
+  bmi?: number;
   dailyCalorieTarget: number;
   dailyStepGoal: number;
   preferredWeightUnit: 'kg' | 'lbs';
   goalWeight?: number; // in user's preferred unit
+  onboardingCompleted?: string; // ISO date string when onboarding was finished
   created: string; // ISO date string
 }
 
