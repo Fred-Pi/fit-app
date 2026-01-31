@@ -338,6 +338,8 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    // @ts-ignore - web specific
+    overflow: 'auto',
   },
   scrollContent: {
     padding: spacing.xl,
