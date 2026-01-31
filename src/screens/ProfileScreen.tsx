@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
 import SyncStatus from '../components/SyncStatus';
+import CollapsibleSection from '../components/CollapsibleSection';
 import { clearAllData, getWorkouts, getNutrition, getSteps, getWeights } from '../services/storage';
 import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import { warningHaptic, successHaptic, lightHaptic } from '../utils/haptics';
@@ -408,23 +409,20 @@ const ProfileScreen = () => {
       </GlassCard>
 
       {/* Workout Templates */}
-      <GlassCard accent="cyan" glowIntensity="subtle">
-        <View style={styles.cardHeader}>
-          <View style={styles.cardIconWrapper}>
-            <LinearGradient
-              colors={[colors.cyanLight, colors.cyan]}
-              style={styles.iconGradient}
-            >
-              <Ionicons name="document-text" size={20} color={colors.text} />
-            </LinearGradient>
-          </View>
-          <Text style={styles.cardTitle}>Workout Templates</Text>
-        </View>
+      <CollapsibleSection
+        title="Workout Templates"
+        icon="document-text-outline"
+        iconColor={colors.cyan}
+        headerRight={
+          templates.length > 0 ? (
+            <Text style={styles.headerBadge}>
+              {templates.length}
+            </Text>
+          ) : undefined
+        }
+      >
         {templates.length > 0 ? (
           <>
-            <Text style={styles.templatesCount}>
-              {templates.length} {templates.length === 1 ? 'template' : 'templates'} saved
-            </Text>
             {templates.map((template) => (
               <View key={template.id} style={styles.templateItem}>
                 <View style={styles.templateInfo}>
@@ -451,7 +449,7 @@ const ProfileScreen = () => {
             </Text>
           </View>
         )}
-      </GlassCard>
+      </CollapsibleSection>
 
       {/* Your Data */}
       <GlassCard accent="emerald" glowIntensity="subtle">
@@ -479,18 +477,12 @@ const ProfileScreen = () => {
       </GlassCard>
 
       {/* Danger Zone */}
-      <GlassCard accent="rose" glowIntensity="subtle">
-        <View style={styles.cardHeader}>
-          <View style={styles.cardIconWrapper}>
-            <LinearGradient
-              colors={[colors.errorMuted, colors.error]}
-              style={styles.iconGradient}
-            >
-              <Ionicons name="warning" size={20} color={colors.text} />
-            </LinearGradient>
-          </View>
-          <Text style={styles.cardTitle}>Delete Data</Text>
-        </View>
+      <CollapsibleSection
+        title="Delete Data"
+        icon="warning-outline"
+        iconColor={colors.error}
+        defaultExpanded={false}
+      >
         <Text style={styles.dangerSubtitle}>
           Choose what data to delete. This cannot be undone.
         </Text>
@@ -564,7 +556,7 @@ const ProfileScreen = () => {
           variant="danger"
           fullWidth
         />
-      </GlassCard>
+      </CollapsibleSection>
     </ScrollView>
   );
 };
@@ -785,6 +777,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: spacing.lg,
+  },
+  headerBadge: {
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.semibold,
+    color: colors.textSecondary,
+    backgroundColor: glass.backgroundLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+    overflow: 'hidden',
   },
 });
 

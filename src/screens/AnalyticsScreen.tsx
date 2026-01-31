@@ -27,6 +27,7 @@ import Card from '../components/Card';
 import SearchBar from '../components/SearchBar';
 import FilterChip from '../components/FilterChip';
 import DataTable from '../components/DataTable';
+import CollapsibleSection from '../components/CollapsibleSection';
 import WeeklyStatsCard from '../components/WeeklyStatsCard';
 import StreakCard from '../components/StreakCard';
 import WorkoutSuggestionsCard from '../components/WorkoutSuggestionsCard';
@@ -435,21 +436,27 @@ const AnalyticsScreen = () => {
 
             {/* Weight Progress */}
             {recentWeights.length > 0 && (
-              <View style={styles.weightSection}>
-                <Text style={styles.sectionTitle}>Weight Progress</Text>
-                <View style={styles.weightCard}>
+              <CollapsibleSection
+                title="Weight Progress"
+                icon="scale-outline"
+                iconColor={colors.primary}
+              >
+                <View style={styles.weightCardContent}>
                   <WeightChart
                     weights={recentWeights}
                     unit={todayWeight?.unit || user?.preferredWeightUnit || 'lbs'}
                     goalWeight={user?.goalWeight}
                   />
                 </View>
-              </View>
+              </CollapsibleSection>
             )}
 
             {/* Quick Stats */}
-            <View style={styles.quickStatsSection}>
-              <Text style={styles.sectionTitle}>Quick Stats</Text>
+            <CollapsibleSection
+              title="Quick Stats"
+              icon="flash-outline"
+              iconColor={colors.gold}
+            >
               <View style={styles.quickStatsGrid}>
                 <View style={styles.quickStatItem}>
                   <Text style={styles.quickStatValue}>{allWorkouts.length}</Text>
@@ -460,7 +467,7 @@ const AnalyticsScreen = () => {
                   <Text style={styles.quickStatLabel}>Personal Records</Text>
                 </View>
               </View>
-            </View>
+            </CollapsibleSection>
           </>
         )}
 
@@ -497,21 +504,36 @@ const AnalyticsScreen = () => {
             ) : (
               <>
                 {/* Training Volume Chart */}
-                <TrainingVolumeChart
-                  volumeData={volumeData}
-                  stats={volumeStats}
-                  unit={user?.preferredWeightUnit || 'kg'}
-                />
+                <CollapsibleSection
+                  title="Training Volume"
+                  icon="trending-up-outline"
+                  iconColor={colors.primary}
+                >
+                  <TrainingVolumeChart
+                    volumeData={volumeData}
+                    stats={volumeStats}
+                    unit={user?.preferredWeightUnit || 'kg'}
+                  />
+                </CollapsibleSection>
 
                 {/* Workout Frequency Chart */}
-                <WorkoutFrequencyChart
-                  frequencyData={frequencyData}
-                  stats={frequencyStats}
-                />
+                <CollapsibleSection
+                  title="Workout Frequency"
+                  icon="calendar-outline"
+                  iconColor={colors.success}
+                >
+                  <WorkoutFrequencyChart
+                    frequencyData={frequencyData}
+                    stats={frequencyStats}
+                  />
+                </CollapsibleSection>
 
                 {/* Summary Stats */}
-                <View style={styles.summaryCard}>
-                  <Text style={styles.summaryTitle}>Period Summary</Text>
+                <CollapsibleSection
+                  title="Period Summary"
+                  icon="stats-chart-outline"
+                  iconColor={colors.analytics}
+                >
                   <View style={styles.summaryGrid}>
                     <View style={styles.summaryItem}>
                       <Text style={styles.summaryValue}>{workouts.length}</Text>
@@ -543,7 +565,7 @@ const AnalyticsScreen = () => {
                       <Text style={styles.summaryLabel}>Total Time</Text>
                     </View>
                   </View>
-                </View>
+                </CollapsibleSection>
               </>
             )}
           </>
@@ -764,13 +786,25 @@ const AnalyticsScreen = () => {
             </View>
 
             {/* Exercise Progression Chart */}
-            <ExerciseProgressionChart
-              workouts={workouts}
-              unit={user?.preferredWeightUnit || 'kg'}
-            />
+            <CollapsibleSection
+              title="Exercise Progression"
+              icon="trending-up-outline"
+              iconColor={colors.primary}
+            >
+              <ExerciseProgressionChart
+                workouts={workouts}
+                unit={user?.preferredWeightUnit || 'kg'}
+              />
+            </CollapsibleSection>
 
             {/* 1RM Calculator & Strength Standards */}
-            <StrengthCalculator user={user} />
+            <CollapsibleSection
+              title="Strength Calculator"
+              icon="calculator-outline"
+              iconColor={colors.analytics}
+            >
+              <StrengthCalculator user={user} />
+            </CollapsibleSection>
           </>
         )}
 
@@ -790,7 +824,13 @@ const AnalyticsScreen = () => {
             </View>
 
             {/* Muscle Group Heatmap */}
-            <MuscleGroupHeatmap data={muscleData} />
+            <CollapsibleSection
+              title="Muscle Group Heatmap"
+              icon="body-outline"
+              iconColor={colors.success}
+            >
+              <MuscleGroupHeatmap data={muscleData} />
+            </CollapsibleSection>
           </>
         )}
       </ScrollView>
@@ -892,20 +932,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
-  },
-  summaryCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: colors.surfaceElevated,
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 16,
   },
   summaryGrid: {
     flexDirection: 'row',
@@ -1095,18 +1121,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginTop: 8,
   },
-  weightSection: {
-    marginTop: 16,
-  },
-  weightCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.surfaceElevated,
-  },
-  quickStatsSection: {
-    marginTop: 24,
+  weightCardContent: {
+    // Content inside CollapsibleSection doesn't need extra styling
   },
   quickStatsGrid: {
     flexDirection: 'row',
