@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import {
   Text,
   StyleSheet,
@@ -116,7 +116,7 @@ const GlassButton: React.FC<GlassButtonProps> = ({
 }) => {
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;
-  const [isHovered, setIsHovered] = useState(false);
+  const hoverAnim = useRef(new Animated.Value(0)).current;
 
   const config = variantConfig[variant];
   const sizeStyles = sizeConfig[size];
@@ -168,6 +168,24 @@ const GlassButton: React.FC<GlassButtonProps> = ({
     onPress();
   };
 
+  const handleHoverIn = () => {
+    if (Platform.OS !== 'web' || disabled) return;
+    Animated.timing(hoverAnim, {
+      toValue: 1,
+      duration: 150,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handleHoverOut = () => {
+    if (Platform.OS !== 'web') return;
+    Animated.timing(hoverAnim, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: false,
+    }).start();
+  };
+
   const renderContent = () => (
     <View
       style={[
@@ -204,9 +222,33 @@ const GlassButton: React.FC<GlassButtonProps> = ({
   );
 
   const webHoverProps = Platform.OS === 'web' ? {
-    onMouseEnter: () => setIsHovered(true),
-    onMouseLeave: () => setIsHovered(false),
+    onMouseEnter: handleHoverIn,
+    onMouseLeave: handleHoverOut,
   } : {};
+
+  // Animated hover styles for smooth transitions
+  const animatedHoverStyle = Platform.OS === 'web' && !disabled ? {
+    transform: [
+      { scale: Animated.multiply(scale, hoverAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 1.02],
+      })) },
+      { translateY: hoverAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, -1],
+      })},
+    ],
+    shadowOpacity: hoverAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [glowColor ? 0.2 : 0, 0.4],
+    }),
+    shadowRadius: hoverAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [glowColor ? 8 : 0, 16],
+    }),
+    shadowColor: glowColor || colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+  } : { transform: [{ scale }] };
 
   return (
     <Pressable
@@ -222,10 +264,10 @@ const GlassButton: React.FC<GlassButtonProps> = ({
     >
       <Animated.View
         style={[
-          { transform: [{ scale }], opacity },
+          animatedHoverStyle,
+          { opacity },
           fullWidth && styles.fullWidth,
-          glowColor && !disabled && shadows.glow(glowColor, 0.2),
-          isHovered && !disabled && styles.hovered,
+          glowColor && !disabled && Platform.OS !== 'web' && shadows.glow(glowColor, 0.2),
           style,
         ]}
       >
@@ -290,18 +332,6 @@ const styles = StyleSheet.create({
   loadingDot: {
     fontSize: typography.size.lg,
     fontWeight: typography.weight.bold,
-  },
-  hovered: {
-    ...Platform.select({
-      web: {
-        transform: [{ scale: 1.02 }],
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-      },
-      default: {},
-    }),
   },
 });
 

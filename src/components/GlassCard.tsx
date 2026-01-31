@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   StyleSheet,
@@ -55,7 +55,7 @@ const GlassCard: React.FC<GlassCardProps> = ({
   animated = true,
 }) => {
   const scale = React.useRef(new Animated.Value(1)).current;
-  const [isHovered, setIsHovered] = useState(false);
+  const hoverAnim = React.useRef(new Animated.Value(0)).current;
 
   const handlePressIn = () => {
     if (!onPress || !animated) return;
@@ -74,6 +74,24 @@ const GlassCard: React.FC<GlassCardProps> = ({
       useNativeDriver: true,
       damping: 15,
       stiffness: 300,
+    }).start();
+  };
+
+  const handleHoverIn = () => {
+    if (Platform.OS !== 'web') return;
+    Animated.timing(hoverAnim, {
+      toValue: 1,
+      duration: 150,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handleHoverOut = () => {
+    if (Platform.OS !== 'web') return;
+    Animated.timing(hoverAnim, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: false,
     }).start();
   };
 
@@ -114,9 +132,30 @@ const GlassCard: React.FC<GlassCardProps> = ({
 
   if (onPress) {
     const webHoverProps = Platform.OS === 'web' ? {
-      onMouseEnter: () => setIsHovered(true),
-      onMouseLeave: () => setIsHovered(false),
+      onMouseEnter: handleHoverIn,
+      onMouseLeave: handleHoverOut,
     } : {};
+
+    // Animated hover styles for smooth transitions
+    const animatedHoverStyle = Platform.OS === 'web' ? {
+      transform: [
+        { scale },
+        { translateY: hoverAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -2],
+        })},
+      ],
+      shadowOpacity: hoverAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 0.25],
+      }),
+      shadowRadius: hoverAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 16],
+      }),
+      shadowColor: accentConfig?.primary || colors.primary,
+      shadowOffset: { width: 0, height: 8 },
+    } : { transform: [{ scale }] };
 
     return (
       <Pressable
@@ -126,10 +165,7 @@ const GlassCard: React.FC<GlassCardProps> = ({
         style={Platform.OS === 'web' ? { cursor: 'pointer' } as any : undefined}
         {...webHoverProps}
       >
-        <Animated.View style={[
-          { transform: [{ scale }] },
-          isHovered && styles.hovered,
-        ]}>
+        <Animated.View style={animatedHoverStyle}>
           {cardContent}
         </Animated.View>
       </Pressable>
@@ -168,18 +204,6 @@ const styles = StyleSheet.create({
   content: {
     position: 'relative',
     zIndex: 1,
-  },
-  hovered: {
-    ...Platform.select({
-      web: {
-        transform: [{ scale: 1.01 }],
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      },
-      default: {},
-    }),
   },
 });
 
