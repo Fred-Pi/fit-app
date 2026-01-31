@@ -462,13 +462,14 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
               />
             )}
 
-            <View style={[modalStyles.row, { marginTop: spacing.lg }]}>
-              <View style={modalStyles.rowItem}>
-                <Text style={modalStyles.label}>Sets</Text>
+            {/* Large touch-friendly number inputs */}
+            <View style={styles.numberInputRow}>
+              <View style={styles.numberInputItem}>
+                <Text style={styles.numberInputLabel}>Sets</Text>
                 <TextInput
                   style={[
-                    modalStyles.input,
-                    focusedField === 'sets' && modalStyles.inputFocused,
+                    styles.numberInput,
+                    focusedField === 'sets' && styles.numberInputFocused,
                   ]}
                   placeholder="3"
                   placeholderTextColor={placeholderColor}
@@ -477,15 +478,19 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
                   onFocus={() => setFocusedField('sets')}
                   onBlur={() => setFocusedField(null)}
                   keyboardType="number-pad"
+                  textAlign="center"
+                  maxLength={2}
                 />
               </View>
 
-              <View style={modalStyles.rowItem}>
-                <Text style={modalStyles.label}>Reps</Text>
+              <Text style={styles.numberInputSeparator}>×</Text>
+
+              <View style={styles.numberInputItem}>
+                <Text style={styles.numberInputLabel}>Reps</Text>
                 <TextInput
                   style={[
-                    modalStyles.input,
-                    focusedField === 'reps' && modalStyles.inputFocused,
+                    styles.numberInput,
+                    focusedField === 'reps' && styles.numberInputFocused,
                   ]}
                   placeholder="10"
                   placeholderTextColor={placeholderColor}
@@ -494,15 +499,19 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
                   onFocus={() => setFocusedField('reps')}
                   onBlur={() => setFocusedField(null)}
                   keyboardType="number-pad"
+                  textAlign="center"
+                  maxLength={3}
                 />
               </View>
 
-              <View style={modalStyles.rowItem}>
-                <Text style={modalStyles.label}>Weight ({weightUnit})</Text>
+              <Text style={styles.numberInputSeparator}>@</Text>
+
+              <View style={[styles.numberInputItem, { flex: 1.5 }]}>
+                <Text style={styles.numberInputLabel}>{weightUnit}</Text>
                 <TextInput
                   style={[
-                    modalStyles.input,
-                    focusedField === 'weight' && modalStyles.inputFocused,
+                    styles.numberInput,
+                    focusedField === 'weight' && styles.numberInputFocused,
                   ]}
                   placeholder="0"
                   placeholderTextColor={placeholderColor}
@@ -511,6 +520,8 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
                   onFocus={() => setFocusedField('weight')}
                   onBlur={() => setFocusedField(null)}
                   keyboardType="number-pad"
+                  textAlign="center"
+                  maxLength={4}
                 />
               </View>
             </View>
@@ -676,6 +687,47 @@ const styles = StyleSheet.create({
   },
   saveTemplateContainer: {
     marginBottom: spacing.xl,
+  },
+  // Large gym-friendly number inputs
+  numberInputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+  },
+  numberInputItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  numberInputLabel: {
+    fontSize: typography.size.xs,
+    fontWeight: typography.weight.semibold,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  numberInput: {
+    width: '100%',
+    height: 56,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    fontSize: typography.size['2xl'],
+    fontWeight: typography.weight.bold,
+    color: colors.text,
+    paddingHorizontal: spacing.md,
+  },
+  numberInputFocused: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryMuted,
+  },
+  numberInputSeparator: {
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.medium,
+    color: colors.textTertiary,
+    marginBottom: spacing.lg,
   },
 });
 
