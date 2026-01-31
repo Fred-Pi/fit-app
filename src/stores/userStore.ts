@@ -20,6 +20,41 @@ import { useAuthStore } from './authStore';
 const WELCOME_SHOWN_KEY = '@fittrack:lastWelcomeShown';
 const NAME_SET_KEY_PREFIX = '@fittrack:nameSet:';
 
+/**
+ * Extract user name from OAuth metadata
+ * Different providers use different field names
+ */
+const extractNameFromMetadata = (metadata: Record<string, unknown> | undefined): string | null => {
+  if (!metadata) return null;
+
+  // Try various name fields used by OAuth providers
+  const nameFields = [
+    'name',           // Standard field
+    'full_name',      // Google OAuth
+    'user_name',      // Some providers
+    'display_name',   // Some providers
+  ];
+
+  for (const field of nameFields) {
+    const value = metadata[field];
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+
+  // Try combining given_name + family_name (Apple, some providers)
+  const givenName = metadata['given_name'];
+  const familyName = metadata['family_name'];
+  if (typeof givenName === 'string' && givenName.trim()) {
+    const fullName = familyName && typeof familyName === 'string'
+      ? `${givenName.trim()} ${familyName.trim()}`
+      : givenName.trim();
+    return fullName;
+  }
+
+  return null;
+};
+
 interface UserState {
   // State
   user: User | null;
@@ -70,10 +105,15 @@ export const useUserStore = create<UserState>((set, get) => ({
 
       // If Supabase is configured and user is authenticated, sync with Supabase profile
       if (isSupabaseConfigured && authUser) {
+        // Extract name from OAuth metadata, local user, or mark as needing prompt
+        const oauthName = extractNameFromMetadata(authUser.user_metadata);
+        const existingName = user.name && user.name !== 'User' ? user.name : null;
+        const userName = oauthName || existingName || 'User';
+
         // Fetch or create profile in Supabase
         const profile = await ensureProfile(
           authUser.id,
-          authUser.user_metadata?.name || user.name || 'User',
+          userName,
           authUser.email
         );
 

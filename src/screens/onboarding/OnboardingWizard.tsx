@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   Animated,
   ScrollView,
@@ -10,17 +11,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassButton from '../../components/GlassButton';
 import StepIndicator from './components/StepIndicator';
-import WelcomeStep from './steps/WelcomeStep';
 import BodyMetricsStep from './steps/BodyMetricsStep';
 import GoalsStep from './steps/GoalsStep';
 import SummaryStep from './steps/SummaryStep';
 import LoadingStep from './steps/LoadingStep';
-import { colors, spacing } from '../../utils/theme';
+import { colors, spacing, typography } from '../../utils/theme';
 import { getBMIResult, BMIResult } from '../../utils/bmiCalculator';
 import { lightHaptic, successHaptic } from '../../utils/haptics';
+import { useUserStore } from '../../stores';
 
 export interface OnboardingData {
-  name: string;
   age: number;
   height: number; // in cm
   heightUnit: 'cm' | 'ft';
@@ -35,17 +35,20 @@ interface OnboardingWizardProps {
   onComplete: (data: OnboardingData) => void;
 }
 
-const TOTAL_STEPS = 4; // Welcome, Body, Goals, Summary (Loading is separate)
+const TOTAL_STEPS = 3; // Body Metrics, Goals, Summary (Loading is separate)
 
 const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
   const insets = useSafeAreaInsets();
+  const { user } = useUserStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
 
+  // Get user's name from signup (already collected during registration)
+  const userName = user?.name && user.name !== 'User' ? user.name : '';
+
   // Form state
-  const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [heightCm, setHeightCm] = useState(0);
   const [heightUnit, setHeightUnit] = useState<'cm' | 'ft'>('cm');
@@ -56,7 +59,6 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
 
   // Validation errors
   const [errors, setErrors] = useState<{
-    name?: string;
     age?: string;
     height?: string;
     weight?: string;
@@ -106,15 +108,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
     const newErrors: typeof errors = {};
 
     switch (step) {
-      case 0: // Welcome - Name
-        if (!name.trim()) {
-          newErrors.name = 'Please enter your name';
-        } else if (name.trim().length < 2) {
-          newErrors.name = 'Name must be at least 2 characters';
-        }
-        break;
-
-      case 1: // Body Metrics
+      case 0: // Body Metrics
         const ageNum = parseInt(age);
         if (!age || isNaN(ageNum)) {
           newErrors.age = 'Please enter your age';
@@ -135,7 +129,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
         }
         break;
 
-      case 2: // Goals
+      case 1: // Goals
         const calories = parseInt(calorieTarget);
         if (!calorieTarget || isNaN(calories)) {
           newErrors.calories = 'Please enter a calorie target';
@@ -194,7 +188,6 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
 
   const handleLoadingComplete = useCallback(() => {
     const data: OnboardingData = {
-      name: name.trim(),
       age: parseInt(age),
       height: heightCm,
       heightUnit,
@@ -205,7 +198,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
       dailyStepGoal: parseInt(stepGoal),
     };
     onComplete(data);
-  }, [name, age, heightCm, heightUnit, weightKg, weightUnit, bmiResult, calorieTarget, stepGoal, onComplete]);
+  }, [age, heightCm, heightUnit, weightKg, weightUnit, bmiResult, calorieTarget, stepGoal, onComplete]);
 
   const renderStep = () => {
     if (isLoading) {
@@ -214,14 +207,6 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
 
     switch (currentStep) {
       case 0:
-        return (
-          <WelcomeStep
-            name={name}
-            onNameChange={setName}
-            error={errors.name}
-          />
-        );
-      case 1:
         return (
           <BodyMetricsStep
             age={age}
@@ -241,7 +226,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
             }}
           />
         );
-      case 2:
+      case 1:
         return (
           <GoalsStep
             calorieTarget={calorieTarget}
@@ -254,10 +239,10 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
             }}
           />
         );
-      case 3:
+      case 2:
         return (
           <SummaryStep
-            name={name.trim()}
+            name={userName}
             age={parseInt(age)}
             heightCm={heightCm}
             heightUnit={heightUnit}
@@ -288,6 +273,15 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
       {/* Decorative elements */}
       <View style={styles.decorCircle1} />
       <View style={styles.decorCircle2} />
+
+      {/* Personalized greeting header */}
+      {!isLoading && (
+        <View style={styles.greetingContainer}>
+          <Text style={styles.greetingText}>
+            {userName ? `Let's set up your profile, ${userName}!` : "Let's set up your profile!"}
+          </Text>
+        </View>
+      )}
 
       {/* Content */}
       <ScrollView
@@ -345,6 +339,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  greetingContainer: {
+    paddingHorizontal: spacing['2xl'],
+    paddingTop: spacing.xl,
+    maxWidth: 500,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  greetingText: {
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.semibold,
+    color: colors.text,
+    textAlign: 'center',
   },
   scrollView: {
     flex: 1,

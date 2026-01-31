@@ -38,17 +38,16 @@ const SummaryStep: React.FC<SummaryStepProps> = ({
   };
 
   const summaryItems = [
-    { label: 'Name', value: name, step: 0, icon: 'person-outline' as const },
-    { label: 'Age', value: `${age} years`, step: 1, icon: 'calendar-outline' as const },
-    { label: 'Height', value: formatHeight(heightCm, heightUnit), step: 1, icon: 'resize-outline' as const },
-    { label: 'Weight', value: formatWeight(weightKg, weightUnit), step: 1, icon: 'scale-outline' as const },
-    { label: 'Daily Calories', value: `${calorieTarget.toLocaleString()} kcal`, step: 2, icon: 'flame-outline' as const },
-    { label: 'Daily Steps', value: `${stepGoal.toLocaleString()} steps`, step: 2, icon: 'footsteps-outline' as const },
+    { label: 'Age', value: `${age} years`, step: 0, icon: 'calendar-outline' as const },
+    { label: 'Height', value: formatHeight(heightCm, heightUnit), step: 0, icon: 'resize-outline' as const },
+    { label: 'Weight', value: formatWeight(weightKg, weightUnit), step: 0, icon: 'scale-outline' as const },
+    { label: 'Daily Calories', value: `${calorieTarget.toLocaleString()} kcal`, step: 1, icon: 'flame-outline' as const },
+    { label: 'Daily Steps', value: `${stepGoal.toLocaleString()} steps`, step: 1, icon: 'footsteps-outline' as const },
   ];
 
   return (
     <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.title}>Your Profile</Text>
+      <Text style={styles.title}>{name ? `${name}'s Profile` : 'Your Profile'}</Text>
       <Text style={styles.subtitle}>Review your information</Text>
 
       <View style={styles.content}>

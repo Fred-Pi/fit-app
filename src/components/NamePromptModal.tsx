@@ -98,6 +98,7 @@ const NamePromptModal: React.FC<NamePromptModalProps> = ({
             </View>
 
             <Text style={styles.title}>What's your name?</Text>
+            <Text style={styles.subtitle}>We'll use this to personalize your experience</Text>
 
             <View style={styles.inputContainer}>
               <Ionicons name="person-outline" size={20} color={colors.textSecondary} />
@@ -179,8 +180,14 @@ const styles = StyleSheet.create({
     fontSize: typography.size['2xl'],
     fontWeight: typography.weight.bold,
     color: colors.text,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.sm,
     textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: typography.size.sm,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
   },
   inputContainer: {
     flexDirection: 'row',

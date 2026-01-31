@@ -76,9 +76,8 @@ export default function App() {
       // Save onboarding completion flag
       await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
 
-      // Update user profile with all onboarding data
+      // Update user profile with onboarding data (name already set during signup)
       await updateUser({
-        name: userData.name,
         age: userData.age,
         height: userData.height,
         heightUnit: userData.heightUnit,

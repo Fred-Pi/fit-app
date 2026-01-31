@@ -10,7 +10,6 @@ import {
   Alert,
   Pressable,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -85,17 +84,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Back button */}
+          <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </Pressable>
+
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <LinearGradient
-                colors={[colors.primary, colors.primaryHover]}
-                style={styles.logoGradient}
-              >
-                <Ionicons name="fitness" size={48} color={colors.text} />
-              </LinearGradient>
-            </View>
-            <Text style={styles.title}>Welcome to FitTrack</Text>
-            <Text style={styles.subtitle}>Sign in to start your fitness journey</Text>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>Sign in to continue your fitness journey</Text>
           </View>
 
           <GlassCard accent="blue" glowIntensity="subtle" padding="lg">
@@ -173,13 +169,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               disabled={oauthLoading || isLoading}
             />
           </View>
-
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
-            <Pressable onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.signupLink}>Sign Up</Text>
-            </Pressable>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -202,24 +191,24 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: spacing['2xl'],
-    paddingTop: spacing['3xl'],
+    paddingTop: spacing.lg,
     maxWidth: 500,
     alignSelf: 'center',
     width: '100%',
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: spacing['3xl'],
-  },
-  logoContainer: {
-    marginBottom: spacing.xl,
-  },
-  logoGradient: {
-    width: 100,
-    height: 100,
-    borderRadius: radius['2xl'],
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.lg,
+    backgroundColor: glass.backgroundLight,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: glass.border,
+    marginBottom: spacing.xl,
+  },
+  header: {
+    marginBottom: spacing['2xl'],
   },
   title: {
     fontSize: typography.size['3xl'],
@@ -230,7 +219,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: typography.size.base,
     color: colors.textSecondary,
-    textAlign: 'center',
   },
   inputGroup: {
     marginBottom: spacing.lg,
@@ -283,20 +271,6 @@ const styles = StyleSheet.create({
   },
   socialButtons: {
     gap: spacing.md,
-  },
-  signupContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: spacing['2xl'],
-  },
-  signupText: {
-    fontSize: typography.size.base,
-    color: colors.textSecondary,
-  },
-  signupLink: {
-    fontSize: typography.size.base,
-    color: colors.primary,
-    fontWeight: typography.weight.semibold,
   },
   footer: {
     paddingHorizontal: spacing['2xl'],

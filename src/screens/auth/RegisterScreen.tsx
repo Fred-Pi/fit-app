@@ -48,21 +48,39 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   };
 
   const handleRegister = async () => {
-    if (!name.trim()) {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Name validation
+    if (!trimmedName) {
       showAlert('Error', 'Please enter your name');
       return;
     }
-
-    if (!email.trim()) {
-      showAlert('Error', 'Please enter your email');
+    if (trimmedName.length < 2) {
+      showAlert('Error', 'Name must be at least 2 characters');
+      return;
+    }
+    if (trimmedName.length > 50) {
+      showAlert('Error', 'Name must be less than 50 characters');
       return;
     }
 
+    // Email validation
+    if (!trimmedEmail) {
+      showAlert('Error', 'Please enter your email');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      showAlert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    // Password validation
     if (password.length < 6) {
       showAlert('Error', 'Password must be at least 6 characters');
       return;
     }
-
     if (password !== confirmPassword) {
       showAlert('Error', 'Passwords do not match');
       return;
@@ -70,9 +88,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
     try {
       const { error, needsEmailVerification } = await signUpWithEmail(
-        email.trim(),
+        trimmedEmail,
         password,
-        name.trim()
+        trimmedName
       );
 
       if (error) {
