@@ -7,6 +7,8 @@ import {
   RefreshControl,
   TouchableOpacity,
   Alert,
+  Platform,
+  Pressable,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +26,7 @@ import { useMuscleGroupData } from '../hooks/useMuscleGroupData';
 import Card from '../components/Card';
 import SearchBar from '../components/SearchBar';
 import FilterChip from '../components/FilterChip';
+import DataTable from '../components/DataTable';
 import WeeklyStatsCard from '../components/WeeklyStatsCard';
 import StreakCard from '../components/StreakCard';
 import WorkoutSuggestionsCard from '../components/WorkoutSuggestionsCard';
@@ -44,6 +47,7 @@ type TabType = 'overview' | 'charts' | 'prs' | 'strength' | 'muscle'
 
 const AnalyticsScreen = () => {
   const { contentMaxWidth } = useResponsive();
+  const isWeb = Platform.OS === 'web';
   const date = getTodayDate();
   const [selectedRange, setSelectedRange] = useState<DateRangeKey>('3M');
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -617,13 +621,101 @@ const AnalyticsScreen = () => {
                         <Text style={styles.categoryTitle}>{category}</Text>
                         <Text style={styles.categoryCount}>({records.length})</Text>
                       </View>
-                      {records.map(pr => renderPRCard(pr))}
+                      {isWeb ? (
+                        <DataTable<PersonalRecord>
+                          columns={[
+                            { key: 'exerciseName', label: 'Exercise', minWidth: 180 },
+                            {
+                              key: 'weight',
+                              label: `Weight (${user?.preferredWeightUnit || 'kg'})`,
+                              align: 'right',
+                              width: 120,
+                              render: (pr) => (
+                                <Text style={styles.tableWeightText}>{pr.weight}</Text>
+                              ),
+                            },
+                            {
+                              key: 'reps',
+                              label: 'Reps',
+                              align: 'center',
+                              width: 80,
+                            },
+                            {
+                              key: 'date',
+                              label: 'Date',
+                              width: 140,
+                              render: (pr) => formatDate(pr.date),
+                            },
+                          ]}
+                          data={records}
+                          keyExtractor={(pr) => pr.id}
+                          defaultSortKey="weight"
+                          renderRowActions={(pr) => (
+                            <Pressable
+                              style={({ pressed }) => [
+                                styles.tableDeleteButton,
+                                pressed && styles.tableDeleteButtonPressed,
+                              ]}
+                              onPress={() => handleDeletePR(pr)}
+                            >
+                              <Ionicons name="trash-outline" size={16} color={colors.error} />
+                            </Pressable>
+                          )}
+                          renderMobileItem={(pr) => renderPRCard(pr)}
+                        />
+                      ) : (
+                        records.map(pr => renderPRCard(pr))
+                      )}
                     </View>
                   ))}
                 </>
               ) : (
                 filteredPRs.length > 0 ? (
-                  filteredPRs.map(pr => renderPRCard(pr))
+                  isWeb ? (
+                    <DataTable<PersonalRecord>
+                      columns={[
+                        { key: 'exerciseName', label: 'Exercise', minWidth: 180 },
+                        {
+                          key: 'weight',
+                          label: `Weight (${user?.preferredWeightUnit || 'kg'})`,
+                          align: 'right',
+                          width: 120,
+                          render: (pr) => (
+                            <Text style={styles.tableWeightText}>{pr.weight}</Text>
+                          ),
+                        },
+                        {
+                          key: 'reps',
+                          label: 'Reps',
+                          align: 'center',
+                          width: 80,
+                        },
+                        {
+                          key: 'date',
+                          label: 'Date',
+                          width: 140,
+                          render: (pr) => formatDate(pr.date),
+                        },
+                      ]}
+                      data={filteredPRs}
+                      keyExtractor={(pr) => pr.id}
+                      defaultSortKey="weight"
+                      renderRowActions={(pr) => (
+                        <Pressable
+                          style={({ pressed }) => [
+                            styles.tableDeleteButton,
+                            pressed && styles.tableDeleteButtonPressed,
+                          ]}
+                          onPress={() => handleDeletePR(pr)}
+                        >
+                          <Ionicons name="trash-outline" size={16} color={colors.error} />
+                        </Pressable>
+                      )}
+                      renderMobileItem={(pr) => renderPRCard(pr)}
+                    />
+                  ) : (
+                    filteredPRs.map(pr => renderPRCard(pr))
+                  )
                 ) : (
                   <View style={styles.emptyFilterState}>
                     <Ionicons name="search-outline" size={64} color="#A0A0A8" />
@@ -1039,6 +1131,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '500',
+  },
+  // Table styles for desktop
+  tableWeightText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.gold,
+  },
+  tableDeleteButton: {
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 94, 109, 0.1)',
+  },
+  tableDeleteButtonPressed: {
+    opacity: 0.7,
   },
 })
 
