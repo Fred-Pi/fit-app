@@ -45,6 +45,7 @@ interface UIState {
 
   // Desktop master-detail selection
   selectedWorkoutId: string | null;
+  selectedMealId: string | null;
 
   // Actions - Generic
   closeModal: () => void;
@@ -77,6 +78,7 @@ interface UIState {
 
   // Actions - Desktop Selection
   selectWorkout: (workoutId: string | null) => void;
+  selectMeal: (mealId: string | null) => void;
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
@@ -87,6 +89,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   confirmDialogConfig: null,
   currentDate: new Date().toISOString().split('T')[0],
   selectedWorkoutId: null,
+  selectedMealId: null,
 
   closeModal: () => {
     set({
@@ -189,5 +192,9 @@ export const useUIStore = create<UIState>((set, get) => ({
   // Desktop Selection
   selectWorkout: (workoutId) => {
     set({ selectedWorkoutId: workoutId });
+  },
+
+  selectMeal: (mealId) => {
+    set({ selectedMealId: mealId });
   },
 }));

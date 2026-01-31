@@ -7,6 +7,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import GlobalModals from '../components/GlobalModals';
 import { ResponsiveColumns } from '../components/ResponsiveGrid';
 import WorkoutDetailPanel from '../components/WorkoutDetailPanel';
+import MealDetailPanel from '../components/MealDetailPanel';
 import { useUIStore } from '../stores';
 
 // Screens
@@ -119,11 +120,35 @@ const ProgressSection: React.FC = () => {
   );
 };
 
-// Nutrition section
+// Nutrition section: Master-detail layout
 const NutritionSection: React.FC = () => {
+  const selectedMealId = useUIStore((s) => s.selectedMealId);
+  const selectMeal = useUIStore((s) => s.selectMeal);
+
   return (
-    <View style={styles.section}>
-      <NutritionScreen />
+    <View style={styles.masterDetailContainer}>
+      {/* Master: Meal List */}
+      <View style={styles.masterPanel}>
+        <NutritionScreen variant="list" onSelectMeal={selectMeal} selectedMealId={selectedMealId} />
+      </View>
+
+      {/* Detail: Selected Meal */}
+      <View style={styles.detailPanel}>
+        {selectedMealId ? (
+          <MealDetailPanel
+            mealId={selectedMealId}
+            onClose={() => selectMeal(null)}
+          />
+        ) : (
+          <View style={styles.emptyDetail}>
+            <Ionicons name="nutrition-outline" size={64} color={colors.textTertiary} />
+            <Text style={styles.emptyDetailTitle}>Select a meal</Text>
+            <Text style={styles.emptyDetailText}>
+              Click on a meal from the list to view its details
+            </Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 };

@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -27,7 +28,19 @@ import {
   useNutritionStore,
 } from '../stores';
 
-const NutritionScreen = () => {
+type NutritionVariant = 'full' | 'list';
+
+interface NutritionScreenProps {
+  variant?: NutritionVariant;
+  onSelectMeal?: (mealId: string | null) => void;
+  selectedMealId?: string | null;
+}
+
+const NutritionScreen: React.FC<NutritionScreenProps> = ({
+  variant = 'full',
+  onSelectMeal,
+  selectedMealId,
+}) => {
   const { contentMaxWidth } = useResponsive();
   const date = getTodayDate();
 
@@ -80,6 +93,93 @@ const NutritionScreen = () => {
       },
     });
   };
+
+  const handleMealPress = (meal: Meal) => {
+    if (onSelectMeal) {
+      // Desktop master-detail mode
+      onSelectMeal(meal.id);
+    } else {
+      // Mobile mode - open edit modal
+      openEditMeal(meal);
+    }
+  };
+
+  // List variant - compact meal list for master panel
+  if (variant === 'list') {
+    return (
+      <View style={styles.listContainer}>
+        {/* List Header */}
+        <View style={styles.listHeader}>
+          <View style={styles.listHeaderLeft}>
+            <Ionicons name="restaurant" size={20} color={colors.nutrition} />
+            <Text style={styles.listTitle}>Today's Meals</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.addButtonSmall}
+            onPress={() => openAddMeal()}
+          >
+            <Ionicons name="add" size={20} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Calorie Summary */}
+        <View style={styles.listSummary}>
+          <Text style={styles.listSummaryValue}>{formatNumber(getTotalCalories())}</Text>
+          <Text style={styles.listSummaryLabel}>
+            / {formatNumber(todayNutrition?.calorieTarget || user?.dailyCalorieTarget || 2200)} cal
+          </Text>
+        </View>
+
+        <ScrollView style={styles.listScroll} showsVerticalScrollIndicator={false}>
+          {isLoading && !todayNutrition ? (
+            <ListSkeleton count={3} />
+          ) : !todayNutrition?.meals.length ? (
+            <View style={styles.listEmptyState}>
+              <Ionicons name="restaurant-outline" size={32} color={colors.textTertiary} />
+              <Text style={styles.listEmptyText}>No meals logged</Text>
+              <TouchableOpacity
+                style={styles.listEmptyButton}
+                onPress={() => openAddMeal()}
+              >
+                <Text style={styles.listEmptyButtonText}>Add Meal</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            todayNutrition.meals.map((meal) => {
+              const isSelected = selectedMealId === meal.id;
+              return (
+                <TouchableOpacity
+                  key={meal.id}
+                  style={[
+                    styles.listItem,
+                    isSelected && styles.listItemSelected,
+                  ]}
+                  onPress={() => handleMealPress(meal)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.listItemContent}>
+                    <Text style={styles.listItemName} numberOfLines={1}>
+                      {meal.name}
+                    </Text>
+                    <Text style={styles.listItemTime}>
+                      {new Date(meal.time).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                  </View>
+                  <View style={styles.listItemRight}>
+                    <Text style={styles.listItemCalories}>{formatNumber(meal.calories)}</Text>
+                    <Text style={styles.listItemCaloriesUnit}>cal</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </ScrollView>
+      </View>
+    );
+  }
 
   if (isLoading && !todayNutrition) {
     return (
@@ -433,6 +533,117 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   mealMacroLabel: {
+    fontSize: typography.size.xs,
+    color: colors.textTertiary,
+  },
+
+  // List variant styles
+  listContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: glass.border,
+  },
+  listHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  listTitle: {
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.semibold,
+    color: colors.text,
+  },
+  addButtonSmall: {
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.nutrition,
+  },
+  listSummary: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: glass.backgroundLight,
+  },
+  listSummaryValue: {
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.bold,
+    color: colors.nutrition,
+  },
+  listSummaryLabel: {
+    fontSize: typography.size.sm,
+    color: colors.textSecondary,
+    marginLeft: spacing.xs,
+  },
+  listScroll: {
+    flex: 1,
+  },
+  listEmptyState: {
+    alignItems: 'center',
+    paddingVertical: spacing['4xl'],
+    paddingHorizontal: spacing.lg,
+  },
+  listEmptyText: {
+    fontSize: typography.size.base,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+  },
+  listEmptyButton: {
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.nutrition,
+    borderRadius: radius.md,
+  },
+  listEmptyButtonText: {
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.semibold,
+    color: colors.text,
+  },
+  listItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: glass.border,
+  },
+  listItemSelected: {
+    backgroundColor: colors.nutritionMuted,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.nutrition,
+  },
+  listItemContent: {
+    flex: 1,
+  },
+  listItemName: {
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.medium,
+    color: colors.text,
+  },
+  listItemTime: {
+    fontSize: typography.size.sm,
+    color: colors.textTertiary,
+    marginTop: 2,
+  },
+  listItemRight: {
+    alignItems: 'flex-end',
+  },
+  listItemCalories: {
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.bold,
+    color: colors.nutrition,
+  },
+  listItemCaloriesUnit: {
     fontSize: typography.size.xs,
     color: colors.textTertiary,
   },
