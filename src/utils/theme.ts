@@ -260,6 +260,22 @@ export const typography = {
   },
 };
 
+/**
+ * Get scaled typography sizes based on responsive scale factor
+ * @param scale - Scale factor (1.0 mobile, 1.1 tablet, 1.15 desktop)
+ */
+export const getResponsiveTypography = (scale: number) => ({
+  xs: Math.round(typography.size.xs * scale),
+  sm: Math.round(typography.size.sm * scale),
+  base: Math.round(typography.size.base * scale),
+  lg: Math.round(typography.size.lg * scale),
+  xl: Math.round(typography.size.xl * scale),
+  '2xl': Math.round(typography.size['2xl'] * scale),
+  '3xl': Math.round(typography.size['3xl'] * scale),
+  '4xl': Math.round(typography.size['4xl'] * scale),
+  '5xl': Math.round(typography.size['5xl'] * scale),
+});
+
 // ============ BORDER RADIUS ============
 
 export const radius = {

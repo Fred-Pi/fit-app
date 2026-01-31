@@ -16,6 +16,10 @@ export interface ResponsiveLayout {
   cardColumns: 1 | 2 | 3 | 4;
   showSidebar: boolean;
   isWide: boolean;
+  // Typography scaling
+  typographyScale: number;
+  spacingScale: number;
+  getScaledSize: (baseSize: number) => number;
 }
 
 const BREAKPOINTS = {
@@ -51,6 +55,11 @@ export function useResponsive(): ResponsiveBreakpoints & ResponsiveLayout {
   // Show sidebar on tablet+ for web (better desktop/tablet experience)
   const showSidebar = (isDesktop || isTablet) && isWeb;
 
+  // Typography scaling: mobile 1.0x, tablet 1.1x, desktop 1.15x
+  const typographyScale = isDesktop ? 1.15 : isTablet ? 1.1 : 1.0;
+  const spacingScale = isDesktop ? 1.15 : isTablet ? 1.1 : 1.0;
+  const getScaledSize = (baseSize: number) => Math.round(baseSize * typographyScale);
+
   return {
     isMobile,
     isTablet,
@@ -63,6 +72,9 @@ export function useResponsive(): ResponsiveBreakpoints & ResponsiveLayout {
     contentPadding,
     cardColumns,
     showSidebar,
+    typographyScale,
+    spacingScale,
+    getScaledSize,
   };
 }
 

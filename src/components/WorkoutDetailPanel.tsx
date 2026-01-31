@@ -18,7 +18,8 @@ import GlassCard from './GlassCard';
 import ConfirmDialog from './ConfirmDialog';
 import EditWorkoutModal from './EditWorkoutModal';
 import { WorkoutLog, User, WorkoutTemplate, ExerciseTemplate } from '../types';
-import { colors, glass, spacing, typography, radius } from '../utils/theme';
+import { colors, glass, spacing, typography, radius, getResponsiveTypography } from '../utils/theme';
+import { useResponsive } from '../hooks/useResponsive';
 import { getWorkouts, saveWorkout, deleteWorkout as deleteWorkoutService, getUser, checkAndUpdatePRs, generateId } from '../services/storage';
 import { useUIStore, useWorkoutStore } from '../stores';
 import { successHaptic, lightHaptic } from '../utils/haptics';
@@ -41,6 +42,9 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const { typographyScale } = useResponsive();
+  const scaledType = getResponsiveTypography(typographyScale);
 
   const openAddWorkout = useUIStore((s) => s.openAddWorkout);
   const selectWorkout = useUIStore((s) => s.selectWorkout);
@@ -184,7 +188,7 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
           <View style={styles.header}>
             <View style={styles.headerContent}>
               <View style={styles.headerTop}>
-                <Text style={styles.workoutName}>{workout.name}</Text>
+                <Text style={[styles.workoutName, { fontSize: scaledType['2xl'] }]}>{workout.name}</Text>
                 {hasPRs && (
                   <View style={styles.prBadge}>
                     <Ionicons name="trophy" size={14} color={colors.gold} />
@@ -192,7 +196,7 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
                   </View>
                 )}
               </View>
-              <Text style={styles.workoutDate}>{formattedDate}</Text>
+              <Text style={[styles.workoutDate, { fontSize: scaledType.sm }]}>{formattedDate}</Text>
             </View>
             <View style={styles.headerActions}>
               <TouchableOpacity
@@ -222,23 +226,23 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
           {/* Stats Row */}
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{workout.exercises.length}</Text>
-              <Text style={styles.statLabel}>exercises</Text>
+              <Text style={[styles.statValue, { fontSize: scaledType.xl }]}>{workout.exercises.length}</Text>
+              <Text style={[styles.statLabel, { fontSize: scaledType.xs }]}>exercises</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{totalSets}</Text>
-              <Text style={styles.statLabel}>sets</Text>
+              <Text style={[styles.statValue, { fontSize: scaledType.xl }]}>{totalSets}</Text>
+              <Text style={[styles.statLabel, { fontSize: scaledType.xs }]}>sets</Text>
             </View>
             {workout.duration && (
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{Math.round(workout.duration)}</Text>
-                <Text style={styles.statLabel}>min</Text>
+                <Text style={[styles.statValue, { fontSize: scaledType.xl }]}>{Math.round(workout.duration)}</Text>
+                <Text style={[styles.statLabel, { fontSize: scaledType.xs }]}>min</Text>
               </View>
             )}
             {totalVolume > 0 && (
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{(totalVolume / 1000).toFixed(1)}k</Text>
-                <Text style={styles.statLabel}>{user?.preferredWeightUnit || 'lbs'}</Text>
+                <Text style={[styles.statValue, { fontSize: scaledType.xl }]}>{(totalVolume / 1000).toFixed(1)}k</Text>
+                <Text style={[styles.statLabel, { fontSize: scaledType.xs }]}>{user?.preferredWeightUnit || 'lbs'}</Text>
               </View>
             )}
           </View>
@@ -286,7 +290,7 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
                   )}
                 </View>
                 <View style={styles.exerciseInfo}>
-                  <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
+                  <Text style={[styles.exerciseName, { fontSize: scaledType.lg }]}>{exercise.exerciseName}</Text>
                   {isPR && <Text style={styles.prLabel}>Personal Record</Text>}
                 </View>
                 {weightDiff !== null && weightDiff !== 0 && (
@@ -312,12 +316,12 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
               <View style={styles.setsContainer}>
                 {exercise.sets.map((set, setIndex) => (
                   <View key={setIndex} style={styles.setRow}>
-                    <Text style={styles.setNumber}>{setIndex + 1}</Text>
-                    <Text style={styles.setWeight}>
+                    <Text style={[styles.setNumber, { fontSize: scaledType.sm }]}>{setIndex + 1}</Text>
+                    <Text style={[styles.setWeight, { fontSize: scaledType.base }]}>
                       {set.weight > 0 ? `${set.weight} ${user?.preferredWeightUnit || 'lbs'}` : 'BW'}
                     </Text>
-                    <Text style={styles.setSeparator}>×</Text>
-                    <Text style={styles.setReps}>{set.reps}</Text>
+                    <Text style={[styles.setSeparator, { fontSize: scaledType.sm }]}>×</Text>
+                    <Text style={[styles.setReps, { fontSize: scaledType.base }]}>{set.reps}</Text>
                     {set.completed && (
                       <Ionicons name="checkmark" size={16} color={colors.success} style={styles.setCheck} />
                     )}

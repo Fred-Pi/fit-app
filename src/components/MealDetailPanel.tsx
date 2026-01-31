@@ -18,7 +18,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from './GlassCard';
 import ConfirmDialog from './ConfirmDialog';
 import { Meal } from '../types';
-import { colors, glass, spacing, typography, radius } from '../utils/theme';
+import { colors, glass, spacing, typography, radius, getResponsiveTypography } from '../utils/theme';
+import { useResponsive } from '../hooks/useResponsive';
 import { useUIStore, useNutritionStore } from '../stores';
 import { lightHaptic, warningHaptic } from '../utils/haptics';
 import { formatNumber } from '../utils/formatters';
@@ -35,6 +36,9 @@ const MealDetailPanel: React.FC<MealDetailPanelProps> = ({
   onDeleted,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
+
+  const { typographyScale } = useResponsive();
+  const scaledType = getResponsiveTypography(typographyScale);
 
   const openEditMeal = useUIStore((s) => s.openEditMeal);
   const selectMeal = useUIStore((s) => s.selectMeal);
@@ -102,11 +106,11 @@ const MealDetailPanel: React.FC<MealDetailPanelProps> = ({
                   <Ionicons name="restaurant" size={24} color={colors.text} />
                 </LinearGradient>
                 <View style={styles.headerText}>
-                  <Text style={styles.mealName}>{meal.name}</Text>
+                  <Text style={[styles.mealName, { fontSize: scaledType['2xl'] }]}>{meal.name}</Text>
                   <View style={styles.timeContainer}>
                     <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
-                    <Text style={styles.mealTime}>{formattedTime}</Text>
-                    <Text style={styles.mealDate}>{formattedDate}</Text>
+                    <Text style={[styles.mealTime, { fontSize: scaledType.sm }]}>{formattedTime}</Text>
+                    <Text style={[styles.mealDate, { fontSize: scaledType.sm }]}>{formattedDate}</Text>
                   </View>
                 </View>
               </View>
@@ -131,8 +135,8 @@ const MealDetailPanel: React.FC<MealDetailPanelProps> = ({
 
           {/* Calories Highlight */}
           <View style={styles.caloriesContainer}>
-            <Text style={styles.caloriesValue}>{formatNumber(meal.calories)}</Text>
-            <Text style={styles.caloriesUnit}>calories</Text>
+            <Text style={[styles.caloriesValue, { fontSize: scaledType['4xl'] }]}>{formatNumber(meal.calories)}</Text>
+            <Text style={[styles.caloriesUnit, { fontSize: scaledType.sm }]}>calories</Text>
           </View>
         </GlassCard>
 
@@ -140,7 +144,7 @@ const MealDetailPanel: React.FC<MealDetailPanelProps> = ({
         <GlassCard accent="none" glowIntensity="none">
           <View style={styles.macrosHeader}>
             <Ionicons name="pie-chart-outline" size={20} color={colors.textSecondary} />
-            <Text style={styles.macrosTitle}>Macronutrients</Text>
+            <Text style={[styles.macrosTitle, { fontSize: scaledType.lg }]}>Macronutrients</Text>
           </View>
 
           <View style={styles.macrosGrid}>
@@ -179,7 +183,7 @@ const MealDetailPanel: React.FC<MealDetailPanelProps> = ({
         <GlassCard accent="none" glowIntensity="none">
           <View style={styles.breakdownHeader}>
             <Ionicons name="calculator-outline" size={20} color={colors.textSecondary} />
-            <Text style={styles.breakdownTitle}>Caloric Breakdown</Text>
+            <Text style={[styles.breakdownTitle, { fontSize: scaledType.lg }]}>Caloric Breakdown</Text>
           </View>
 
           <View style={styles.breakdownItems}>

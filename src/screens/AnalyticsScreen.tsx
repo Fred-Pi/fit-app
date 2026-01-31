@@ -34,7 +34,7 @@ import WorkoutSuggestionsCard from '../components/WorkoutSuggestionsCard';
 import WeightChart from '../components/WeightChart';
 import { calculateWorkoutSuggestions } from '../utils/workoutSuggestions';
 import { getTodayDate } from '../services/storage';
-import { colors } from '../utils/theme';
+import { colors, getResponsiveTypography } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { warningHaptic } from '../utils/haptics';
 import {
@@ -47,7 +47,8 @@ import {
 type TabType = 'overview' | 'charts' | 'prs' | 'strength' | 'muscle'
 
 const AnalyticsScreen = () => {
-  const { contentMaxWidth } = useResponsive();
+  const { contentMaxWidth, typographyScale } = useResponsive();
+  const scaledType = getResponsiveTypography(typographyScale);
   const isWeb = Platform.OS === 'web';
   const date = getTodayDate();
   const [selectedRange, setSelectedRange] = useState<DateRangeKey>('3M');
@@ -406,8 +407,8 @@ const AnalyticsScreen = () => {
               <View style={styles.headerContent}>
                 <Ionicons name="pulse" size={32} color={colors.success} />
                 <View style={styles.headerText}>
-                  <Text style={styles.title}>Progress Overview</Text>
-                  <Text style={styles.subtitle}>
+                  <Text style={[styles.title, { fontSize: scaledType['3xl'] }]}>Progress Overview</Text>
+                  <Text style={[styles.subtitle, { fontSize: scaledType.base }]}>
                     Your fitness journey at a glance
                   </Text>
                 </View>
@@ -459,12 +460,12 @@ const AnalyticsScreen = () => {
             >
               <View style={styles.quickStatsGrid}>
                 <View style={styles.quickStatItem}>
-                  <Text style={styles.quickStatValue}>{allWorkouts.length}</Text>
-                  <Text style={styles.quickStatLabel}>Total Workouts</Text>
+                  <Text style={[styles.quickStatValue, { fontSize: scaledType['4xl'] }]}>{allWorkouts.length}</Text>
+                  <Text style={[styles.quickStatLabel, { fontSize: scaledType.sm }]}>Total Workouts</Text>
                 </View>
                 <View style={styles.quickStatItem}>
-                  <Text style={styles.quickStatValue}>{personalRecords.length}</Text>
-                  <Text style={styles.quickStatLabel}>Personal Records</Text>
+                  <Text style={[styles.quickStatValue, { fontSize: scaledType['4xl'] }]}>{personalRecords.length}</Text>
+                  <Text style={[styles.quickStatLabel, { fontSize: scaledType.sm }]}>Personal Records</Text>
                 </View>
               </View>
             </CollapsibleSection>
@@ -478,8 +479,8 @@ const AnalyticsScreen = () => {
               <View style={styles.headerContent}>
                 <Ionicons name="analytics" size={32} color="#3A9BFF" />
                 <View style={styles.headerText}>
-                  <Text style={styles.title}>Progress Analytics</Text>
-                  <Text style={styles.subtitle}>
+                  <Text style={[styles.title, { fontSize: scaledType['3xl'] }]}>Progress Analytics</Text>
+                  <Text style={[styles.subtitle, { fontSize: scaledType.base }]}>
                     Track your training trends and consistency
                   </Text>
                 </View>
@@ -536,17 +537,17 @@ const AnalyticsScreen = () => {
                 >
                   <View style={styles.summaryGrid}>
                     <View style={styles.summaryItem}>
-                      <Text style={styles.summaryValue}>{workouts.length}</Text>
-                      <Text style={styles.summaryLabel}>Total Workouts</Text>
+                      <Text style={[styles.summaryValue, { fontSize: scaledType['2xl'] }]}>{workouts.length}</Text>
+                      <Text style={[styles.summaryLabel, { fontSize: scaledType.xs }]}>Total Workouts</Text>
                     </View>
                     <View style={styles.summaryItem}>
-                      <Text style={styles.summaryValue}>
+                      <Text style={[styles.summaryValue, { fontSize: scaledType['2xl'] }]}>
                         {workouts.reduce((sum, w) => sum + w.exercises.length, 0)}
                       </Text>
-                      <Text style={styles.summaryLabel}>Total Exercises</Text>
+                      <Text style={[styles.summaryLabel, { fontSize: scaledType.xs }]}>Total Exercises</Text>
                     </View>
                     <View style={styles.summaryItem}>
-                      <Text style={styles.summaryValue}>
+                      <Text style={[styles.summaryValue, { fontSize: scaledType['2xl'] }]}>
                         {workouts.reduce(
                           (sum, w) =>
                             sum +
@@ -554,15 +555,15 @@ const AnalyticsScreen = () => {
                           0
                         )}
                       </Text>
-                      <Text style={styles.summaryLabel}>Total Sets</Text>
+                      <Text style={[styles.summaryLabel, { fontSize: scaledType.xs }]}>Total Sets</Text>
                     </View>
                     <View style={styles.summaryItem}>
-                      <Text style={styles.summaryValue}>
+                      <Text style={[styles.summaryValue, { fontSize: scaledType['2xl'] }]}>
                         {Math.round(
                           workouts.reduce((sum, w) => sum + (w.duration || 0), 0) / 60
                         )}h
                       </Text>
-                      <Text style={styles.summaryLabel}>Total Time</Text>
+                      <Text style={[styles.summaryLabel, { fontSize: scaledType.xs }]}>Total Time</Text>
                     </View>
                   </View>
                 </CollapsibleSection>
@@ -578,8 +579,8 @@ const AnalyticsScreen = () => {
               <View style={styles.prsHeaderIcon}>
                 <Ionicons name="trophy" size={32} color="#FFD60A" />
               </View>
-              <Text style={styles.prsHeaderTitle}>Personal Records</Text>
-              <Text style={styles.prsHeaderSubtitle}>
+              <Text style={[styles.prsHeaderTitle, { fontSize: scaledType['3xl'] }]}>Personal Records</Text>
+              <Text style={[styles.prsHeaderSubtitle, { fontSize: scaledType.base }]}>
                 {prs.length} {prs.length === 1 ? 'record' : 'records'} tracked
               </Text>
             </View>
@@ -777,8 +778,8 @@ const AnalyticsScreen = () => {
               <View style={styles.headerContent}>
                 <Ionicons name="barbell" size={32} color={colors.primary} />
                 <View style={styles.headerText}>
-                  <Text style={styles.title}>Strength Analysis</Text>
-                  <Text style={styles.subtitle}>
+                  <Text style={[styles.title, { fontSize: scaledType['3xl'] }]}>Strength Analysis</Text>
+                  <Text style={[styles.subtitle, { fontSize: scaledType.base }]}>
                     Track your progress and calculate your strength levels
                   </Text>
                 </View>
@@ -815,8 +816,8 @@ const AnalyticsScreen = () => {
               <View style={styles.headerContent}>
                 <Ionicons name="body" size={32} color={colors.success} />
                 <View style={styles.headerText}>
-                  <Text style={styles.title}>Muscle Balance</Text>
-                  <Text style={styles.subtitle}>
+                  <Text style={[styles.title, { fontSize: scaledType['3xl'] }]}>Muscle Balance</Text>
+                  <Text style={[styles.subtitle, { fontSize: scaledType.base }]}>
                     Track which muscle groups need more attention
                   </Text>
                 </View>

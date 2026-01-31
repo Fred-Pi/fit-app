@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, glass, spacing, typography, radius } from '../utils/theme';
+import { colors, glass, spacing, typography, radius, getResponsiveTypography } from '../utils/theme';
+import { useResponsive } from '../hooks/useResponsive';
 import DesktopSidebar, { NavItem } from './DesktopSidebar';
 import ErrorBoundary from '../components/ErrorBoundary';
 import GlobalModals from '../components/GlobalModals';
@@ -77,6 +78,8 @@ const WorkoutsSection: React.FC = () => {
   const selectedWorkoutId = useUIStore((s) => s.selectedWorkoutId);
   const selectWorkout = useUIStore((s) => s.selectWorkout);
   const selectedWorkoutIds = useUIStore((s) => s.selectedWorkoutIds);
+  const { typographyScale } = useResponsive();
+  const scaledType = getResponsiveTypography(typographyScale);
 
   const hasMultipleSelected = selectedWorkoutIds.length > 1;
 
@@ -92,12 +95,14 @@ const WorkoutsSection: React.FC = () => {
         {hasMultipleSelected ? (
           <View style={styles.emptyDetail}>
             <View style={styles.multiSelectBadge}>
-              <Text style={styles.multiSelectCount}>{selectedWorkoutIds.length}</Text>
+              <Text style={[styles.multiSelectCount, { fontSize: scaledType['2xl'] }]}>
+                {selectedWorkoutIds.length}
+              </Text>
             </View>
-            <Text style={styles.emptyDetailTitle}>
+            <Text style={[styles.emptyDetailTitle, { fontSize: scaledType.xl }]}>
               {selectedWorkoutIds.length} workouts selected
             </Text>
-            <Text style={styles.emptyDetailText}>
+            <Text style={[styles.emptyDetailText, { fontSize: scaledType.base }]}>
               Use the toolbar below to delete selected items, or click a checkbox to deselect
             </Text>
           </View>
@@ -109,8 +114,8 @@ const WorkoutsSection: React.FC = () => {
         ) : (
           <View style={styles.emptyDetail}>
             <Ionicons name="barbell-outline" size={64} color={colors.textTertiary} />
-            <Text style={styles.emptyDetailTitle}>Select a workout</Text>
-            <Text style={styles.emptyDetailText}>
+            <Text style={[styles.emptyDetailTitle, { fontSize: scaledType.xl }]}>Select a workout</Text>
+            <Text style={[styles.emptyDetailText, { fontSize: scaledType.base }]}>
               Click on a workout from the list to view its details
             </Text>
           </View>
@@ -134,6 +139,8 @@ const NutritionSection: React.FC = () => {
   const selectedMealId = useUIStore((s) => s.selectedMealId);
   const selectMeal = useUIStore((s) => s.selectMeal);
   const selectedMealIds = useUIStore((s) => s.selectedMealIds);
+  const { typographyScale } = useResponsive();
+  const scaledType = getResponsiveTypography(typographyScale);
 
   const hasMultipleSelected = selectedMealIds.length > 1;
 
@@ -149,12 +156,14 @@ const NutritionSection: React.FC = () => {
         {hasMultipleSelected ? (
           <View style={styles.emptyDetail}>
             <View style={styles.multiSelectBadge}>
-              <Text style={styles.multiSelectCount}>{selectedMealIds.length}</Text>
+              <Text style={[styles.multiSelectCount, { fontSize: scaledType['2xl'] }]}>
+                {selectedMealIds.length}
+              </Text>
             </View>
-            <Text style={styles.emptyDetailTitle}>
+            <Text style={[styles.emptyDetailTitle, { fontSize: scaledType.xl }]}>
               {selectedMealIds.length} meals selected
             </Text>
-            <Text style={styles.emptyDetailText}>
+            <Text style={[styles.emptyDetailText, { fontSize: scaledType.base }]}>
               Use the toolbar below to delete selected items, or click a checkbox to deselect
             </Text>
           </View>
@@ -166,8 +175,8 @@ const NutritionSection: React.FC = () => {
         ) : (
           <View style={styles.emptyDetail}>
             <Ionicons name="nutrition-outline" size={64} color={colors.textTertiary} />
-            <Text style={styles.emptyDetailTitle}>Select a meal</Text>
-            <Text style={styles.emptyDetailText}>
+            <Text style={[styles.emptyDetailTitle, { fontSize: scaledType.xl }]}>Select a meal</Text>
+            <Text style={[styles.emptyDetailText, { fontSize: scaledType.base }]}>
               Click on a meal from the list to view its details
             </Text>
           </View>
