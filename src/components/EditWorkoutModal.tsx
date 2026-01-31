@@ -16,6 +16,7 @@ import { generateId, getLastExercisePerformance } from '../services/storage';
 import { successHaptic } from '../utils/haptics';
 import { useUserStore } from '../stores';
 import ResponsiveModal from './ResponsiveModal';
+import NumberInput from './NumberInput';
 import ExercisePicker from './ExercisePicker';
 import WorkoutTimer from './WorkoutTimer';
 import ExerciseHistoryIndicator from './ExerciseHistoryIndicator';
@@ -292,41 +293,39 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
             </View>
 
             <View style={styles.row}>
-              <View style={styles.rowItem}>
-                <Text style={styles.label}>Sets</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="3"
-                  placeholderTextColor="#98989D"
-                  value={sets}
-                  onChangeText={setSets}
-                  keyboardType="number-pad"
-                />
-              </View>
+              <NumberInput
+                label="Sets"
+                value={sets}
+                onChangeText={setSets}
+                placeholder="3"
+                min={1}
+                max={20}
+                step={1}
+                maxLength={2}
+              />
 
-              <View style={styles.rowItem}>
-                <Text style={styles.label}>Reps</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="10"
-                  placeholderTextColor="#98989D"
-                  value={reps}
-                  onChangeText={setReps}
-                  keyboardType="number-pad"
-                />
-              </View>
+              <NumberInput
+                label="Reps"
+                value={reps}
+                onChangeText={setReps}
+                placeholder="10"
+                min={1}
+                max={100}
+                step={1}
+                maxLength={3}
+              />
 
-              <View style={styles.rowItem}>
-                <Text style={styles.label}>Weight ({weightUnit})</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="0"
-                  placeholderTextColor="#98989D"
-                  value={weight}
-                  onChangeText={setWeight}
-                  keyboardType="number-pad"
-                />
-              </View>
+              <NumberInput
+                label={`Weight (${weightUnit})`}
+                value={weight}
+                onChangeText={setWeight}
+                placeholder="0"
+                min={0}
+                max={999}
+                step={2.5}
+                allowDecimal
+                maxLength={5}
+              />
             </View>
 
             {/* Exercise Notes */}
@@ -433,9 +432,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     marginBottom: 16,
-  },
-  rowItem: {
-    flex: 1,
   },
   exercisesList: {
     marginBottom: 24,

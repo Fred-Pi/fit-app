@@ -14,6 +14,7 @@ import { successHaptic } from '../utils/haptics';
 import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
 import ModalHeader from './ModalHeader';
 import ResponsiveModal from './ResponsiveModal';
+import NumberInput from './NumberInput';
 import { modalStyles, placeholderColor } from '../styles/modalStyles';
 
 interface EditMealModalProps {
@@ -145,56 +146,47 @@ const EditMealModal: React.FC<EditMealModalProps> = ({ visible, onClose, onSave,
             </View>
 
             <View style={modalStyles.row}>
-              <View style={modalStyles.rowItem}>
-                <Text style={modalStyles.label}>Protein (g)</Text>
-                <TextInput
-                  style={[
-                    modalStyles.input,
-                    focusedField === 'protein' && modalStyles.inputFocused,
-                  ]}
-                  placeholder="0"
-                  placeholderTextColor={placeholderColor}
-                  value={protein}
-                  onChangeText={setProtein}
-                  onFocus={() => setFocusedField('protein')}
-                  onBlur={() => setFocusedField(null)}
-                  keyboardType="number-pad"
-                />
-              </View>
+              <NumberInput
+                label="Protein (g)"
+                value={protein}
+                onChangeText={setProtein}
+                placeholder="0"
+                min={0}
+                max={500}
+                step={5}
+                maxLength={3}
+                onFocus={() => setFocusedField('protein')}
+                onBlur={() => setFocusedField(null)}
+                isFocused={focusedField === 'protein'}
+              />
 
-              <View style={modalStyles.rowItem}>
-                <Text style={modalStyles.label}>Carbs (g)</Text>
-                <TextInput
-                  style={[
-                    modalStyles.input,
-                    focusedField === 'carbs' && modalStyles.inputFocused,
-                  ]}
-                  placeholder="0"
-                  placeholderTextColor={placeholderColor}
-                  value={carbs}
-                  onChangeText={setCarbs}
-                  onFocus={() => setFocusedField('carbs')}
-                  onBlur={() => setFocusedField(null)}
-                  keyboardType="number-pad"
-                />
-              </View>
+              <NumberInput
+                label="Carbs (g)"
+                value={carbs}
+                onChangeText={setCarbs}
+                placeholder="0"
+                min={0}
+                max={500}
+                step={5}
+                maxLength={3}
+                onFocus={() => setFocusedField('carbs')}
+                onBlur={() => setFocusedField(null)}
+                isFocused={focusedField === 'carbs'}
+              />
 
-              <View style={modalStyles.rowItem}>
-                <Text style={modalStyles.label}>Fats (g)</Text>
-                <TextInput
-                  style={[
-                    modalStyles.input,
-                    focusedField === 'fats' && modalStyles.inputFocused,
-                  ]}
-                  placeholder="0"
-                  placeholderTextColor={placeholderColor}
-                  value={fats}
-                  onChangeText={setFats}
-                  onFocus={() => setFocusedField('fats')}
-                  onBlur={() => setFocusedField(null)}
-                  keyboardType="number-pad"
-                />
-              </View>
+              <NumberInput
+                label="Fats (g)"
+                value={fats}
+                onChangeText={setFats}
+                placeholder="0"
+                min={0}
+                max={200}
+                step={5}
+                maxLength={3}
+                onFocus={() => setFocusedField('fats')}
+                onBlur={() => setFocusedField(null)}
+                isFocused={focusedField === 'fats'}
+              />
             </View>
           </View>
 

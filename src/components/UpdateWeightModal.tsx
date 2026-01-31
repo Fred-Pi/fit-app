@@ -10,8 +10,8 @@ import { colors, glass, radius, spacing, typography } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { successHaptic } from '../utils/haptics';
 import { validateBodyWeight } from '../utils/validation';
-import FormInput from './FormInput';
 import GlassButton from './GlassButton';
+import NumberInput from './NumberInput';
 import ResponsiveModal from './ResponsiveModal';
 
 interface UpdateWeightModalProps {
@@ -74,17 +74,19 @@ const UpdateWeightModal: React.FC<UpdateWeightModalProps> = ({
         </View>
 
         <View style={styles.content}>
-          <FormInput
+          <NumberInput
             label={`Body Weight (${unit})`}
-            variant="large"
-            placeholder="0"
             value={weight}
             onChangeText={setWeight}
-            keyboardType="decimal-pad"
-            autoFocus
-            selectTextOnFocus
-            hint="Enter your current body weight"
+            placeholder="0"
+            min={0}
+            max={unit === 'kg' ? 300 : 660}
+            step={unit === 'kg' ? 0.5 : 1}
+            allowDecimal
+            maxLength={5}
+            size="large"
           />
+          <Text style={styles.hint}>Enter your current body weight</Text>
         </View>
 
         <View style={styles.actions}>
@@ -138,6 +140,12 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.xl,
+  },
+  hint: {
+    fontSize: typography.size.sm,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: spacing.md,
   },
   actions: {
     flexDirection: 'row',

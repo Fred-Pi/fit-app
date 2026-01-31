@@ -19,6 +19,7 @@ import { useUserStore } from '../stores';
 import ModalHeader from './ModalHeader';
 import GlassButton from './GlassButton';
 import ResponsiveModal from './ResponsiveModal';
+import NumberInput from './NumberInput';
 import { modalStyles, placeholderColor } from '../styles/modalStyles';
 import ExercisePicker from './ExercisePicker';
 import TemplatePicker from './TemplatePicker';
@@ -457,66 +458,57 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
               />
             )}
 
-            {/* Large touch-friendly number inputs */}
+            {/* Large touch-friendly number inputs with steppers on desktop */}
             <View style={styles.numberInputRow}>
-              <View style={styles.numberInputItem}>
-                <Text style={styles.numberInputLabel}>Sets</Text>
-                <TextInput
-                  style={[
-                    styles.numberInput,
-                    focusedField === 'sets' && styles.numberInputFocused,
-                  ]}
-                  placeholder="3"
-                  placeholderTextColor={placeholderColor}
-                  value={sets}
-                  onChangeText={setSets}
-                  onFocus={() => setFocusedField('sets')}
-                  onBlur={() => setFocusedField(null)}
-                  keyboardType="number-pad"
-                  textAlign="center"
-                  maxLength={2}
-                />
-              </View>
+              <NumberInput
+                label="Sets"
+                value={sets}
+                onChangeText={setSets}
+                placeholder="3"
+                min={1}
+                max={20}
+                step={1}
+                maxLength={2}
+                onFocus={() => setFocusedField('sets')}
+                onBlur={() => setFocusedField(null)}
+                isFocused={focusedField === 'sets'}
+                size="large"
+              />
 
               <Text style={styles.numberInputSeparator}>×</Text>
 
-              <View style={styles.numberInputItem}>
-                <Text style={styles.numberInputLabel}>Reps</Text>
-                <TextInput
-                  style={[
-                    styles.numberInput,
-                    focusedField === 'reps' && styles.numberInputFocused,
-                  ]}
-                  placeholder="10"
-                  placeholderTextColor={placeholderColor}
-                  value={reps}
-                  onChangeText={setReps}
-                  onFocus={() => setFocusedField('reps')}
-                  onBlur={() => setFocusedField(null)}
-                  keyboardType="number-pad"
-                  textAlign="center"
-                  maxLength={3}
-                />
-              </View>
+              <NumberInput
+                label="Reps"
+                value={reps}
+                onChangeText={setReps}
+                placeholder="10"
+                min={1}
+                max={100}
+                step={1}
+                maxLength={3}
+                onFocus={() => setFocusedField('reps')}
+                onBlur={() => setFocusedField(null)}
+                isFocused={focusedField === 'reps'}
+                size="large"
+              />
 
               <Text style={styles.numberInputSeparator}>@</Text>
 
-              <View style={[styles.numberInputItem, { flex: 1.5 }]}>
-                <Text style={styles.numberInputLabel}>{weightUnit}</Text>
-                <TextInput
-                  style={[
-                    styles.numberInput,
-                    focusedField === 'weight' && styles.numberInputFocused,
-                  ]}
-                  placeholder="0"
-                  placeholderTextColor={placeholderColor}
+              <View style={{ flex: 1.5 }}>
+                <NumberInput
+                  label={weightUnit}
                   value={weight}
                   onChangeText={setWeight}
+                  placeholder="0"
+                  min={0}
+                  max={999}
+                  step={2.5}
+                  allowDecimal
+                  maxLength={5}
                   onFocus={() => setFocusedField('weight')}
                   onBlur={() => setFocusedField(null)}
-                  keyboardType="number-pad"
-                  textAlign="center"
-                  maxLength={4}
+                  isFocused={focusedField === 'weight'}
+                  size="large"
                 />
               </View>
             </View>
@@ -687,40 +679,12 @@ const styles = StyleSheet.create({
   saveTemplateContainer: {
     marginBottom: spacing.xl,
   },
-  // Large gym-friendly number inputs
+  // Number input row with separators
   numberInputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: spacing.sm,
     marginTop: spacing.xl,
-  },
-  numberInputItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  numberInputLabel: {
-    fontSize: typography.size.xs,
-    fontWeight: typography.weight.semibold,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  numberInput: {
-    width: '100%',
-    height: 56,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    fontSize: typography.size['2xl'],
-    fontWeight: typography.weight.bold,
-    color: colors.text,
-    paddingHorizontal: spacing.md,
-  },
-  numberInputFocused: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryMuted,
   },
   numberInputSeparator: {
     fontSize: typography.size.xl,

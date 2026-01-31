@@ -10,8 +10,8 @@ import { colors, glass, radius, spacing, typography } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { successHaptic } from '../utils/haptics';
 import { validateSteps } from '../utils/validation';
-import FormInput from './FormInput';
 import GlassButton from './GlassButton';
+import NumberInput from './NumberInput';
 import ResponsiveModal from './ResponsiveModal';
 
 interface UpdateStepsModalProps {
@@ -72,17 +72,18 @@ const UpdateStepsModal: React.FC<UpdateStepsModalProps> = ({
         </View>
 
         <View style={styles.content}>
-          <FormInput
+          <NumberInput
             label="Total Steps Today"
-            variant="large"
-            placeholder="0"
             value={steps}
             onChangeText={setSteps}
-            keyboardType="number-pad"
-            autoFocus
-            selectTextOnFocus
-            hint="Enter your total step count for today"
+            placeholder="0"
+            min={0}
+            max={100000}
+            step={500}
+            maxLength={6}
+            size="large"
           />
+          <Text style={styles.hint}>Enter your total step count for today</Text>
         </View>
 
         <View style={styles.actions}>
@@ -136,6 +137,12 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.xl,
+  },
+  hint: {
+    fontSize: typography.size.sm,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: spacing.md,
   },
   actions: {
     flexDirection: 'row',
