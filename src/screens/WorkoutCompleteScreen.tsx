@@ -336,11 +336,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    ...(Platform.OS === 'web' ? { height: '100%', overflow: 'hidden' } : {}),
+    // Web fix: use absolute positioning to ensure scroll works
+    ...(Platform.OS === 'web' ? {
+      position: 'absolute' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    } : {}),
   },
   scrollView: {
     flex: 1,
-    ...(Platform.OS === 'web' ? { height: '100%', overflowY: 'auto' } : {}),
   },
   scrollContent: {
     padding: spacing.xl,

@@ -301,11 +301,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    ...(Platform.OS === 'web' ? { height: '100%', overflow: 'hidden' } : {}),
+    ...(Platform.OS === 'web' ? {
+      position: 'absolute' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    } : {}),
   },
   keyboardAvoid: {
     flex: 1,
-    ...(Platform.OS === 'web' ? { height: '100%' } : {}),
   },
   header: {
     flexDirection: 'row',

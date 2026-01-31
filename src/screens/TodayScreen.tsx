@@ -44,9 +44,10 @@ type TodayVariant = 'full' | 'dashboard';
 
 interface TodayScreenProps {
   variant?: TodayVariant;
+  onStartWorkout?: () => void; // For desktop layout
 }
 
-const TodayScreen: React.FC<TodayScreenProps> = ({ variant = 'full' }) => {
+const TodayScreen: React.FC<TodayScreenProps> = ({ variant = 'full', onStartWorkout }) => {
   const { contentMaxWidth } = useResponsive();
   const navigation = useNavigation<any>();
   const date = getTodayDate();
@@ -166,7 +167,11 @@ const TodayScreen: React.FC<TodayScreenProps> = ({ variant = 'full' }) => {
 
   const handleStartWorkout = () => {
     lightHaptic();
-    navigation.navigate('Workouts', { screen: 'QuickStart' });
+    if (onStartWorkout) {
+      onStartWorkout();
+    } else {
+      navigation.navigate('Workouts', { screen: 'QuickStart' });
+    }
   };
 
   // Loading state
