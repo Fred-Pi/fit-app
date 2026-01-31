@@ -24,6 +24,12 @@ import { useMuscleGroupData } from '../hooks/useMuscleGroupData';
 import Card from '../components/Card';
 import SearchBar from '../components/SearchBar';
 import FilterChip from '../components/FilterChip';
+import WeeklyStatsCard from '../components/WeeklyStatsCard';
+import StreakCard from '../components/StreakCard';
+import WorkoutSuggestionsCard from '../components/WorkoutSuggestionsCard';
+import WeightChart from '../components/WeightChart';
+import { calculateWorkoutSuggestions } from '../utils/workoutSuggestions';
+import { getTodayDate } from '../services/storage';
 import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { warningHaptic } from '../utils/haptics';
@@ -31,14 +37,16 @@ import {
   useUserStore,
   useUIStore,
   useWorkoutStore,
+  useDailyTrackingStore,
 } from '../stores';
 
-type TabType = 'charts' | 'prs' | 'strength' | 'muscle'
+type TabType = 'overview' | 'charts' | 'prs' | 'strength' | 'muscle'
 
 const AnalyticsScreen = () => {
   const { contentMaxWidth } = useResponsive();
+  const date = getTodayDate();
   const [selectedRange, setSelectedRange] = useState<DateRangeKey>('3M');
-  const [activeTab, setActiveTab] = useState<TabType>('charts');
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
@@ -49,11 +57,28 @@ const AnalyticsScreen = () => {
   const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
 
   // Workout Store
+  const allWorkouts = useWorkoutStore((s) => s.workouts);
+  const currentStreak = useWorkoutStore((s) => s.currentStreak);
+  const longestStreak = useWorkoutStore((s) => s.longestStreak);
   const personalRecords = useWorkoutStore((s) => s.personalRecords);
   const isPRsLoading = useWorkoutStore((s) => s.isPRsLoading);
   const isPRsRefreshing = useWorkoutStore((s) => s.isPRsRefreshing);
   const fetchPersonalRecords = useWorkoutStore((s) => s.fetchPersonalRecords);
+  const fetchWorkouts = useWorkoutStore((s) => s.fetchWorkouts);
   const deletePersonalRecord = useWorkoutStore((s) => s.deletePersonalRecord);
+
+  // Daily Tracking Store (for overview)
+  const todayWeight = useDailyTrackingStore((s) => s.todayWeight);
+  const recentWeights = useDailyTrackingStore((s) => s.recentWeights);
+  const currentWeekStats = useDailyTrackingStore((s) => s.currentWeekStats);
+  const previousWeekStats = useDailyTrackingStore((s) => s.previousWeekStats);
+  const weekComparison = useDailyTrackingStore((s) => s.weekComparison);
+  const fetchTodayWeight = useDailyTrackingStore((s) => s.fetchTodayWeight);
+  const fetchRecentWeights = useDailyTrackingStore((s) => s.fetchRecentWeights);
+  const fetchWeeklyStats = useDailyTrackingStore((s) => s.fetchWeeklyStats);
+
+  // Workout suggestions
+  const suggestions = allWorkouts.length > 0 ? calculateWorkoutSuggestions(allWorkouts) : null;
 
   // Charts state
   const { workouts, loading: chartsLoading, refreshing: chartsRefreshing, refresh: refreshCharts } = useAnalyticsData(selectedRange);
@@ -64,20 +89,35 @@ const AnalyticsScreen = () => {
   // Sorted PRs
   const prs = [...personalRecords].sort((a, b) => b.weight - a.weight);
 
+  // Load overview data
+  const loadOverviewData = useCallback(async () => {
+    if (!user) return;
+    await Promise.all([
+      fetchWorkouts(),
+      fetchTodayWeight(date, user.id, user.preferredWeightUnit),
+      fetchRecentWeights(date, 30, user.id),
+      fetchWeeklyStats(user),
+    ]);
+  }, [user, date, fetchWorkouts, fetchTodayWeight, fetchRecentWeights, fetchWeeklyStats]);
+
   // Initial load
   useEffect(() => {
     fetchPersonalRecords();
-  }, [fetchPersonalRecords]);
+    loadOverviewData();
+  }, [fetchPersonalRecords, loadOverviewData]);
 
   // Reload on focus
   useFocusEffect(
     useCallback(() => {
       fetchPersonalRecords();
-    }, [fetchPersonalRecords])
+      loadOverviewData();
+    }, [fetchPersonalRecords, loadOverviewData])
   );
 
   const onRefresh = () => {
-    if (activeTab === 'charts') {
+    if (activeTab === 'overview') {
+      loadOverviewData();
+    } else if (activeTab === 'charts') {
       refreshCharts();
     } else {
       fetchPersonalRecords(true);
@@ -236,6 +276,27 @@ const AnalyticsScreen = () => {
         <TouchableOpacity
           style={[
             styles.segmentButton,
+            activeTab === 'overview' && styles.segmentButtonActive,
+          ]}
+          onPress={() => setActiveTab('overview')}
+        >
+          <Ionicons
+            name="pulse"
+            size={18}
+            color={activeTab === 'overview' ? colors.text : colors.textSecondary}
+          />
+          <Text
+            style={[
+              styles.segmentText,
+              activeTab === 'overview' && styles.segmentTextActive,
+            ]}
+          >
+            Overview
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.segmentButton,
             activeTab === 'charts' && styles.segmentButtonActive,
           ]}
           onPress={() => setActiveTab('charts')}
@@ -333,6 +394,72 @@ const AnalyticsScreen = () => {
           />
         }
       >
+        {activeTab === 'overview' && (
+          <>
+            {/* Overview Header */}
+            <View style={styles.header}>
+              <View style={styles.headerContent}>
+                <Ionicons name="pulse" size={32} color={colors.success} />
+                <View style={styles.headerText}>
+                  <Text style={styles.title}>Progress Overview</Text>
+                  <Text style={styles.subtitle}>
+                    Your fitness journey at a glance
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Streak Card */}
+            <StreakCard
+              currentStreak={currentStreak}
+              longestStreak={longestStreak}
+            />
+
+            {/* Weekly Stats Card */}
+            {currentWeekStats && (
+              <WeeklyStatsCard
+                currentWeek={currentWeekStats}
+                previousWeek={previousWeekStats || undefined}
+                comparison={weekComparison || undefined}
+              />
+            )}
+
+            {/* Workout Suggestions Card */}
+            {suggestions && suggestions.hasEnoughData && (
+              <WorkoutSuggestionsCard suggestions={suggestions} />
+            )}
+
+            {/* Weight Progress */}
+            {recentWeights.length > 0 && (
+              <View style={styles.weightSection}>
+                <Text style={styles.sectionTitle}>Weight Progress</Text>
+                <View style={styles.weightCard}>
+                  <WeightChart
+                    weights={recentWeights}
+                    unit={todayWeight?.unit || user?.preferredWeightUnit || 'lbs'}
+                    goalWeight={user?.goalWeight}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Quick Stats */}
+            <View style={styles.quickStatsSection}>
+              <Text style={styles.sectionTitle}>Quick Stats</Text>
+              <View style={styles.quickStatsGrid}>
+                <View style={styles.quickStatItem}>
+                  <Text style={styles.quickStatValue}>{allWorkouts.length}</Text>
+                  <Text style={styles.quickStatLabel}>Total Workouts</Text>
+                </View>
+                <View style={styles.quickStatItem}>
+                  <Text style={styles.quickStatValue}>{personalRecords.length}</Text>
+                  <Text style={styles.quickStatLabel}>Personal Records</Text>
+                </View>
+              </View>
+            </View>
+          </>
+        )}
+
         {activeTab === 'charts' && (
           <>
             {/* Charts Header */}
@@ -867,6 +994,51 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  // Overview styles
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  weightSection: {
+    marginTop: 16,
+  },
+  weightCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.surfaceElevated,
+  },
+  quickStatsSection: {
+    marginTop: 24,
+  },
+  quickStatsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  quickStatItem: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.surfaceElevated,
+  },
+  quickStatValue: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  quickStatLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
 })
 

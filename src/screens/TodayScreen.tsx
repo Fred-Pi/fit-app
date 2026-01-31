@@ -1,3 +1,14 @@
+/**
+ * TodayScreen (LogScreen)
+ *
+ * v0.2.0 UX: Simplified logging screen with one primary action.
+ * - Primary CTA: Start/Log Workout (dominant)
+ * - Quick repeat: One-tap to repeat recent workout
+ * - Secondary: Meal and weight logging (compact)
+ *
+ * Dashboard elements (streaks, weekly stats, suggestions) moved to AnalyticsScreen.
+ */
+
 import React, { useEffect, useCallback, useRef } from 'react';
 import {
   View,
@@ -5,6 +16,7 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,16 +25,11 @@ import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
 import AnimatedProgressBar from '../components/AnimatedProgressBar';
 import AnimatedNumber from '../components/AnimatedNumber';
-import WeeklyStatsCard from '../components/WeeklyStatsCard';
-import WeightChart from '../components/WeightChart';
-import StreakCard from '../components/StreakCard';
-import WorkoutSuggestionsCard from '../components/WorkoutSuggestionsCard';
 import { TodayScreenSkeleton } from '../components/SkeletonLoader';
-import { calculateWorkoutSuggestions, SuggestionData } from '../utils/workoutSuggestions';
 import { lightHaptic } from '../utils/haptics';
 import { getTodayDate, generateId } from '../services/storage';
 import { WorkoutLog, WorkoutTemplate } from '../types';
-import { colors, glass, spacing, typography, radius } from '../utils/theme';
+import { colors, glass, spacing, typography, radius, shadows } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import {
   useUserStore,
@@ -33,7 +40,7 @@ import {
 } from '../stores';
 
 const TodayScreen = () => {
-  const { isDesktop, isTablet, contentMaxWidth } = useResponsive();
+  const { contentMaxWidth } = useResponsive();
   const date = getTodayDate();
 
   // User Store
@@ -42,7 +49,6 @@ const TodayScreen = () => {
   // UI Store
   const openAddWorkout = useUIStore((s) => s.openAddWorkout);
   const openAddMeal = useUIStore((s) => s.openAddMeal);
-  const openUpdateSteps = useUIStore((s) => s.openUpdateSteps);
   const openUpdateWeight = useUIStore((s) => s.openUpdateWeight);
   const openWelcome = useUIStore((s) => s.openWelcome);
   const openNamePrompt = useUIStore((s) => s.openNamePrompt);
@@ -52,13 +58,10 @@ const TodayScreen = () => {
   const markWelcomeShown = useUserStore((s) => s.markWelcomeShown);
   const loadWelcomeState = useUserStore((s) => s.loadWelcomeState);
   const shouldShowNamePrompt = useUserStore((s) => s.shouldShowNamePrompt);
-  const markNameSet = useUserStore((s) => s.markNameSet);
   const loadNameState = useUserStore((s) => s.loadNameState);
 
   // Workout Store
-  const workouts = useWorkoutStore((s) => s.workouts);
   const currentStreak = useWorkoutStore((s) => s.currentStreak);
-  const longestStreak = useWorkoutStore((s) => s.longestStreak);
   const isWorkoutsLoading = useWorkoutStore((s) => s.isLoading);
   const isWorkoutsRefreshing = useWorkoutStore((s) => s.isRefreshing);
   const fetchWorkouts = useWorkoutStore((s) => s.fetchWorkouts);
@@ -71,40 +74,24 @@ const TodayScreen = () => {
   const getTotalCalories = useNutritionStore((s) => s.getTotalCalories);
 
   // Daily Tracking Store
-  const todaySteps = useDailyTrackingStore((s) => s.todaySteps);
   const todayWeight = useDailyTrackingStore((s) => s.todayWeight);
-  const recentWeights = useDailyTrackingStore((s) => s.recentWeights);
-  const currentWeekStats = useDailyTrackingStore((s) => s.currentWeekStats);
-  const previousWeekStats = useDailyTrackingStore((s) => s.previousWeekStats);
-  const weekComparison = useDailyTrackingStore((s) => s.weekComparison);
-  const fetchTodaySteps = useDailyTrackingStore((s) => s.fetchTodaySteps);
   const fetchTodayWeight = useDailyTrackingStore((s) => s.fetchTodayWeight);
-  const fetchRecentWeights = useDailyTrackingStore((s) => s.fetchRecentWeights);
-  const fetchWeeklyStats = useDailyTrackingStore((s) => s.fetchWeeklyStats);
 
   // Derived state
   const todayWorkout = getTodayWorkout(date);
-  const recentWorkoutsForRepeat = getRecentWorkouts(3);
+  const lastWorkout = getRecentWorkouts(1)[0];
   const totalCalories = getTotalCalories();
 
-  // Calculate suggestions from workouts
-  const suggestions: SuggestionData | null = workouts.length > 0
-    ? calculateWorkoutSuggestions(workouts)
-    : null;
-
-  // Load all data
+  // Load essential data only (simplified for Log screen)
   const loadData = useCallback(async () => {
     if (!user) return;
 
     await Promise.all([
       fetchWorkouts(),
       fetchNutritionByDate(date, user.id, user.dailyCalorieTarget),
-      fetchTodaySteps(date, user.id, user.dailyStepGoal),
       fetchTodayWeight(date, user.id, user.preferredWeightUnit),
-      fetchRecentWeights(date, 30, user.id),
-      fetchWeeklyStats(user),
     ]);
-  }, [user, date, fetchWorkouts, fetchNutritionByDate, fetchTodaySteps, fetchTodayWeight, fetchRecentWeights, fetchWeeklyStats]);
+  }, [user, date, fetchWorkouts, fetchNutritionByDate, fetchTodayWeight]);
 
   // Initial load
   useEffect(() => {
@@ -181,7 +168,7 @@ const TodayScreen = () => {
   };
 
   // Loading state
-  const isLoading = isWorkoutsLoading && !todayNutrition && !todaySteps;
+  const isLoading = isWorkoutsLoading && !todayNutrition;
   const isRefreshing = isWorkoutsRefreshing;
 
   if (isLoading) {
@@ -191,8 +178,6 @@ const TodayScreen = () => {
       </ScrollView>
     );
   }
-
-  const isWideScreen = isDesktop || isTablet;
 
   return (
     <ScrollView
@@ -206,254 +191,161 @@ const TodayScreen = () => {
           refreshing={isRefreshing}
           onRefresh={onRefresh}
           tintColor={colors.primary}
-          colors={[colors.primary, colors.workout, colors.nutrition]}
+          colors={[colors.primary]}
           progressBackgroundColor={colors.surface}
         />
       }
     >
-      {/* Greeting Header */}
-      <View style={styles.greetingSection}>
-        <Text style={styles.greetingText}>
+      {/* Minimal Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>
           {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}
         </Text>
-        <Text style={styles.dateText}>
-          {new Date(date).toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </Text>
+        {currentStreak > 0 && (
+          <View style={styles.streakBadge}>
+            <Ionicons name="flame" size={16} color={colors.warning} />
+            <Text style={styles.streakText}>{currentStreak}</Text>
+          </View>
+        )}
       </View>
 
-      {/* Weekly Stats Card */}
-      {currentWeekStats && (
-        <WeeklyStatsCard
-          currentWeek={currentWeekStats}
-          previousWeek={previousWeekStats || undefined}
-          comparison={weekComparison || undefined}
-        />
+      {/* PRIMARY ACTION: Start Workout */}
+      <TouchableOpacity
+        style={styles.primaryCTA}
+        onPress={() => {
+          lightHaptic();
+          openAddWorkout();
+        }}
+        activeOpacity={0.9}
+        accessibilityRole="button"
+        accessibilityLabel="Start a new workout"
+      >
+        <LinearGradient
+          colors={[colors.workout, colors.primary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.primaryCTAGradient}
+        >
+          <View style={styles.primaryCTAContent}>
+            <View style={styles.primaryCTAIcon}>
+              <Ionicons name="add" size={32} color={colors.text} />
+            </View>
+            <View style={styles.primaryCTAText}>
+              <Text style={styles.primaryCTATitle}>Start Workout</Text>
+              <Text style={styles.primaryCTASubtitle}>Log your exercises</Text>
+            </View>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+
+      {/* Today's Workout Status (if exists) */}
+      {todayWorkout && (
+        <GlassCard accent="blue" glowIntensity="medium" style={styles.todayWorkoutCard}>
+          <View style={styles.todayWorkoutHeader}>
+            <Text style={styles.todayWorkoutLabel}>Today</Text>
+            <View style={[
+              styles.statusBadge,
+              { backgroundColor: todayWorkout.completed ? colors.successMuted : colors.warningMuted }
+            ]}>
+              <Text style={[
+                styles.statusBadgeText,
+                { color: todayWorkout.completed ? colors.success : colors.warning }
+              ]}>
+                {todayWorkout.completed ? 'Complete' : 'In Progress'}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.todayWorkoutName}>{todayWorkout.name}</Text>
+          <View style={styles.todayWorkoutMeta}>
+            <Text style={styles.todayWorkoutMetaText}>
+              {todayWorkout.exercises.length} exercises
+              {todayWorkout.duration ? ` • ${Math.round(todayWorkout.duration)} min` : ''}
+            </Text>
+          </View>
+        </GlassCard>
       )}
 
-      {/* Streak Card */}
-      <StreakCard
-        currentStreak={currentStreak}
-        longestStreak={longestStreak}
-      />
-
-      {/* Workout Suggestions Card */}
-      {suggestions && suggestions.hasEnoughData && (
-        <WorkoutSuggestionsCard suggestions={suggestions} />
+      {/* Quick Repeat: Last Workout */}
+      {!todayWorkout && lastWorkout && (
+        <TouchableOpacity
+          style={styles.lastWorkoutCard}
+          onPress={() => {
+            lightHaptic();
+            handleQuickRepeat(lastWorkout);
+          }}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={`Repeat ${lastWorkout.name} workout`}
+        >
+          <View style={styles.lastWorkoutIcon}>
+            <Ionicons name="refresh" size={20} color={colors.primary} />
+          </View>
+          <View style={styles.lastWorkoutInfo}>
+            <Text style={styles.lastWorkoutTitle}>Repeat: {lastWorkout.name}</Text>
+            <Text style={styles.lastWorkoutMeta}>
+              {lastWorkout.exercises.length} exercises • {daysAgo(lastWorkout.date)}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+        </TouchableOpacity>
       )}
 
-      {/* Cards Grid for tablet/desktop */}
-      <View style={isWideScreen ? styles.cardsGrid : undefined}>
-        {/* Workout Card */}
-        <View style={isWideScreen ? styles.cardWrapper : undefined}>
-          <GlassCard accent="blue" glowIntensity={todayWorkout ? 'medium' : 'subtle'}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardIconWrapper}>
-                <LinearGradient
-                  colors={[colors.workoutLight, colors.workout]}
-                  style={styles.iconGradient}
-                >
-                  <Ionicons name="barbell" size={20} color={colors.text} />
-                </LinearGradient>
-              </View>
-              <Text style={styles.cardTitle}>Workout</Text>
+      {/* Secondary Actions Row */}
+      <View style={styles.secondaryRow}>
+        {/* Meal Card */}
+        <TouchableOpacity
+          style={styles.secondaryCard}
+          onPress={() => {
+            lightHaptic();
+            openAddMeal();
+          }}
+          activeOpacity={0.7}
+        >
+          <LinearGradient
+            colors={[colors.nutritionMuted, 'transparent']}
+            style={styles.secondaryCardGradient}
+          >
+            <Ionicons name="nutrition" size={24} color={colors.nutrition} />
+            <View style={styles.secondaryCardContent}>
+              <Text style={styles.secondaryCardValue}>
+                {totalCalories > 0 ? totalCalories.toLocaleString() : '—'}
+              </Text>
+              <Text style={styles.secondaryCardLabel}>calories</Text>
             </View>
-            {todayWorkout ? (
-              <View style={styles.workoutContent}>
-                <Text style={styles.workoutName}>{todayWorkout.name}</Text>
-                <View style={styles.workoutBadges}>
-                  <View style={styles.workoutBadge}>
-                    <Ionicons name="fitness" size={14} color={colors.textSecondary} />
-                    <Text style={styles.workoutBadgeText}>
-                      {todayWorkout.exercises.length} exercises
-                    </Text>
-                  </View>
-                  {todayWorkout.duration && (
-                    <View style={styles.workoutBadge}>
-                      <Ionicons name="time" size={14} color={colors.textSecondary} />
-                      <Text style={styles.workoutBadgeText}>
-                        {Math.round(todayWorkout.duration)} min
-                      </Text>
-                    </View>
-                  )}
-                  <View style={[
-                    styles.statusBadge,
-                    { backgroundColor: todayWorkout.completed ? colors.successMuted : colors.warningMuted }
-                  ]}>
-                    <Text style={[
-                      styles.statusBadgeText,
-                      { color: todayWorkout.completed ? colors.success : colors.warning }
-                    ]}>
-                      {todayWorkout.completed ? 'Complete' : 'In Progress'}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <>
-                <GlassButton
-                  title="Log Workout"
-                  icon="add"
-                  onPress={() => openAddWorkout()}
-                  variant="secondary"
-                  tintColor={colors.workout}
-                  fullWidth
-                />
-                {/* Quick Repeat Section */}
-                {recentWorkoutsForRepeat.length > 0 && (
-                  <View style={styles.quickRepeatSection}>
-                    <Text style={styles.quickRepeatTitle}>Quick Repeat</Text>
-                    {recentWorkoutsForRepeat.map(w => (
-                      <GlassCard
-                        key={w.id}
-                        accent="none"
-                        glowIntensity="none"
-                        padding="sm"
-                        onPress={() => handleQuickRepeat(w)}
-                        style={styles.quickRepeatCard}
-                      >
-                        <View style={styles.quickRepeatContent}>
-                          <Ionicons name="refresh" size={18} color={colors.primary} />
-                          <View style={styles.quickRepeatInfo}>
-                            <Text style={styles.quickRepeatName}>{w.name}</Text>
-                            <Text style={styles.quickRepeatMeta}>
-                              {w.exercises.length} exercises • {daysAgo(w.date)}
-                            </Text>
-                          </View>
-                          <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-                        </View>
-                      </GlassCard>
-                    ))}
-                  </View>
-                )}
-              </>
+            {todayNutrition && todayNutrition.meals.length > 0 && (
+              <Text style={styles.secondaryCardMeta}>
+                {todayNutrition.meals.length} meal{todayNutrition.meals.length !== 1 ? 's' : ''}
+              </Text>
             )}
-          </GlassCard>
-        </View>
-
-        {/* Nutrition Card */}
-        <View style={isWideScreen ? styles.cardWrapper : undefined}>
-          <GlassCard accent="rose" glowIntensity="subtle">
-            <View style={styles.cardHeader}>
-              <View style={styles.cardIconWrapper}>
-                <LinearGradient
-                  colors={[colors.nutritionLight, colors.nutrition]}
-                  style={styles.iconGradient}
-                >
-                  <Ionicons name="nutrition" size={20} color={colors.text} />
-                </LinearGradient>
-              </View>
-              <Text style={styles.cardTitle}>Calories</Text>
-            </View>
-            <View style={styles.progressContainer}>
-              <AnimatedProgressBar
-                current={totalCalories}
-                target={todayNutrition?.calorieTarget || user?.dailyCalorieTarget || 2200}
-                unit="cal"
-                theme="rose"
-              />
-            </View>
-            {todayNutrition && todayNutrition.meals.length > 0 ? (
-              <View style={styles.mealsPreview}>
-                <View style={styles.mealsBadge}>
-                  <Ionicons name="restaurant" size={14} color={colors.nutrition} />
-                  <Text style={styles.mealsBadgeText}>
-                    {todayNutrition.meals.length} {todayNutrition.meals.length === 1 ? 'meal' : 'meals'} logged
-                  </Text>
-                </View>
-              </View>
-            ) : (
-              <GlassButton
-                title="Add Meal"
-                icon="add"
-                onPress={() => openAddMeal()}
-                variant="secondary"
-                tintColor={colors.nutrition}
-                fullWidth
-              />
-            )}
-          </GlassCard>
-        </View>
-
-        {/* Steps Card */}
-        <View style={isWideScreen ? styles.cardWrapper : undefined}>
-          <GlassCard accent="emerald" glowIntensity="subtle">
-            <View style={styles.cardHeader}>
-              <View style={styles.cardIconWrapper}>
-                <LinearGradient
-                  colors={[colors.stepsLight, colors.steps]}
-                  style={styles.iconGradient}
-                >
-                  <Ionicons name="footsteps" size={20} color={colors.text} />
-                </LinearGradient>
-              </View>
-              <Text style={styles.cardTitle}>Steps</Text>
-            </View>
-            <View style={styles.progressContainer}>
-              <AnimatedProgressBar
-                current={todaySteps?.steps || 0}
-                target={todaySteps?.stepGoal || user?.dailyStepGoal || 10000}
-                unit="steps"
-                theme="green"
-              />
-            </View>
-            <GlassButton
-              title="Update Steps"
-              icon="pencil"
-              onPress={() => openUpdateSteps()}
-              variant="secondary"
-              tintColor={colors.steps}
-              fullWidth
-            />
-          </GlassCard>
-        </View>
+          </LinearGradient>
+        </TouchableOpacity>
 
         {/* Weight Card */}
-        <View style={isWideScreen ? styles.cardWrapper : undefined}>
-          <GlassCard accent="gold" glowIntensity="subtle">
-            <View style={styles.cardHeader}>
-              <View style={styles.cardIconWrapper}>
-                <LinearGradient
-                  colors={[colors.goldLight, colors.gold]}
-                  style={styles.iconGradient}
-                >
-                  <Ionicons name="scale-outline" size={20} color={colors.text} />
-                </LinearGradient>
-              </View>
-              <Text style={styles.cardTitle}>Body Weight</Text>
+        <TouchableOpacity
+          style={styles.secondaryCard}
+          onPress={() => {
+            lightHaptic();
+            openUpdateWeight();
+          }}
+          activeOpacity={0.7}
+        >
+          <LinearGradient
+            colors={[colors.goldMuted, 'transparent']}
+            style={styles.secondaryCardGradient}
+          >
+            <Ionicons name="scale-outline" size={24} color={colors.gold} />
+            <View style={styles.secondaryCardContent}>
+              <Text style={styles.secondaryCardValue}>
+                {todayWeight && todayWeight.weight > 0
+                  ? `${todayWeight.weight.toFixed(1)}`
+                  : '—'}
+              </Text>
+              <Text style={styles.secondaryCardLabel}>
+                {todayWeight?.unit || user?.preferredWeightUnit || 'lbs'}
+              </Text>
             </View>
-            {todayWeight && todayWeight.weight > 0 ? (
-              <View>
-                <View style={styles.weightDisplay}>
-                  <AnimatedNumber
-                    value={todayWeight.weight}
-                    decimals={1}
-                    suffix={todayWeight.unit}
-                    size="xl"
-                    color={colors.gold}
-                  />
-                </View>
-                <WeightChart weights={recentWeights} unit={todayWeight.unit} goalWeight={user?.goalWeight} />
-              </View>
-            ) : (
-              <View style={styles.emptyWeightState}>
-                <Ionicons name="trending-up" size={32} color={colors.textTertiary} />
-                <Text style={styles.emptyWeightText}>Track your weight to see trends</Text>
-              </View>
-            )}
-            <GlassButton
-              title="Update Weight"
-              icon="pencil"
-              onPress={() => openUpdateWeight()}
-              variant="secondary"
-              tintColor={colors.gold}
-              fullWidth
-            />
-          </GlassCard>
-        </View>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -475,157 +367,182 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: spacing.xl,
   },
-  greetingSection: {
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: spacing['2xl'],
   },
-  greetingText: {
-    fontSize: typography.size['3xl'],
-    fontWeight: typography.weight.extrabold,
-    color: colors.text,
-    letterSpacing: -0.5,
-    marginBottom: spacing.xs,
-  },
-  dateText: {
-    fontSize: typography.size.base,
-    fontWeight: typography.weight.medium,
-    color: colors.textSecondary,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    gap: spacing.md,
-  },
-  cardIconWrapper: {
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-  },
-  iconGradient: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.lg,
-  },
-  cardTitle: {
-    fontSize: typography.size.lg,
+  headerTitle: {
+    fontSize: typography.size['2xl'],
     fontWeight: typography.weight.bold,
     color: colors.text,
-    letterSpacing: 0.2,
+    letterSpacing: -0.3,
   },
-  workoutContent: {
-    marginTop: spacing.sm,
-  },
-  workoutName: {
-    fontSize: typography.size.lg,
-    fontWeight: typography.weight.semibold,
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  workoutBadges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  workoutBadge: {
+  streakBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: glass.backgroundLight,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.md,
+    backgroundColor: colors.warningMuted,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
   },
-  workoutBadgeText: {
+  streakText: {
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.bold,
+    color: colors.warning,
+  },
+
+  // Primary CTA
+  primaryCTA: {
+    marginBottom: spacing.lg,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+    ...shadows.lg,
+  },
+  primaryCTAGradient: {
+    padding: spacing['2xl'],
+  },
+  primaryCTAContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
+  },
+  primaryCTAIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.lg,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  primaryCTAText: {
+    flex: 1,
+  },
+  primaryCTATitle: {
+    fontSize: typography.size['2xl'],
+    fontWeight: typography.weight.bold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  primaryCTASubtitle: {
+    fontSize: typography.size.base,
+    color: 'rgba(255,255,255,0.8)',
+  },
+
+  // Today's workout card
+  todayWorkoutCard: {
+    marginBottom: spacing.lg,
+  },
+  todayWorkoutHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  todayWorkoutLabel: {
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.semibold,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  todayWorkoutName: {
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.bold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  todayWorkoutMeta: {
+    marginTop: spacing.xs,
+  },
+  todayWorkoutMetaText: {
     fontSize: typography.size.sm,
     color: colors.textSecondary,
   },
+
+  // Status badge
   statusBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: radius.md,
   },
   statusBadgeText: {
-    fontSize: typography.size.sm,
-    fontWeight: typography.weight.semibold,
-  },
-  progressContainer: {
-    marginBottom: spacing.lg,
-  },
-  mealsPreview: {
-    marginTop: spacing.sm,
-  },
-  mealsBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.nutritionMuted,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.lg,
-    alignSelf: 'flex-start',
-  },
-  mealsBadgeText: {
-    fontSize: typography.size.sm,
-    fontWeight: typography.weight.medium,
-    color: colors.nutrition,
-  },
-  weightDisplay: {
-    marginBottom: spacing.md,
-  },
-  emptyWeightState: {
-    paddingVertical: spacing['2xl'],
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  emptyWeightText: {
-    fontSize: typography.size.sm,
-    color: colors.textTertiary,
-    textAlign: 'center',
-  },
-  cardsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.lg,
-    justifyContent: 'space-between',
-  },
-  cardWrapper: {
-    width: '48%',
-  },
-  quickRepeatSection: {
-    marginTop: spacing.lg,
-    paddingTop: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: glass.border,
-  },
-  quickRepeatTitle: {
     fontSize: typography.size.xs,
     fontWeight: typography.weight.semibold,
-    color: colors.textTertiary,
-    marginBottom: spacing.sm,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
   },
-  quickRepeatCard: {
-    marginBottom: spacing.sm,
-  },
-  quickRepeatContent: {
+
+  // Last workout quick repeat
+  lastWorkoutCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    backgroundColor: glass.background,
+    borderWidth: 1,
+    borderColor: glass.border,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing['2xl'],
   },
-  quickRepeatInfo: {
+  lastWorkoutIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primaryMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lastWorkoutInfo: {
     flex: 1,
   },
-  quickRepeatName: {
+  lastWorkoutTitle: {
     fontSize: typography.size.base,
     fontWeight: typography.weight.semibold,
     color: colors.text,
+    marginBottom: 2,
   },
-  quickRepeatMeta: {
+  lastWorkoutMeta: {
     fontSize: typography.size.sm,
     color: colors.textSecondary,
-    marginTop: 2,
+  },
+
+  // Secondary actions row
+  secondaryRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  secondaryCard: {
+    flex: 1,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+    backgroundColor: glass.background,
+    borderWidth: 1,
+    borderColor: glass.border,
+  },
+  secondaryCardGradient: {
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  secondaryCardContent: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.xs,
+  },
+  secondaryCardValue: {
+    fontSize: typography.size['2xl'],
+    fontWeight: typography.weight.bold,
+    color: colors.text,
+  },
+  secondaryCardLabel: {
+    fontSize: typography.size.sm,
+    color: colors.textSecondary,
+  },
+  secondaryCardMeta: {
+    fontSize: typography.size.xs,
+    color: colors.textTertiary,
   },
 });
 

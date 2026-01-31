@@ -1,4 +1,13 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * WorkoutDetailScreen
+ *
+ * v0.2.0 UX: Clean read-only view of a completed workout with:
+ * - PR indicators for exercises where records were set
+ * - Comparison to previous performance (if available)
+ * - Glass morphism design for visual consistency
+ */
+
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,15 +18,17 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import Card from '../components/Card';
+import { LinearGradient } from 'expo-linear-gradient';
+import GlassCard from '../components/GlassCard';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditWorkoutModal from '../components/EditWorkoutModal';
-import { WorkoutLog, User, WorkoutTemplate, ExerciseTemplate } from '../types'
-import { colors } from '../utils/theme';
+import { WorkoutLog, User, WorkoutTemplate, ExerciseTemplate, PersonalRecord } from '../types'
+import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, checkAndUpdatePRs, generateId } from '../services/storage';
-import { useUIStore } from '../stores';
-import { successHaptic } from '../utils/haptics';
+import { useUIStore, useWorkoutStore } from '../stores';
+import { successHaptic, lightHaptic } from '../utils/haptics';
 import { useAuthStore } from '../stores/authStore';
+import { useResponsive } from '../hooks/useResponsive';
 
 type WorkoutDetailRouteProp = RouteProp<{ params: { workoutId: string } }, 'params'>;
 
@@ -25,14 +36,17 @@ const WorkoutDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute<WorkoutDetailRouteProp>();
   const { workoutId } = route.params;
+  const { contentMaxWidth } = useResponsive();
 
   const [workout, setWorkout] = useState<WorkoutLog | null>(null);
+  const [allWorkouts, setAllWorkouts] = useState<WorkoutLog[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const openAddWorkout = useUIStore((s) => s.openAddWorkout);
+  const personalRecords = useWorkoutStore((s) => s.personalRecords);
 
   useEffect(() => {
     loadWorkout();
@@ -50,6 +64,7 @@ const WorkoutDetailScreen = () => {
       }
 
       const workouts = await getWorkouts(userId);
+      setAllWorkouts(workouts);
       const foundWorkout = workouts.find(w => w.id === workoutId);
       setWorkout(foundWorkout || null);
     } catch (error) {
@@ -57,6 +72,33 @@ const WorkoutDetailScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Find PRs set during this workout (by date match)
+  const workoutPRs = useMemo(() => {
+    if (!workout) return new Set<string>();
+    const workoutDate = workout.date.split('T')[0];
+    return new Set(
+      personalRecords
+        .filter(pr => pr.date.split('T')[0] === workoutDate)
+        .map(pr => pr.exerciseName.toLowerCase())
+    );
+  }, [workout, personalRecords]);
+
+  // Find previous instance of same workout name for comparison
+  const previousWorkout = useMemo(() => {
+    if (!workout) return null;
+    return allWorkouts
+      .filter(w => w.id !== workout.id && w.name === workout.name && w.date < workout.date)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] || null;
+  }, [workout, allWorkouts]);
+
+  // Get previous performance for an exercise
+  const getPreviousExercise = (exerciseName: string) => {
+    if (!previousWorkout) return null;
+    return previousWorkout.exercises.find(
+      e => e.exerciseName.toLowerCase() === exerciseName.toLowerCase()
+    );
   };
 
   const handleEdit = async (editedWorkout: WorkoutLog) => {
@@ -120,151 +162,197 @@ const WorkoutDetailScreen = () => {
   if (!workout) {
     return (
       <View style={styles.centerContainer}>
-        <Ionicons name="barbell-outline" size={64} color="#98989D" />
+        <Ionicons name="barbell-outline" size={64} color={colors.textTertiary} />
         <Text style={styles.emptyText}>Workout not found</Text>
       </View>
     );
   }
 
   const formattedDate = new Date(workout.date).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
+    weekday: 'short',
+    month: 'short',
     day: 'numeric',
-    year: 'numeric',
   });
 
   const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+  const totalVolume = workout.exercises.reduce(
+    (sum, ex) => sum + ex.sets.reduce((setSum, s) => setSum + (s.weight * s.reps), 0),
+    0
+  );
+  const hasPRs = workoutPRs.size > 0;
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        {/* Workout Header */}
-        <Card>
+      <ScrollView
+        contentContainerStyle={[
+          styles.contentContainer,
+          { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
+        ]}
+      >
+        {/* Header Card */}
+        <GlassCard accent={hasPRs ? 'gold' : 'blue'} glowIntensity={hasPRs ? 'medium' : 'subtle'}>
           <View style={styles.header}>
             <View style={styles.headerContent}>
-              <Text style={styles.workoutName}>{workout.name}</Text>
+              <View style={styles.headerTop}>
+                <Text style={styles.workoutName}>{workout.name}</Text>
+                {hasPRs && (
+                  <View style={styles.prBadge}>
+                    <Ionicons name="trophy" size={14} color={colors.gold} />
+                    <Text style={styles.prBadgeText}>PR</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.workoutDate}>{formattedDate}</Text>
-              {workout.duration && (
-                <View style={styles.durationContainer}>
-                  <Ionicons name="time-outline" size={16} color="#98989D" />
-                  <Text style={styles.durationText}>{workout.duration} minutes</Text>
-                </View>
-              )}
             </View>
             <View style={styles.headerActions}>
               <TouchableOpacity
                 style={styles.headerButton}
-                onPress={handleDuplicate}
+                onPress={() => { lightHaptic(); handleDuplicate(); }}
+                accessibilityLabel="Duplicate workout"
               >
-                <Ionicons name="copy" size={22} color="#30D158" />
+                <Ionicons name="copy" size={20} color={colors.success} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.headerButton}
-                onPress={() => setShowEditModal(true)}
+                onPress={() => { lightHaptic(); setShowEditModal(true); }}
+                accessibilityLabel="Edit workout"
               >
-                <Ionicons name="pencil" size={22} color="#0A84FF" />
+                <Ionicons name="pencil" size={20} color={colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.headerButton}
-                onPress={() => setShowDeleteDialog(true)}
+                onPress={() => { lightHaptic(); setShowDeleteDialog(true); }}
+                accessibilityLabel="Delete workout"
               >
-                <Ionicons name="trash" size={22} color="#FF3B30" />
+                <Ionicons name="trash" size={20} color={colors.error} />
               </TouchableOpacity>
             </View>
+          </View>
+
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{workout.exercises.length}</Text>
+              <Text style={styles.statLabel}>exercises</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{totalSets}</Text>
+              <Text style={styles.statLabel}>sets</Text>
+            </View>
+            {workout.duration && (
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{Math.round(workout.duration)}</Text>
+                <Text style={styles.statLabel}>min</Text>
+              </View>
+            )}
+            {totalVolume > 0 && (
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{(totalVolume / 1000).toFixed(1)}k</Text>
+                <Text style={styles.statLabel}>{user?.preferredWeightUnit || 'lbs'}</Text>
+              </View>
+            )}
           </View>
 
           {workout.completed && (
             <View style={styles.completedBadge}>
-              <Ionicons name="checkmark-circle" size={18} color="#30D158" />
+              <Ionicons name="checkmark-circle" size={16} color={colors.success} />
               <Text style={styles.completedText}>Completed</Text>
             </View>
           )}
+        </GlassCard>
 
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{workout.exercises.length}</Text>
-              <Text style={styles.statLabel}>Exercises</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{totalSets}</Text>
-              <Text style={styles.statLabel}>Total Sets</Text>
-            </View>
+        {/* Previous Comparison (if available) */}
+        {previousWorkout && (
+          <View style={styles.comparisonBanner}>
+            <Ionicons name="git-compare-outline" size={16} color={colors.textSecondary} />
+            <Text style={styles.comparisonText}>
+              vs {new Date(previousWorkout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </Text>
           </View>
-        </Card>
+        )}
 
         {/* Exercises */}
-        <View style={styles.sectionHeader}>
-          <Ionicons name="fitness" size={24} color="#0A84FF" />
-          <Text style={styles.sectionTitle}>Exercises</Text>
-        </View>
+        {workout.exercises.map((exercise, index) => {
+          const isPR = workoutPRs.has(exercise.exerciseName.toLowerCase());
+          const prevExercise = getPreviousExercise(exercise.exerciseName);
+          const prevBestWeight = prevExercise
+            ? Math.max(...prevExercise.sets.map(s => s.weight))
+            : null;
+          const currentBestWeight = Math.max(...exercise.sets.map(s => s.weight));
+          const weightDiff = prevBestWeight !== null ? currentBestWeight - prevBestWeight : null;
 
-        {workout.exercises.map((exercise, index) => (
-          <Card key={exercise.id}>
-            <View style={styles.exerciseHeader}>
-              <View style={styles.exerciseNumber}>
-                <Text style={styles.exerciseNumberText}>{index + 1}</Text>
-              </View>
-              <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
-            </View>
-
-            <View style={styles.setsContainer}>
-              {exercise.sets.map((set, setIndex) => (
-                <View key={setIndex} style={styles.setRow}>
-                  <View style={styles.setNumber}>
-                    <Text style={styles.setNumberText}>{setIndex + 1}</Text>
-                  </View>
-                  <View style={styles.setDetails}>
-                    <View style={styles.setDetail}>
-                      <Text style={styles.setDetailLabel}>Reps</Text>
-                      <Text style={styles.setDetailValue}>{set.reps}</Text>
-                    </View>
-                    {set.weight > 0 && (
-                      <>
-                        <Text style={styles.setDetailSeparator}>×</Text>
-                        <View style={styles.setDetail}>
-                          <Text style={styles.setDetailLabel}>Weight</Text>
-                          <Text style={styles.setDetailValue}>
-                            {set.weight} {user?.preferredWeightUnit || 'kg'}
-                          </Text>
-                        </View>
-                      </>
-                    )}
-                  </View>
-                  {set.completed && (
-                    <Ionicons name="checkmark-circle" size={20} color="#30D158" />
+          return (
+            <GlassCard
+              key={exercise.id}
+              accent={isPR ? 'gold' : 'none'}
+              glowIntensity={isPR ? 'subtle' : 'none'}
+            >
+              <View style={styles.exerciseHeader}>
+                <View style={[styles.exerciseNumber, isPR && styles.exerciseNumberPR]}>
+                  {isPR ? (
+                    <Ionicons name="trophy" size={14} color={colors.gold} />
+                  ) : (
+                    <Text style={styles.exerciseNumberText}>{index + 1}</Text>
                   )}
                 </View>
-              ))}
-            </View>
-
-            <View style={styles.exerciseSummary}>
-              <Text style={styles.exerciseSummaryText}>
-                {exercise.sets.length} sets • {exercise.sets[0]?.reps} reps
-                {exercise.sets[0]?.weight > 0 &&
-                  ` • ${exercise.sets[0].weight} ${user?.preferredWeightUnit || 'kg'}`}
-              </Text>
-            </View>
-
-            {exercise.notes && (
-              <View style={styles.exerciseNotesContainer}>
-                <Ionicons name="document-text-outline" size={14} color="#A0A0A8" />
-                <Text style={styles.exerciseNotesText}>{exercise.notes}</Text>
+                <View style={styles.exerciseInfo}>
+                  <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
+                  {isPR && <Text style={styles.prLabel}>Personal Record</Text>}
+                </View>
+                {weightDiff !== null && weightDiff !== 0 && (
+                  <View style={[
+                    styles.diffBadge,
+                    weightDiff > 0 ? styles.diffBadgeUp : styles.diffBadgeDown
+                  ]}>
+                    <Ionicons
+                      name={weightDiff > 0 ? 'arrow-up' : 'arrow-down'}
+                      size={12}
+                      color={weightDiff > 0 ? colors.success : colors.error}
+                    />
+                    <Text style={[
+                      styles.diffText,
+                      { color: weightDiff > 0 ? colors.success : colors.error }
+                    ]}>
+                      {Math.abs(weightDiff)} {user?.preferredWeightUnit || 'lbs'}
+                    </Text>
+                  </View>
+                )}
               </View>
-            )}
-          </Card>
-        ))}
 
+              <View style={styles.setsContainer}>
+                {exercise.sets.map((set, setIndex) => (
+                  <View key={setIndex} style={styles.setRow}>
+                    <Text style={styles.setNumber}>{setIndex + 1}</Text>
+                    <Text style={styles.setWeight}>
+                      {set.weight > 0 ? `${set.weight} ${user?.preferredWeightUnit || 'lbs'}` : 'BW'}
+                    </Text>
+                    <Text style={styles.setSeparator}>×</Text>
+                    <Text style={styles.setReps}>{set.reps}</Text>
+                    {set.completed && (
+                      <Ionicons name="checkmark" size={16} color={colors.success} style={styles.setCheck} />
+                    )}
+                  </View>
+                ))}
+              </View>
+
+              {exercise.notes && (
+                <View style={styles.exerciseNotes}>
+                  <Text style={styles.exerciseNotesText}>{exercise.notes}</Text>
+                </View>
+              )}
+            </GlassCard>
+          );
+        })}
+
+        {/* Notes */}
         {workout.notes && (
-          <>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="document-text" size={24} color="#FFD60A" />
-              <Text style={styles.sectionTitle}>Notes</Text>
+          <GlassCard accent="none" glowIntensity="none">
+            <View style={styles.notesHeader}>
+              <Ionicons name="document-text-outline" size={18} color={colors.textSecondary} />
+              <Text style={styles.notesLabel}>Notes</Text>
             </View>
-            <Card>
-              <Text style={styles.notesText}>{workout.notes}</Text>
-            </Card>
-          </>
+            <Text style={styles.notesText}>{workout.notes}</Text>
+          </GlassCard>
         )}
       </ScrollView>
 
@@ -303,222 +391,243 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: typography.size.base,
     color: colors.textSecondary,
-    marginTop: 12,
+    marginTop: spacing.md,
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.semibold,
     color: colors.textSecondary,
-    marginTop: 16,
+    marginTop: spacing.lg,
   },
   contentContainer: {
-    padding: 20,
-    paddingBottom: 32,
+    padding: spacing.xl,
+    paddingBottom: spacing['4xl'],
   },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   headerContent: {
     flex: 1,
   },
-  workoutName: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 8,
-    letterSpacing: 0.3,
-  },
-  workoutDate: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textSecondary,
-    marginBottom: 8,
-  },
-  durationContainer: {
+  headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
   },
-  durationText: {
-    fontSize: 15,
+  workoutName: {
+    fontSize: typography.size['2xl'],
+    fontWeight: typography.weight.bold,
+    color: colors.text,
+    letterSpacing: -0.3,
+  },
+  workoutDate: {
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.medium,
     color: colors.textSecondary,
-    fontWeight: '500',
+  },
+  prBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.goldMuted,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.md,
+  },
+  prBadgeText: {
+    fontSize: typography.size.xs,
+    fontWeight: typography.weight.bold,
+    color: colors.gold,
   },
   headerActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.sm,
   },
   headerButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: colors.surfaceElevated,
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: glass.backgroundLight,
+  },
+
+  // Stats Row
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: glass.border,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.bold,
+    color: colors.text,
+  },
+  statLabel: {
+    fontSize: typography.size.xs,
+    color: colors.textSecondary,
+    fontWeight: typography.weight.medium,
   },
   completedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1A2E1F',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginBottom: 16,
-    gap: 6,
+    gap: spacing.xs,
+    marginTop: spacing.md,
   },
   completedText: {
-    fontSize: 14,
-    color: '#30D158',
-    fontWeight: '600',
+    fontSize: typography.size.sm,
+    color: colors.success,
+    fontWeight: typography.weight.medium,
   },
-  statsContainer: {
+
+  // Comparison Banner
+  comparisonBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#38383A',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    backgroundColor: glass.background,
+    borderRadius: radius.md,
+    marginBottom: spacing.md,
+    alignSelf: 'flex-start',
   },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#38383A',
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#0A84FF',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 13,
+  comparisonText: {
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    fontWeight: '500',
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    letterSpacing: 0.2,
-  },
+
+  // Exercise Card
   exerciseHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    gap: 12,
+    marginBottom: spacing.md,
+    gap: spacing.md,
   },
   exerciseNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#0A84FF',
+    width: 28,
+    height: 28,
+    borderRadius: radius.full,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  exerciseNumberPR: {
+    backgroundColor: colors.goldMuted,
+  },
   exerciseNumberText: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.bold,
     color: colors.text,
+  },
+  exerciseInfo: {
+    flex: 1,
   },
   exerciseName: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
-    flex: 1,
-    letterSpacing: 0.2,
   },
+  prLabel: {
+    fontSize: typography.size.xs,
+    color: colors.gold,
+    fontWeight: typography.weight.medium,
+    marginTop: 2,
+  },
+  diffBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.md,
+  },
+  diffBadgeUp: {
+    backgroundColor: colors.successMuted,
+  },
+  diffBadgeDown: {
+    backgroundColor: colors.errorMuted,
+  },
+  diffText: {
+    fontSize: typography.size.xs,
+    fontWeight: typography.weight.semibold,
+  },
+
+  // Sets
   setsContainer: {
-    gap: 10,
-    marginBottom: 12,
+    gap: spacing.sm,
   },
   setRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surfaceElevated,
-    padding: 12,
-    borderRadius: 10,
-    gap: 12,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.md,
   },
   setNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#38383A',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 24,
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.semibold,
+    color: colors.textTertiary,
   },
-  setNumberText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textSecondary,
-  },
-  setDetails: {
+  setWeight: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  setDetail: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
-  },
-  setDetailLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  setDetailValue: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
   },
-  setDetailSeparator: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    fontWeight: '500',
+  setSeparator: {
+    fontSize: typography.size.sm,
+    color: colors.textTertiary,
+    marginHorizontal: spacing.xs,
   },
-  exerciseSummary: {
-    paddingTop: 12,
+  setReps: {
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.bold,
+    color: colors.primary,
+    minWidth: 30,
+  },
+  setCheck: {
+    marginLeft: spacing.sm,
+  },
+
+  // Notes
+  exerciseNotes: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: '#38383A',
-  },
-  exerciseSummaryText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  exerciseNotesContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-    paddingTop: 8,
-    marginTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#38383A',
+    borderTopColor: glass.border,
   },
   exerciseNotesText: {
-    flex: 1,
-    fontSize: 13,
+    fontSize: typography.size.sm,
     color: colors.textSecondary,
-    lineHeight: 18,
     fontStyle: 'italic',
+    lineHeight: 20,
+  },
+  notesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  notesLabel: {
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.medium,
+    color: colors.textSecondary,
   },
   notesText: {
-    fontSize: 15,
+    fontSize: typography.size.base,
     color: colors.text,
     lineHeight: 22,
   },
