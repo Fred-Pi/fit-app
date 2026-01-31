@@ -39,7 +39,13 @@ import {
   useDailyTrackingStore,
 } from '../stores';
 
-const TodayScreen = () => {
+type TodayVariant = 'full' | 'dashboard';
+
+interface TodayScreenProps {
+  variant?: TodayVariant;
+}
+
+const TodayScreen: React.FC<TodayScreenProps> = ({ variant = 'full' }) => {
   const { contentMaxWidth } = useResponsive();
   const date = getTodayDate();
 
@@ -176,6 +182,202 @@ const TodayScreen = () => {
       <ScrollView style={styles.container}>
         <TodayScreenSkeleton />
       </ScrollView>
+    );
+  }
+
+  // Dashboard variant for desktop - multi-column layout
+  if (variant === 'dashboard') {
+    return (
+      <View style={styles.dashboardContainer}>
+        {/* Left Column - Primary Actions */}
+        <View style={styles.dashboardMain}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>
+              {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}
+            </Text>
+            {currentStreak > 0 && (
+              <View style={styles.streakBadge}>
+                <Ionicons name="flame" size={16} color={colors.warning} />
+                <Text style={styles.streakText}>{currentStreak}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* PRIMARY ACTION: Start Workout */}
+          <TouchableOpacity
+            style={styles.primaryCTA}
+            onPress={() => {
+              lightHaptic();
+              openAddWorkout();
+            }}
+            activeOpacity={0.9}
+          >
+            <LinearGradient
+              colors={[colors.workout, colors.primary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.primaryCTAGradient}
+            >
+              <View style={styles.primaryCTAContent}>
+                <View style={styles.primaryCTAIcon}>
+                  <Ionicons name="add" size={32} color={colors.text} />
+                </View>
+                <View style={styles.primaryCTAText}>
+                  <Text style={styles.primaryCTATitle}>Start Workout</Text>
+                  <Text style={styles.primaryCTASubtitle}>Log your exercises</Text>
+                </View>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Today's Workout Status */}
+          {todayWorkout && (
+            <GlassCard accent="blue" glowIntensity="medium" style={styles.todayWorkoutCard}>
+              <View style={styles.todayWorkoutHeader}>
+                <Text style={styles.todayWorkoutLabel}>Today</Text>
+                <View style={[
+                  styles.statusBadge,
+                  { backgroundColor: todayWorkout.completed ? colors.successMuted : colors.warningMuted }
+                ]}>
+                  <Text style={[
+                    styles.statusBadgeText,
+                    { color: todayWorkout.completed ? colors.success : colors.warning }
+                  ]}>
+                    {todayWorkout.completed ? 'Complete' : 'In Progress'}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.todayWorkoutName}>{todayWorkout.name}</Text>
+              <View style={styles.todayWorkoutMeta}>
+                <Text style={styles.todayWorkoutMetaText}>
+                  {todayWorkout.exercises.length} exercises
+                  {todayWorkout.duration ? ` • ${Math.round(todayWorkout.duration)} min` : ''}
+                </Text>
+              </View>
+            </GlassCard>
+          )}
+
+          {/* Quick Repeat */}
+          {!todayWorkout && lastWorkout && (
+            <TouchableOpacity
+              style={styles.lastWorkoutCard}
+              onPress={() => {
+                lightHaptic();
+                handleQuickRepeat(lastWorkout);
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.lastWorkoutIcon}>
+                <Ionicons name="refresh" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.lastWorkoutInfo}>
+                <Text style={styles.lastWorkoutTitle}>Repeat: {lastWorkout.name}</Text>
+                <Text style={styles.lastWorkoutMeta}>
+                  {lastWorkout.exercises.length} exercises • {daysAgo(lastWorkout.date)}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Right Column - Quick Stats */}
+        <View style={styles.dashboardSide}>
+          {/* Quick Stats Grid */}
+          <Text style={styles.dashboardSideTitle}>Quick Stats</Text>
+
+          {/* Weight Card */}
+          <TouchableOpacity
+            style={styles.dashboardStatCard}
+            onPress={() => {
+              lightHaptic();
+              openUpdateWeight();
+            }}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.dashboardStatIcon, { backgroundColor: colors.goldMuted }]}>
+              <Ionicons name="scale-outline" size={20} color={colors.gold} />
+            </View>
+            <View style={styles.dashboardStatContent}>
+              <Text style={styles.dashboardStatLabel}>Weight</Text>
+              <View style={styles.dashboardStatValueRow}>
+                <Text style={styles.dashboardStatValue}>
+                  {todayWeight && todayWeight.weight > 0
+                    ? `${todayWeight.weight.toFixed(1)}`
+                    : '—'}
+                </Text>
+                <Text style={styles.dashboardStatUnit}>
+                  {todayWeight?.unit || user?.preferredWeightUnit || 'lbs'}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
+
+          {/* Calories Card */}
+          <TouchableOpacity
+            style={styles.dashboardStatCard}
+            onPress={() => {
+              lightHaptic();
+              openAddMeal();
+            }}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.dashboardStatIcon, { backgroundColor: colors.nutritionMuted }]}>
+              <Ionicons name="nutrition" size={20} color={colors.nutrition} />
+            </View>
+            <View style={styles.dashboardStatContent}>
+              <Text style={styles.dashboardStatLabel}>Calories</Text>
+              <View style={styles.dashboardStatValueRow}>
+                <Text style={styles.dashboardStatValue}>
+                  {totalCalories > 0 ? totalCalories.toLocaleString() : '—'}
+                </Text>
+                <Text style={styles.dashboardStatUnit}>
+                  / {user?.dailyCalorieTarget?.toLocaleString() || '2,200'}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
+
+          {/* Streak Card */}
+          <View style={styles.dashboardStatCard}>
+            <View style={[styles.dashboardStatIcon, { backgroundColor: colors.warningMuted }]}>
+              <Ionicons name="flame" size={20} color={colors.warning} />
+            </View>
+            <View style={styles.dashboardStatContent}>
+              <Text style={styles.dashboardStatLabel}>Current Streak</Text>
+              <View style={styles.dashboardStatValueRow}>
+                <Text style={styles.dashboardStatValue}>
+                  {currentStreak}
+                </Text>
+                <Text style={styles.dashboardStatUnit}>
+                  {currentStreak === 1 ? 'day' : 'days'}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Meals Today */}
+          {todayNutrition && todayNutrition.meals.length > 0 && (
+            <View style={styles.dashboardStatCard}>
+              <View style={[styles.dashboardStatIcon, { backgroundColor: colors.successMuted }]}>
+                <Ionicons name="restaurant" size={20} color={colors.success} />
+              </View>
+              <View style={styles.dashboardStatContent}>
+                <Text style={styles.dashboardStatLabel}>Meals Today</Text>
+                <View style={styles.dashboardStatValueRow}>
+                  <Text style={styles.dashboardStatValue}>
+                    {todayNutrition.meals.length}
+                  </Text>
+                  <Text style={styles.dashboardStatUnit}>logged</Text>
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
     );
   }
 
@@ -542,6 +744,71 @@ const styles = StyleSheet.create({
   },
   secondaryCardMeta: {
     fontSize: typography.size.xs,
+    color: colors.textTertiary,
+  },
+
+  // Dashboard variant styles
+  dashboardContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing['2xl'],
+  },
+  dashboardMain: {
+    flex: 2,
+  },
+  dashboardSide: {
+    flex: 1,
+    maxWidth: 320,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: glass.border,
+    padding: spacing.xl,
+  },
+  dashboardSideTitle: {
+    fontSize: typography.size.lg,
+    fontWeight: typography.weight.semibold,
+    color: colors.text,
+    marginBottom: spacing.lg,
+  },
+  dashboardStatCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    backgroundColor: glass.background,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: glass.border,
+    marginBottom: spacing.md,
+  },
+  dashboardStatIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dashboardStatContent: {
+    flex: 1,
+  },
+  dashboardStatLabel: {
+    fontSize: typography.size.sm,
+    color: colors.textSecondary,
+    marginBottom: 2,
+  },
+  dashboardStatValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.xs,
+  },
+  dashboardStatValue: {
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.bold,
+    color: colors.text,
+  },
+  dashboardStatUnit: {
+    fontSize: typography.size.sm,
     color: colors.textTertiary,
   },
 });

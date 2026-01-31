@@ -5,7 +5,6 @@ import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import DesktopSidebar, { NavItem } from './DesktopSidebar';
 import ErrorBoundary from '../components/ErrorBoundary';
 import GlobalModals from '../components/GlobalModals';
-import { ResponsiveColumns } from '../components/ResponsiveGrid';
 import WorkoutDetailPanel from '../components/WorkoutDetailPanel';
 import MealDetailPanel from '../components/MealDetailPanel';
 import { useUIStore } from '../stores';
@@ -68,14 +67,9 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({ initialRoute = 'Log' }) =
   );
 };
 
-// Log section: Today + quick access to workouts
+// Log section: Dashboard layout with quick stats
 const LogSection: React.FC = () => {
-  return (
-    <ResponsiveColumns mainRatio={2} gap={spacing['3xl']} stackOnTablet>
-      <TodayScreen />
-      <WorkoutsScreen variant="compact" />
-    </ResponsiveColumns>
-  );
+  return <TodayScreen variant="dashboard" />;
 };
 
 // Workouts section: Master-detail layout
