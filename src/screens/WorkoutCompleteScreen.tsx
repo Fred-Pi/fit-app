@@ -12,6 +12,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -335,11 +336,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    ...(Platform.OS === 'web' ? { height: '100%', overflow: 'hidden' } : {}),
   },
   scrollView: {
     flex: 1,
-    // @ts-ignore - web specific
-    overflow: 'auto',
+    ...(Platform.OS === 'web' ? { height: '100%', overflowY: 'auto' } : {}),
   },
   scrollContent: {
     padding: spacing.xl,

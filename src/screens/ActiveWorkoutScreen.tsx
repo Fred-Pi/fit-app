@@ -301,9 +301,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    ...(Platform.OS === 'web' ? { height: '100%', overflow: 'hidden' } : {}),
   },
   keyboardAvoid: {
     flex: 1,
+    ...(Platform.OS === 'web' ? { height: '100%' } : {}),
   },
   header: {
     flexDirection: 'row',
@@ -402,8 +404,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    // @ts-ignore - web specific
-    overflow: 'auto',
+    ...(Platform.OS === 'web' ? { height: '100%', overflowY: 'auto' } : {}),
   },
   scrollContent: {
     padding: spacing.lg,

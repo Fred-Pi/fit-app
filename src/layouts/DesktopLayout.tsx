@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { colors, glass, spacing, typography, radius, getResponsiveTypography } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import DesktopSidebar, { NavItem } from './DesktopSidebar';
@@ -8,7 +9,8 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import GlobalModals from '../components/GlobalModals';
 import WorkoutDetailPanel from '../components/WorkoutDetailPanel';
 import MealDetailPanel from '../components/MealDetailPanel';
-import { useUIStore } from '../stores';
+import { useUIStore, useActiveWorkoutStore } from '../stores';
+import { lightHaptic } from '../utils/haptics';
 
 // Screens
 import TodayScreen from '../screens/TodayScreen';
@@ -75,13 +77,24 @@ const LogSection: React.FC = () => {
 
 // Workouts section: Master-detail layout
 const WorkoutsSection: React.FC = () => {
+  const navigation = useNavigation<any>();
   const selectedWorkoutId = useUIStore((s) => s.selectedWorkoutId);
   const selectWorkout = useUIStore((s) => s.selectWorkout);
   const selectedWorkoutIds = useUIStore((s) => s.selectedWorkoutIds);
+  const startWorkout = useActiveWorkoutStore((s) => s.startWorkout);
   const { typographyScale } = useResponsive();
   const scaledType = getResponsiveTypography(typographyScale);
 
   const hasMultipleSelected = selectedWorkoutIds.length > 1;
+
+  const handleStartWorkout = () => {
+    lightHaptic();
+    startWorkout(null);
+    navigation.navigate('Workouts', {
+      screen: 'ActiveWorkout',
+      params: {},
+    });
+  };
 
   return (
     <View style={styles.masterDetailContainer}>
@@ -118,6 +131,10 @@ const WorkoutsSection: React.FC = () => {
             <Text style={[styles.emptyDetailText, { fontSize: scaledType.base }]}>
               Click on a workout from the list to view its details
             </Text>
+            <TouchableOpacity style={styles.newWorkoutButton} onPress={handleStartWorkout}>
+              <Ionicons name="add" size={20} color={colors.text} />
+              <Text style={styles.newWorkoutButtonText}>Start New Workout</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -263,6 +280,21 @@ const styles = StyleSheet.create({
   multiSelectCount: {
     fontSize: typography.size['2xl'],
     fontWeight: typography.weight.bold,
+    color: colors.text,
+  },
+  newWorkoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    backgroundColor: colors.primary,
+    borderRadius: radius.lg,
+  },
+  newWorkoutButtonText: {
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.semibold,
     color: colors.text,
   },
 });
