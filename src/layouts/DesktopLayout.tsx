@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, glass, spacing, typography, radius } from '../utils/theme';
-import DesktopSidebar, { NavItem, SIDEBAR_WIDTH } from './DesktopSidebar';
+import DesktopSidebar, { NavItem } from './DesktopSidebar';
 import ErrorBoundary from '../components/ErrorBoundary';
 import GlobalModals from '../components/GlobalModals';
 import { ResponsiveColumns } from '../components/ResponsiveGrid';
