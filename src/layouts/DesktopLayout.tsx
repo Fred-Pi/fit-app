@@ -4,13 +4,12 @@ import { colors, spacing } from '../utils/theme';
 import DesktopSidebar, { NavItem, SIDEBAR_WIDTH } from './DesktopSidebar';
 import ErrorBoundary from '../components/ErrorBoundary';
 import GlobalModals from '../components/GlobalModals';
+import { ResponsiveColumns } from '../components/ResponsiveGrid';
 
 // Screens
 import TodayScreen from '../screens/TodayScreen';
 import WorkoutsScreen from '../screens/WorkoutsScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
-import AchievementsScreen from '../screens/AchievementsScreen';
-import NutritionScreen from '../screens/NutritionScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 // Desktop renders screens directly without nested navigation
@@ -60,19 +59,13 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({ initialRoute = 'Log' }) =
   );
 };
 
-// Log section: Today + quick access to workouts and nutrition
+// Log section: Today + quick access to workouts
 const LogSection: React.FC = () => {
   return (
-    <View style={styles.section}>
-      <View style={styles.twoColumnLayout}>
-        <View style={styles.mainColumn}>
-          <TodayScreen />
-        </View>
-        <View style={styles.sideColumn}>
-          <WorkoutsScreen />
-        </View>
-      </View>
-    </View>
+    <ResponsiveColumns mainRatio={2} gap={spacing['3xl']} stackOnTablet>
+      <TodayScreen />
+      <WorkoutsScreen />
+    </ResponsiveColumns>
   );
 };
 
@@ -105,19 +98,6 @@ const styles = StyleSheet.create({
   },
   section: {
     flex: 1,
-  },
-  twoColumnLayout: {
-    flexDirection: 'row',
-    gap: spacing['3xl'],
-  },
-  mainColumn: {
-    flex: 2,
-    minWidth: 400,
-  },
-  sideColumn: {
-    flex: 1,
-    minWidth: 320,
-    maxWidth: 400,
   },
 });
 
