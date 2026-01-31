@@ -5,7 +5,7 @@
  * and inline exercise search.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,7 @@ import ActiveExerciseCard from '../components/ActiveExerciseCard';
 import InlineExerciseSearch from '../components/InlineExerciseSearch';
 import { lightHaptic, heavyHaptic } from '../utils/haptics';
 import { useUserStore } from '../stores';
+import { DesktopWorkoutOverlayContext } from '../layouts/DesktopLayout';
 
 type NavigationProp = StackNavigationProp<WorkoutsStackParamList, 'ActiveWorkout'>;
 type ActiveWorkoutRouteProp = RouteProp<WorkoutsStackParamList, 'ActiveWorkout'>;
@@ -37,6 +38,7 @@ const ActiveWorkoutScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ActiveWorkoutRouteProp>();
   const scrollViewRef = useRef<ScrollView>(null);
+  const desktopOverlay = useContext(DesktopWorkoutOverlayContext);
 
   // User preferences
   const weightUnit = useUserStore((s) => s.user?.preferredWeightUnit) || 'kg';
@@ -128,7 +130,11 @@ const ActiveWorkoutScreen: React.FC = () => {
           style: 'destructive',
           onPress: () => {
             discardWorkout();
-            navigation.goBack();
+            if (desktopOverlay) {
+              desktopOverlay.closeWorkoutFlow();
+            } else {
+              navigation.goBack();
+            }
           },
         },
       ]
@@ -183,7 +189,7 @@ const ActiveWorkoutScreen: React.FC = () => {
           <Text style={styles.errorText}>No active workout</Text>
           <GlassButton
             title="Go Back"
-            onPress={() => navigation.goBack()}
+            onPress={() => desktopOverlay ? desktopOverlay.closeWorkoutFlow() : navigation.goBack()}
             variant="primary"
           />
         </View>

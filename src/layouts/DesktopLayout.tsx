@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { createStackNavigator } from '@react-navigation/stack';
 import { colors, glass, spacing, typography, radius, getResponsiveTypography } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import DesktopSidebar, { NavItem } from './DesktopSidebar';
@@ -23,9 +24,6 @@ import QuickStartScreen from '../screens/QuickStartScreen';
 import ActiveWorkoutScreen from '../screens/ActiveWorkoutScreen';
 import WorkoutCompleteScreen from '../screens/WorkoutCompleteScreen';
 
-// Workout flow state type
-type WorkoutFlowScreen = 'none' | 'quickstart' | 'active' | 'complete';
-
 // Desktop renders screens directly without nested navigation
 // Workouts section uses master-detail pattern
 
@@ -33,38 +31,118 @@ interface DesktopLayoutProps {
   initialRoute?: NavItem;
 }
 
-// Context for desktop workout flow navigation
-export const DesktopWorkoutFlowContext = React.createContext<{
-  currentScreen: WorkoutFlowScreen;
-  goToQuickStart: () => void;
-  goToActiveWorkout: () => void;
-  goToComplete: () => void;
-  exitFlow: () => void;
+// Stack navigator for desktop workout flow
+type DesktopWorkoutStackParamList = {
+  QuickStart: undefined;
+  ActiveWorkout: { templateId?: string; repeatWorkoutId?: string };
+  WorkoutComplete: undefined;
+};
+
+const WorkoutStack = createStackNavigator<DesktopWorkoutStackParamList>();
+
+// Context to control showing/hiding the workout flow overlay
+export const DesktopWorkoutOverlayContext = React.createContext<{
+  showWorkoutFlow: boolean;
+  openWorkoutFlow: () => void;
+  closeWorkoutFlow: () => void;
 } | null>(null);
+
+// Desktop workout flow navigator component
+const DesktopWorkoutFlowNavigator: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  return (
+    <View style={styles.workoutFlowOverlay}>
+      <WorkoutStack.Navigator
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: colors.surface,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
+          headerTintColor: colors.text,
+          headerTitleStyle: {
+            fontWeight: '600',
+          },
+          cardStyle: {
+            backgroundColor: colors.background,
+          },
+        }}
+      >
+        <WorkoutStack.Screen
+          name="QuickStart"
+          component={QuickStartScreen}
+          options={{
+            headerTitle: 'Start Workout',
+            headerLeft: () => (
+              <TouchableOpacity onPress={onClose} style={{ marginLeft: 16 }}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            ),
+          }}
+        />
+        <WorkoutStack.Screen
+          name="ActiveWorkout"
+          component={ActiveWorkoutScreen}
+          options={{
+            headerShown: false,
+            gestureEnabled: false,
+          }}
+          listeners={{
+            beforeRemove: (e) => {
+              // When navigating back from ActiveWorkout (after discard), close overlay
+              if (e.data.action.type === 'GO_BACK') {
+                onClose();
+              }
+            },
+          }}
+        />
+        <WorkoutStack.Screen
+          name="WorkoutComplete"
+          component={WorkoutCompleteScreen}
+          options={{
+            headerTitle: 'Workout Complete',
+            headerLeft: () => null,
+            gestureEnabled: false,
+          }}
+          listeners={{
+            beforeRemove: () => {
+              // Close overlay when leaving WorkoutComplete
+              onClose();
+            },
+          }}
+        />
+      </WorkoutStack.Navigator>
+    </View>
+  );
+};
 
 const DesktopLayout: React.FC<DesktopLayoutProps> = ({ initialRoute = 'Log' }) => {
   const [activeItem, setActiveItem] = useState<NavItem>(initialRoute);
-  const [workoutFlowScreen, setWorkoutFlowScreen] = useState<WorkoutFlowScreen>('none');
+  const [showWorkoutFlow, setShowWorkoutFlow] = useState(false);
 
   const handleNavigate = useCallback((item: NavItem) => {
     setActiveItem(item);
   }, []);
 
-  // Workout flow navigation functions
-  const workoutFlowNav = {
-    currentScreen: workoutFlowScreen,
-    goToQuickStart: () => setWorkoutFlowScreen('quickstart'),
-    goToActiveWorkout: () => setWorkoutFlowScreen('active'),
-    goToComplete: () => setWorkoutFlowScreen('complete'),
-    exitFlow: () => setWorkoutFlowScreen('none'),
+  const openWorkoutFlow = useCallback(() => {
+    setShowWorkoutFlow(true);
+  }, []);
+
+  const closeWorkoutFlow = useCallback(() => {
+    setShowWorkoutFlow(false);
+  }, []);
+
+  const overlayContext = {
+    showWorkoutFlow,
+    openWorkoutFlow,
+    closeWorkoutFlow,
   };
 
   const renderContent = () => {
     switch (activeItem) {
       case 'Log':
-        return <LogSection onStartWorkout={() => setWorkoutFlowScreen('quickstart')} />;
+        return <LogSection onStartWorkout={openWorkoutFlow} />;
       case 'Workouts':
-        return <WorkoutsSection onStartWorkout={() => setWorkoutFlowScreen('quickstart')} />;
+        return <WorkoutsSection onStartWorkout={openWorkoutFlow} />;
       case 'Progress':
         return <ProgressSection />;
       case 'Nutrition':
@@ -76,40 +154,27 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({ initialRoute = 'Log' }) =
     }
   };
 
-  // Render workout flow overlay
-  const renderWorkoutFlowOverlay = () => {
-    if (workoutFlowScreen === 'none') return null;
-
-    return (
-      <View style={styles.workoutFlowOverlay}>
-        <DesktopWorkoutFlowContext.Provider value={workoutFlowNav}>
-          {workoutFlowScreen === 'quickstart' && <DesktopQuickStart />}
-          {workoutFlowScreen === 'active' && <DesktopActiveWorkout />}
-          {workoutFlowScreen === 'complete' && <DesktopWorkoutComplete />}
-        </DesktopWorkoutFlowContext.Provider>
-      </View>
-    );
-  };
-
   return (
-    <View style={styles.container}>
-      <GlobalModals />
-      <DesktopSidebar activeItem={activeItem} onNavigate={handleNavigate} />
+    <DesktopWorkoutOverlayContext.Provider value={overlayContext}>
+      <View style={styles.container}>
+        <GlobalModals />
+        <DesktopSidebar activeItem={activeItem} onNavigate={handleNavigate} />
 
-      <View style={styles.contentArea}>
-        <ErrorBoundary>
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {renderContent()}
-          </ScrollView>
-        </ErrorBoundary>
+        <View style={styles.contentArea}>
+          <ErrorBoundary>
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {renderContent()}
+            </ScrollView>
+          </ErrorBoundary>
+        </View>
+
+        {showWorkoutFlow && <DesktopWorkoutFlowNavigator onClose={closeWorkoutFlow} />}
       </View>
-
-      {renderWorkoutFlowOverlay()}
-    </View>
+    </DesktopWorkoutOverlayContext.Provider>
   );
 };
 
@@ -240,169 +305,6 @@ const NutritionSection: React.FC = () => {
   );
 };
 
-// Desktop-specific workout flow wrapper components
-const DesktopQuickStart: React.FC = () => {
-  const flowContext = React.useContext(DesktopWorkoutFlowContext);
-  const startWorkout = useActiveWorkoutStore((s) => s.startWorkout);
-  const startFromRecent = useActiveWorkoutStore((s) => s.startFromRecent);
-  const templates = useWorkoutStore((s) => s.templates);
-  const getRecentWorkouts = useWorkoutStore((s) => s.getRecentWorkouts);
-  const recentWorkouts = getRecentWorkouts(5);
-
-  const handleStartFresh = () => {
-    lightHaptic();
-    startWorkout(null);
-    flowContext?.goToActiveWorkout();
-  };
-
-  const handleSelectTemplate = (template: any) => {
-    lightHaptic();
-    startWorkout(template);
-    flowContext?.goToActiveWorkout();
-  };
-
-  const handleRepeatWorkout = (workout: any) => {
-    lightHaptic();
-    startFromRecent(workout);
-    flowContext?.goToActiveWorkout();
-  };
-
-  return (
-    <View style={styles.workoutFlowContainer}>
-      <View style={styles.workoutFlowHeader}>
-        <TouchableOpacity onPress={flowContext?.exitFlow} style={styles.closeButton}>
-          <Ionicons name="close" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.workoutFlowTitle}>Start Workout</Text>
-      </View>
-      <ScrollView style={styles.workoutFlowScroll} contentContainerStyle={styles.workoutFlowScrollContent}>
-        <TouchableOpacity style={styles.startFreshButton} onPress={handleStartFresh}>
-          <Ionicons name="add-circle" size={32} color={colors.primary} />
-          <Text style={styles.startFreshText}>Start Fresh</Text>
-        </TouchableOpacity>
-
-        {templates.length > 0 && (
-          <View style={styles.flowSection}>
-            <Text style={styles.flowSectionTitle}>Templates</Text>
-            {templates.map((t: any) => (
-              <TouchableOpacity key={t.id} style={styles.flowListItem} onPress={() => handleSelectTemplate(t)}>
-                <Ionicons name="document-text" size={20} color={colors.primary} />
-                <Text style={styles.flowListItemText}>{t.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        {recentWorkouts.length > 0 && (
-          <View style={styles.flowSection}>
-            <Text style={styles.flowSectionTitle}>Recent Workouts</Text>
-            {recentWorkouts.map((w: any) => (
-              <TouchableOpacity key={w.id} style={styles.flowListItem} onPress={() => handleRepeatWorkout(w)}>
-                <Ionicons name="refresh" size={20} color={colors.success} />
-                <Text style={styles.flowListItemText}>{w.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </ScrollView>
-    </View>
-  );
-};
-
-const DesktopActiveWorkout: React.FC = () => {
-  const flowContext = React.useContext(DesktopWorkoutFlowContext);
-  const {
-    workoutName,
-    exercises,
-    finishWorkout,
-    discardWorkout,
-    addExercise,
-    hasActiveWorkout,
-  } = useActiveWorkoutStore();
-
-  const handleFinish = () => {
-    lightHaptic();
-    flowContext?.goToComplete();
-  };
-
-  const handleDiscard = () => {
-    discardWorkout();
-    flowContext?.exitFlow();
-  };
-
-  if (!hasActiveWorkout) {
-    return (
-      <View style={styles.workoutFlowContainer}>
-        <Text style={styles.workoutFlowTitle}>No active workout</Text>
-        <TouchableOpacity onPress={flowContext?.exitFlow}>
-          <Text style={styles.flowLinkText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.workoutFlowContainer}>
-      <View style={styles.workoutFlowHeader}>
-        <TouchableOpacity onPress={handleDiscard} style={styles.closeButton}>
-          <Ionicons name="close" size={24} color={colors.error} />
-        </TouchableOpacity>
-        <Text style={styles.workoutFlowTitle}>{workoutName || 'Workout'}</Text>
-        <TouchableOpacity onPress={handleFinish} style={styles.finishButton}>
-          <Text style={styles.finishButtonText}>Finish</Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView style={styles.workoutFlowScroll} contentContainerStyle={styles.workoutFlowScrollContent}>
-        {exercises.map((ex: any) => (
-          <View key={ex.id} style={styles.exerciseCard}>
-            <Text style={styles.exerciseName}>{ex.exerciseName}</Text>
-            <Text style={styles.exerciseSets}>{ex.sets.length} sets</Text>
-          </View>
-        ))}
-        <Text style={styles.flowHint}>
-          Use the mobile view for full workout tracking features
-        </Text>
-      </ScrollView>
-    </View>
-  );
-};
-
-const DesktopWorkoutComplete: React.FC = () => {
-  const flowContext = React.useContext(DesktopWorkoutFlowContext);
-  const { finishWorkout, getWorkoutDuration, getTotalSets, getCompletedSets, exercises } = useActiveWorkoutStore();
-  const addWorkout = useWorkoutStore((s) => s.addWorkout);
-
-  const handleSave = async () => {
-    const workoutLog = finishWorkout();
-    await addWorkout(workoutLog);
-    flowContext?.exitFlow();
-  };
-
-  return (
-    <View style={styles.workoutFlowContainer}>
-      <View style={styles.workoutFlowHeader}>
-        <View style={styles.closeButton} />
-        <Text style={styles.workoutFlowTitle}>Workout Complete!</Text>
-        <View style={styles.closeButton} />
-      </View>
-      <ScrollView style={styles.workoutFlowScroll} contentContainerStyle={styles.workoutFlowScrollContent}>
-        <Ionicons name="checkmark-circle" size={64} color={colors.success} style={{ alignSelf: 'center' }} />
-        <Text style={styles.completeStats}>
-          {exercises.length} exercises • {getCompletedSets()}/{getTotalSets()} sets
-        </Text>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Save Workout</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.discardLink} onPress={flowContext?.exitFlow}>
-          <Text style={styles.flowLinkText}>Discard</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
-  );
-};
-
-// Import workoutStore for desktop components
-import { useWorkoutStore } from '../stores';
 
 const styles = StyleSheet.create({
   container: {
@@ -508,134 +410,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: colors.background,
     zIndex: 100,
-  },
-  workoutFlowContainer: {
-    flex: 1,
-    maxWidth: 600,
-    marginHorizontal: 'auto',
-    width: '100%',
-  },
-  workoutFlowHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: spacing.xl,
-    borderBottomWidth: 1,
-    borderBottomColor: glass.border,
-  },
-  workoutFlowTitle: {
-    fontSize: typography.size.xl,
-    fontWeight: typography.weight.bold,
-    color: colors.text,
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  finishButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.success,
-    borderRadius: radius.md,
-  },
-  finishButtonText: {
-    fontSize: typography.size.base,
-    fontWeight: typography.weight.semibold,
-    color: colors.text,
-  },
-  workoutFlowScroll: {
-    flex: 1,
-  },
-  workoutFlowScrollContent: {
-    padding: spacing.xl,
-    paddingBottom: 120,
-  },
-  startFreshButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.xl,
-    backgroundColor: colors.primaryMuted,
-    borderRadius: radius.xl,
-    marginBottom: spacing.xl,
-  },
-  startFreshText: {
-    fontSize: typography.size.lg,
-    fontWeight: typography.weight.semibold,
-    color: colors.text,
-  },
-  flowSection: {
-    marginBottom: spacing.xl,
-  },
-  flowSectionTitle: {
-    fontSize: typography.size.base,
-    fontWeight: typography.weight.semibold,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-  },
-  flowListItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.lg,
-    backgroundColor: glass.backgroundLight,
-    borderRadius: radius.lg,
-    marginBottom: spacing.sm,
-  },
-  flowListItemText: {
-    fontSize: typography.size.base,
-    color: colors.text,
-  },
-  exerciseCard: {
-    padding: spacing.lg,
-    backgroundColor: glass.backgroundLight,
-    borderRadius: radius.lg,
-    marginBottom: spacing.md,
-  },
-  exerciseName: {
-    fontSize: typography.size.base,
-    fontWeight: typography.weight.semibold,
-    color: colors.text,
-  },
-  exerciseSets: {
-    fontSize: typography.size.sm,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
-  flowHint: {
-    fontSize: typography.size.sm,
-    color: colors.textTertiary,
-    textAlign: 'center',
-    marginTop: spacing.xl,
-  },
-  flowLinkText: {
-    fontSize: typography.size.base,
-    color: colors.primary,
-    textAlign: 'center',
-  },
-  completeStats: {
-    fontSize: typography.size.lg,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginVertical: spacing.xl,
-  },
-  saveButton: {
-    padding: spacing.lg,
-    backgroundColor: colors.success,
-    borderRadius: radius.lg,
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  saveButtonText: {
-    fontSize: typography.size.base,
-    fontWeight: typography.weight.semibold,
-    color: colors.text,
-  },
-  discardLink: {
-    padding: spacing.md,
-    alignItems: 'center',
   },
 });
 

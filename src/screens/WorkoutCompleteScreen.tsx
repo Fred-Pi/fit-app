@@ -4,7 +4,7 @@
  * Shows workout summary, PR achievements, and option to save as template.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -32,11 +32,13 @@ import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
 import { heavyHaptic, lightHaptic } from '../utils/haptics';
 import { generateId } from '../services/storage';
+import { DesktopWorkoutOverlayContext } from '../layouts/DesktopLayout';
 
 type NavigationProp = StackNavigationProp<WorkoutsStackParamList, 'WorkoutComplete'>;
 
 const WorkoutCompleteScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const desktopOverlay = useContext(DesktopWorkoutOverlayContext);
 
   // Stores
   const {
@@ -115,6 +117,15 @@ const WorkoutCompleteScreen: React.FC = () => {
     return `${Math.round(volume)} ${weightUnit}`;
   };
 
+  // Helper to navigate back (handles both mobile and desktop)
+  const navigateBack = () => {
+    if (desktopOverlay) {
+      desktopOverlay.closeWorkoutFlow();
+    } else {
+      navigation.navigate('WorkoutsList');
+    }
+  };
+
   const handleSaveWorkout = async () => {
     if (isSaving) return;
 
@@ -161,13 +172,13 @@ const WorkoutCompleteScreen: React.FC = () => {
           [
             {
               text: 'Awesome!',
-              onPress: () => navigation.navigate('WorkoutsList'),
+              onPress: navigateBack,
             },
           ]
         );
       } else {
         // Navigate back to workout list
-        navigation.navigate('WorkoutsList');
+        navigateBack();
       }
     } catch (error) {
       console.error('Failed to save workout:', error);
@@ -187,7 +198,7 @@ const WorkoutCompleteScreen: React.FC = () => {
           style: 'destructive',
           onPress: () => {
             discardWorkout();
-            navigation.navigate('WorkoutsList');
+            navigateBack();
           },
         },
       ]
