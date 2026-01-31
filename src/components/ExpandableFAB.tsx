@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors, radius, spacing, shadows } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { lightHaptic, successHaptic } from '../utils/haptics';
+import { useResponsive } from '../hooks/useResponsive';
 
 export interface FABAction {
   icon: string;
@@ -32,6 +33,12 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
   mainColor = colors.primary,
 }) => {
   const insets = useSafeAreaInsets();
+  const { showSidebar } = useResponsive();
+
+  // Hide FAB on desktop - it's a mobile pattern
+  if (showSidebar) {
+    return null;
+  }
   const [expanded, setExpanded] = useState(false);
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;

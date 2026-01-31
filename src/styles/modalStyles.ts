@@ -1,14 +1,34 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, Dimensions } from 'react-native';
 import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
+
+/**
+ * Desktop modal constraints
+ * Modals should not take full screen on desktop - constrain to reasonable width
+ */
+const MODAL_MAX_WIDTH = 560;
+const MODAL_DESKTOP_MARGIN = 48;
 
 /**
  * Shared modal styles for consistent glass morphism design
  */
 export const modalStyles = StyleSheet.create({
-  // Container
+  // Container - centers content on desktop
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    ...Platform.select({
+      web: {
+        maxWidth: MODAL_MAX_WIDTH,
+        alignSelf: 'center' as const,
+        width: '100%',
+        marginVertical: MODAL_DESKTOP_MARGIN,
+        borderRadius: radius.xl,
+        borderWidth: 1,
+        borderColor: glass.border,
+        overflow: 'hidden' as const,
+      },
+      default: {},
+    }),
   },
 
   // Content area
@@ -209,3 +229,53 @@ export const modalStyles = StyleSheet.create({
 
 // Input placeholder color
 export const placeholderColor = colors.textTertiary;
+
+/**
+ * Desktop modal wrapper styles
+ * Use these to wrap Modal content on web for proper centering with backdrop
+ */
+export const desktopModalStyles = StyleSheet.create({
+  // Backdrop overlay for desktop
+  backdrop: {
+    ...Platform.select({
+      web: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: MODAL_DESKTOP_MARGIN,
+      },
+      default: {
+        flex: 1,
+      },
+    }),
+  },
+
+  // Modal card container
+  modalCard: {
+    ...Platform.select({
+      web: {
+        width: '100%',
+        maxWidth: MODAL_MAX_WIDTH,
+        backgroundColor: colors.background,
+        borderRadius: radius.xl,
+        borderWidth: 1,
+        borderColor: glass.border,
+        overflow: 'hidden' as const,
+        ...shadows.xl,
+      },
+      default: {
+        flex: 1,
+        backgroundColor: colors.background,
+      },
+    }),
+  },
+});
+
+/**
+ * Constants for responsive modal sizing
+ */
+export const MODAL_CONSTANTS = {
+  maxWidth: MODAL_MAX_WIDTH,
+  desktopMargin: MODAL_DESKTOP_MARGIN,
+};

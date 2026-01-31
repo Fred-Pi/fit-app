@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
   View,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -115,6 +116,7 @@ const GlassButton: React.FC<GlassButtonProps> = ({
 }) => {
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;
+  const [isHovered, setIsHovered] = useState(false);
 
   const config = variantConfig[variant];
   const sizeStyles = sizeConfig[size];
@@ -201,6 +203,11 @@ const GlassButton: React.FC<GlassButtonProps> = ({
     </View>
   );
 
+  const webHoverProps = Platform.OS === 'web' ? {
+    onMouseEnter: () => setIsHovered(true),
+    onMouseLeave: () => setIsHovered(false),
+  } : {};
+
   return (
     <Pressable
       onPress={handlePress}
@@ -210,12 +217,15 @@ const GlassButton: React.FC<GlassButtonProps> = ({
       accessibilityRole="button"
       accessibilityLabel={title}
       accessibilityState={{ disabled: disabled || loading }}
+      style={Platform.OS === 'web' ? { cursor: disabled ? 'not-allowed' : 'pointer' } as any : undefined}
+      {...webHoverProps}
     >
       <Animated.View
         style={[
           { transform: [{ scale }], opacity },
           fullWidth && styles.fullWidth,
           glowColor && !disabled && shadows.glow(glowColor, 0.2),
+          isHovered && !disabled && styles.hovered,
           style,
         ]}
       >
@@ -280,6 +290,18 @@ const styles = StyleSheet.create({
   loadingDot: {
     fontSize: typography.size.lg,
     fontWeight: typography.weight.bold,
+  },
+  hovered: {
+    ...Platform.select({
+      web: {
+        transform: [{ scale: 1.02 }],
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+      },
+      default: {},
+    }),
   },
 });
 

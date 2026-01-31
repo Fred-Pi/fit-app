@@ -3,14 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
 
-export type NavItem = 'Log' | 'Progress' | 'Profile';
+export type NavItem = 'Log' | 'Progress' | 'Nutrition' | 'Profile';
 
 interface NavConfig {
   icon: keyof typeof Ionicons.glyphMap;
@@ -31,6 +31,12 @@ const navConfig: Record<NavItem, NavConfig> = {
     iconFocused: 'stats-chart',
     color: colors.analytics,
     label: 'Progress',
+  },
+  Nutrition: {
+    icon: 'nutrition-outline',
+    iconFocused: 'nutrition',
+    color: colors.nutrition,
+    label: 'Nutrition',
   },
   Profile: {
     icon: 'person-outline',
@@ -75,9 +81,13 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             const isActive = activeItem === key;
 
             return (
-              <TouchableOpacity
+              <Pressable
                 key={key}
-                style={[styles.navItem, isActive && styles.navItemActive]}
+                style={[
+                  styles.navItem,
+                  isActive && styles.navItemActive,
+                  Platform.OS === 'web' && { cursor: 'pointer' } as any,
+                ]}
                 onPress={() => onNavigate(key)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isActive }}
@@ -104,17 +114,23 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                 >
                   {config.label}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             );
           })}
         </View>
 
         {/* Bottom section */}
         <View style={styles.bottomSection}>
-          <TouchableOpacity style={styles.helpButton} accessibilityLabel="Help">
+          <Pressable
+            style={[
+              styles.helpButton,
+              Platform.OS === 'web' && { cursor: 'pointer' } as any,
+            ]}
+            accessibilityLabel="Help"
+          >
             <Ionicons name="help-circle-outline" size={20} color={colors.textTertiary} />
             <Text style={styles.helpText}>Help</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </View>

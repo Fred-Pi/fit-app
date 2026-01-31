@@ -10,6 +10,7 @@ import { ResponsiveColumns } from '../components/ResponsiveGrid';
 import TodayScreen from '../screens/TodayScreen';
 import WorkoutsScreen from '../screens/WorkoutsScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
+import NutritionScreen from '../screens/NutritionScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 // Desktop renders screens directly without nested navigation
@@ -32,6 +33,8 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({ initialRoute = 'Log' }) =
         return <LogSection />;
       case 'Progress':
         return <ProgressSection />;
+      case 'Nutrition':
+        return <NutritionSection />;
       case 'Profile':
         return <ProfileScreen />;
       default:
@@ -74,6 +77,15 @@ const ProgressSection: React.FC = () => {
   return (
     <View style={styles.section}>
       <AnalyticsScreen />
+    </View>
+  );
+};
+
+// Nutrition section
+const NutritionSection: React.FC = () => {
+  return (
+    <View style={styles.section}>
+      <NutritionScreen />
     </View>
   );
 };

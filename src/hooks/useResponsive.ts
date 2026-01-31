@@ -13,14 +13,16 @@ export interface ResponsiveBreakpoints {
 export interface ResponsiveLayout {
   contentMaxWidth: number;
   contentPadding: number;
-  cardColumns: 1 | 2 | 3;
+  cardColumns: 1 | 2 | 3 | 4;
   showSidebar: boolean;
+  isWide: boolean;
 }
 
 const BREAKPOINTS = {
   mobile: 640,
-  tablet: 1024,
-  desktop: 1280,
+  tablet: 900,
+  desktop: 1200,
+  wide: 1600,
 };
 
 export function useResponsive(): ResponsiveBreakpoints & ResponsiveLayout {
@@ -42,16 +44,19 @@ export function useResponsive(): ResponsiveBreakpoints & ResponsiveLayout {
   const isDesktop = width >= BREAKPOINTS.tablet;
 
   // Layout calculations
-  const contentMaxWidth = isDesktop ? 1200 : isTablet ? 900 : width;
+  const isWide = width >= BREAKPOINTS.wide;
+  const contentMaxWidth = isWide ? 1400 : isDesktop ? 1200 : isTablet ? 900 : width;
   const contentPadding = isDesktop ? 32 : isTablet ? 24 : 20;
-  const cardColumns = isDesktop ? 3 : isTablet ? 2 : 1;
-  const showSidebar = isDesktop && isWeb;
+  const cardColumns: 1 | 2 | 3 | 4 = isWide ? 4 : isDesktop ? 3 : isTablet ? 2 : 1;
+  // Show sidebar on tablet+ for web (better desktop/tablet experience)
+  const showSidebar = (isDesktop || isTablet) && isWeb;
 
   return {
     isMobile,
     isTablet,
     isDesktop,
     isWeb,
+    isWide,
     width,
     height,
     contentMaxWidth,

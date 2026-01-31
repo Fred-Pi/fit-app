@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
   ViewStyle,
   Animated,
   Pressable,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, glass, gradients, shadows, radius, spacing } from '../utils/theme';
@@ -54,6 +55,7 @@ const GlassCard: React.FC<GlassCardProps> = ({
   animated = true,
 }) => {
   const scale = React.useRef(new Animated.Value(1)).current;
+  const [isHovered, setIsHovered] = useState(false);
 
   const handlePressIn = () => {
     if (!onPress || !animated) return;
@@ -111,13 +113,23 @@ const GlassCard: React.FC<GlassCardProps> = ({
   );
 
   if (onPress) {
+    const webHoverProps = Platform.OS === 'web' ? {
+      onMouseEnter: () => setIsHovered(true),
+      onMouseLeave: () => setIsHovered(false),
+    } : {};
+
     return (
       <Pressable
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        style={Platform.OS === 'web' ? { cursor: 'pointer' } as any : undefined}
+        {...webHoverProps}
       >
-        <Animated.View style={{ transform: [{ scale }] }}>
+        <Animated.View style={[
+          { transform: [{ scale }] },
+          isHovered && styles.hovered,
+        ]}>
           {cardContent}
         </Animated.View>
       </Pressable>
@@ -156,6 +168,18 @@ const styles = StyleSheet.create({
   content: {
     position: 'relative',
     zIndex: 1,
+  },
+  hovered: {
+    ...Platform.select({
+      web: {
+        transform: [{ scale: 1.01 }],
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      default: {},
+    }),
   },
 });
 
