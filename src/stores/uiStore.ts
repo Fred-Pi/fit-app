@@ -51,9 +51,6 @@ interface UIState {
   selectedWorkoutIds: string[];
   selectedMealIds: string[];
 
-  // Desktop sidebar state
-  sidebarCollapsed: boolean;
-
   // Actions - Generic
   closeModal: () => void;
   closeAllModals: () => void;
@@ -94,10 +91,6 @@ interface UIState {
   toggleMealSelection: (id: string) => void;
   selectAllMeals: (ids: string[]) => void;
   clearMealSelection: () => void;
-
-  // Actions - Desktop Sidebar
-  toggleSidebar: () => void;
-  setSidebarCollapsed: (collapsed: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
@@ -111,7 +104,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   selectedMealId: null,
   selectedWorkoutIds: [],
   selectedMealIds: [],
-  sidebarCollapsed: false,
 
   closeModal: () => {
     set({
@@ -255,14 +247,5 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   clearMealSelection: () => {
     set({ selectedMealIds: [] });
-  },
-
-  // Desktop Sidebar
-  toggleSidebar: () => {
-    set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed }));
-  },
-
-  setSidebarCollapsed: (collapsed) => {
-    set({ sidebarCollapsed: collapsed });
   },
 }));
