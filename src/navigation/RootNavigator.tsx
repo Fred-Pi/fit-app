@@ -48,7 +48,14 @@ const RootNavigator = () => {
   }
 
   return (
-    <NavigationContainer theme={CustomDarkTheme} linking={linking}>
+    <NavigationContainer
+      theme={CustomDarkTheme}
+      linking={linking}
+      documentTitle={{
+        formatter: (options, route) =>
+          `${options?.title ?? route?.name ?? 'Fit App'} - Fit App`,
+      }}
+    >
       {session ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );

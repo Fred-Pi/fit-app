@@ -139,6 +139,7 @@ const WorkoutsStack = () => {
         name="ActiveWorkout"
         component={ActiveWorkoutScreen}
         options={{
+          title: 'Active Workout',
           headerShown: false,
           gestureEnabled: false,
         }}

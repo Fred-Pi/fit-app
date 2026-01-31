@@ -64,7 +64,7 @@ const MobileLayout: React.FC = () => {
           <Tab.Screen
             name="Workouts"
             component={WorkoutsStack}
-            options={{ headerShown: false }}
+            options={{ title: 'Workouts', headerShown: false }}
           />
           <Tab.Screen
             name="Nutrition"
