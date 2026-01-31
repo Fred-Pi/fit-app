@@ -43,6 +43,9 @@ interface UIState {
   // Current date context (for modals that need it)
   currentDate: string;
 
+  // Desktop master-detail selection
+  selectedWorkoutId: string | null;
+
   // Actions - Generic
   closeModal: () => void;
   closeAllModals: () => void;
@@ -71,6 +74,9 @@ interface UIState {
 
   // Actions - Date
   setCurrentDate: (date: string) => void;
+
+  // Actions - Desktop Selection
+  selectWorkout: (workoutId: string | null) => void;
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
@@ -80,6 +86,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   selectedTemplate: null,
   confirmDialogConfig: null,
   currentDate: new Date().toISOString().split('T')[0],
+  selectedWorkoutId: null,
 
   closeModal: () => {
     set({
@@ -177,5 +184,10 @@ export const useUIStore = create<UIState>((set, get) => ({
   // Date
   setCurrentDate: (date) => {
     set({ currentDate: date });
+  },
+
+  // Desktop Selection
+  selectWorkout: (workoutId) => {
+    set({ selectedWorkoutId: workoutId });
   },
 }));

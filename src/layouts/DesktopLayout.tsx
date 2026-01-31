@@ -1,10 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { colors, spacing } from '../utils/theme';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import DesktopSidebar, { NavItem, SIDEBAR_WIDTH } from './DesktopSidebar';
 import ErrorBoundary from '../components/ErrorBoundary';
 import GlobalModals from '../components/GlobalModals';
 import { ResponsiveColumns } from '../components/ResponsiveGrid';
+import WorkoutDetailPanel from '../components/WorkoutDetailPanel';
+import { useUIStore } from '../stores';
 
 // Screens
 import TodayScreen from '../screens/TodayScreen';
@@ -14,7 +17,7 @@ import NutritionScreen from '../screens/NutritionScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 // Desktop renders screens directly without nested navigation
-// Drill-down views (WorkoutDetail, ExerciseDetail) open in modals or panels
+// Workouts section uses master-detail pattern
 
 interface DesktopLayoutProps {
   initialRoute?: NavItem;
@@ -31,6 +34,8 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({ initialRoute = 'Log' }) =
     switch (activeItem) {
       case 'Log':
         return <LogSection />;
+      case 'Workouts':
+        return <WorkoutsSection />;
       case 'Progress':
         return <ProgressSection />;
       case 'Nutrition':
@@ -67,8 +72,41 @@ const LogSection: React.FC = () => {
   return (
     <ResponsiveColumns mainRatio={2} gap={spacing['3xl']} stackOnTablet>
       <TodayScreen />
-      <WorkoutsScreen />
+      <WorkoutsScreen variant="compact" />
     </ResponsiveColumns>
+  );
+};
+
+// Workouts section: Master-detail layout
+const WorkoutsSection: React.FC = () => {
+  const selectedWorkoutId = useUIStore((s) => s.selectedWorkoutId);
+  const selectWorkout = useUIStore((s) => s.selectWorkout);
+
+  return (
+    <View style={styles.masterDetailContainer}>
+      {/* Master: Workout List */}
+      <View style={styles.masterPanel}>
+        <WorkoutsScreen variant="list" onSelectWorkout={selectWorkout} selectedWorkoutId={selectedWorkoutId} />
+      </View>
+
+      {/* Detail: Selected Workout */}
+      <View style={styles.detailPanel}>
+        {selectedWorkoutId ? (
+          <WorkoutDetailPanel
+            workoutId={selectedWorkoutId}
+            onClose={() => selectWorkout(null)}
+          />
+        ) : (
+          <View style={styles.emptyDetail}>
+            <Ionicons name="barbell-outline" size={64} color={colors.textTertiary} />
+            <Text style={styles.emptyDetailTitle}>Select a workout</Text>
+            <Text style={styles.emptyDetailText}>
+              Click on a workout from the list to view its details
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
   );
 };
 
@@ -110,6 +148,50 @@ const styles = StyleSheet.create({
   },
   section: {
     flex: 1,
+  },
+
+  // Master-Detail Layout
+  masterDetailContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing.xl,
+    minHeight: 600,
+  },
+  masterPanel: {
+    flex: 1,
+    maxWidth: 400,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: glass.border,
+    overflow: 'hidden',
+  },
+  detailPanel: {
+    flex: 2,
+    backgroundColor: glass.backgroundLight,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: glass.border,
+    overflow: 'hidden',
+  },
+  emptyDetail: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing['3xl'],
+  },
+  emptyDetailTitle: {
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.semibold,
+    color: colors.text,
+    marginTop: spacing.lg,
+  },
+  emptyDetailText: {
+    fontSize: typography.size.base,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: spacing.sm,
+    maxWidth: 300,
   },
 });
 

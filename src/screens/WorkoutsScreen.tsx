@@ -28,9 +28,21 @@ import {
 
 type WorkoutsScreenNavigationProp = StackNavigationProp<WorkoutsStackParamList, 'WorkoutsList'>;
 
-const WorkoutsScreen = () => {
+type WorkoutsVariant = 'full' | 'compact' | 'list';
+
+interface WorkoutsScreenProps {
+  variant?: WorkoutsVariant;
+  onSelectWorkout?: (workoutId: string | null) => void;
+  selectedWorkoutId?: string | null;
+}
+
+const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
+  variant = 'full',
+  onSelectWorkout,
+  selectedWorkoutId,
+}) => {
   const navigation = useNavigation<WorkoutsScreenNavigationProp>();
-  const { contentMaxWidth } = useResponsive();
+  const { contentMaxWidth, showSidebar } = useResponsive();
 
   // User Store
   const user = useUserStore((s) => s.user);
@@ -79,13 +91,43 @@ const WorkoutsScreen = () => {
     });
   };
 
+  const handleWorkoutPress = (item: WorkoutLog) => {
+    // If we have a selection callback (desktop master-detail mode), use it
+    if (onSelectWorkout) {
+      onSelectWorkout(item.id);
+    } else {
+      // Otherwise, navigate (mobile mode)
+      navigation.navigate('WorkoutDetail', { workoutId: item.id });
+    }
+  };
+
   const renderWorkoutItem = ({ item }: { item: WorkoutLog }) => {
     const totalSets = item.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
     const formattedDate = new Date(item.date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
+      year: variant === 'list' ? undefined : 'numeric',
     });
+    const isSelected = selectedWorkoutId === item.id;
+
+    // In list variant, use a simpler card without swipe
+    if (variant === 'list') {
+      return (
+        <TouchableOpacity
+          onPress={() => handleWorkoutPress(item)}
+          activeOpacity={0.7}
+          style={[styles.listItem, isSelected && styles.listItemSelected]}
+        >
+          <View style={styles.workoutHeader}>
+            <Text style={styles.workoutName} numberOfLines={1}>{item.name}</Text>
+            <Text style={styles.workoutDate}>{formattedDate}</Text>
+          </View>
+          <Text style={styles.workoutDetail} numberOfLines={1}>
+            {item.exercises.length} exercises • {totalSets} sets
+          </Text>
+        </TouchableOpacity>
+      );
+    }
 
     return (
       <SwipeableRow
@@ -95,7 +137,7 @@ const WorkoutsScreen = () => {
         onDelete={() => handleDeleteWorkout(item.id, item.name)}
       >
         <TouchableOpacity
-          onPress={() => navigation.navigate('WorkoutDetail', { workoutId: item.id })}
+          onPress={() => handleWorkoutPress(item)}
           activeOpacity={0.7}
         >
           <Card>
@@ -129,15 +171,21 @@ const WorkoutsScreen = () => {
     );
   }
 
+  // For compact/list variants, show fewer items
+  const displayWorkouts = variant === 'compact' ? workouts.slice(0, 5) : workouts;
+
+  // Hide FAB in list variant (master panel)
+  const showFAB = variant !== 'list';
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, variant === 'list' && styles.containerList]}>
       <FlatList
-        data={workouts}
+        data={displayWorkouts}
         renderItem={renderWorkoutItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
-          styles.listContainer,
-          { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
+          variant === 'list' ? styles.listContainerCompact : styles.listContainer,
+          variant !== 'list' && { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%' }
         ]}
         refreshControl={
           <RefreshControl
@@ -147,43 +195,47 @@ const WorkoutsScreen = () => {
           />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="barbell-outline" size={64} color="#CCC" />
+          <View style={[styles.emptyContainer, variant === 'list' && styles.emptyContainerCompact]}>
+            <Ionicons name="barbell-outline" size={variant === 'list' ? 48 : 64} color="#CCC" />
             <Text style={styles.emptyText}>No workouts yet</Text>
-            <Text style={styles.emptySubtext}>
-              Tap the button below to log your first workout
-            </Text>
+            {variant !== 'list' && (
+              <Text style={styles.emptySubtext}>
+                Tap the button below to log your first workout
+              </Text>
+            )}
           </View>
         }
       />
-      <ExpandableFAB
-        actions={[
-          {
-            icon: 'add',
-            label: 'New Workout',
-            onPress: () => {
-              lightHaptic();
-              openAddWorkout();
+      {showFAB && (
+        <ExpandableFAB
+          actions={[
+            {
+              icon: 'add',
+              label: 'New Workout',
+              onPress: () => {
+                lightHaptic();
+                openAddWorkout();
+              },
             },
-          },
-          {
-            icon: 'document-text',
-            label: 'From Template',
-            onPress: () => {
-              lightHaptic();
-              openTemplatePicker();
+            {
+              icon: 'document-text',
+              label: 'From Template',
+              onPress: () => {
+                lightHaptic();
+                openTemplatePicker();
+              },
             },
-          },
-          {
-            icon: 'analytics-outline',
-            label: 'Analytics',
-            onPress: () => {
-              lightHaptic();
-              navigation.navigate('Analytics');
+            {
+              icon: 'analytics-outline',
+              label: 'Analytics',
+              onPress: () => {
+                lightHaptic();
+                navigation.navigate('Analytics');
+              },
             },
-          },
-        ]}
-      />
+          ]}
+        />
+      )}
     </View>
   );
 };
@@ -193,9 +245,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  containerList: {
+    backgroundColor: 'transparent',
+  },
   listContainer: {
     padding: 20,
     paddingBottom: 80,
+  },
+  listContainerCompact: {
+    padding: 12,
+    paddingBottom: 12,
+  },
+  listItem: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  listItemSelected: {
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderColor: colors.primary,
   },
   workoutHeader: {
     marginBottom: 10,
@@ -236,6 +307,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 80,
     paddingHorizontal: 32,
+  },
+  emptyContainerCompact: {
+    paddingVertical: 40,
   },
   emptyText: {
     fontSize: 20,

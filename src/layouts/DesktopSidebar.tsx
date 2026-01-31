@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
 
-export type NavItem = 'Log' | 'Progress' | 'Nutrition' | 'Profile';
+export type NavItem = 'Log' | 'Workouts' | 'Progress' | 'Nutrition' | 'Profile';
 
 interface NavConfig {
   icon: keyof typeof Ionicons.glyphMap;
@@ -25,6 +25,12 @@ const navConfig: Record<NavItem, NavConfig> = {
     iconFocused: 'add-circle',
     color: colors.success,
     label: 'Log',
+  },
+  Workouts: {
+    icon: 'barbell-outline',
+    iconFocused: 'barbell',
+    color: colors.primary,
+    label: 'Workouts',
   },
   Progress: {
     icon: 'stats-chart-outline',
