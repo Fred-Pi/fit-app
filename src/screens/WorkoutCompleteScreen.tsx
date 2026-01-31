@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.xl,
-    paddingBottom: spacing['4xl'],
+    paddingBottom: 120,
   },
   successHeader: {
     marginBottom: spacing.xl,

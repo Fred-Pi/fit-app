@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   bottomSpacer: {
-    height: spacing['4xl'],
+    height: 120,
   },
   errorContainer: {
     flex: 1,
