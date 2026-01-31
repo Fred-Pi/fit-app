@@ -4,6 +4,7 @@ import { colors, glass, radius, spacing } from '../utils/theme';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { warningHaptic, lightHaptic } from '../utils/haptics';
+import ContextMenu, { ContextMenuItem } from './ContextMenu';
 
 interface SwipeableRowProps {
   children: React.ReactNode;
@@ -111,47 +112,65 @@ const SwipeableRow: React.FC<SwipeableRowProps> = ({
     );
   };
 
-  // On web, show hover actions instead of swipe
+  // On web, show hover actions and context menu instead of swipe
   if (isWeb) {
     const webHoverProps = {
       onMouseEnter: handleMouseEnter,
       onMouseLeave: handleMouseLeave,
     };
 
+    // Build context menu items
+    const contextMenuItems: ContextMenuItem[] = [];
+    if (showEdit && onEdit) {
+      contextMenuItems.push({
+        label: 'Edit',
+        icon: 'pencil',
+        onPress: handleEditHover,
+      });
+    }
+    contextMenuItems.push({
+      label: 'Delete',
+      icon: 'trash',
+      onPress: handleDeleteHover,
+      destructive: true,
+    });
+
     return (
-      <View style={styles.hoverContainer} {...webHoverProps}>
-        {children}
-        {isHovered && (
-          <Animated.View style={[styles.hoverActions, { opacity: hoverOpacity }]}>
-            {showEdit && onEdit && (
+      <ContextMenu items={contextMenuItems}>
+        <View style={styles.hoverContainer} {...webHoverProps}>
+          {children}
+          {isHovered && (
+            <Animated.View style={[styles.hoverActions, { opacity: hoverOpacity }]}>
+              {showEdit && onEdit && (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.hoverButton,
+                    styles.hoverEditButton,
+                    pressed && styles.hoverButtonPressed,
+                  ]}
+                  onPress={handleEditHover}
+                  accessibilityLabel="Edit"
+                  accessibilityRole="button"
+                >
+                  <Ionicons name="pencil" size={16} color={colors.primary} />
+                </Pressable>
+              )}
               <Pressable
                 style={({ pressed }) => [
                   styles.hoverButton,
-                  styles.hoverEditButton,
+                  styles.hoverDeleteButton,
                   pressed && styles.hoverButtonPressed,
                 ]}
-                onPress={handleEditHover}
-                accessibilityLabel="Edit"
+                onPress={handleDeleteHover}
+                accessibilityLabel="Delete"
                 accessibilityRole="button"
               >
-                <Ionicons name="pencil" size={16} color={colors.primary} />
+                <Ionicons name="trash" size={16} color={colors.error} />
               </Pressable>
-            )}
-            <Pressable
-              style={({ pressed }) => [
-                styles.hoverButton,
-                styles.hoverDeleteButton,
-                pressed && styles.hoverButtonPressed,
-              ]}
-              onPress={handleDeleteHover}
-              accessibilityLabel="Delete"
-              accessibilityRole="button"
-            >
-              <Ionicons name="trash" size={16} color={colors.error} />
-            </Pressable>
-          </Animated.View>
-        )}
-      </View>
+            </Animated.View>
+          )}
+        </View>
+      </ContextMenu>
     );
   }
 
