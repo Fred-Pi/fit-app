@@ -15,6 +15,7 @@ import { colors, glass, radius, spacing, typography, shadows } from '../utils/th
 import ModalHeader from './ModalHeader';
 import ResponsiveModal from './ResponsiveModal';
 import NumberInput from './NumberInput';
+import FormRow from './FormRow';
 import { modalStyles, placeholderColor } from '../styles/modalStyles';
 
 interface EditMealModalProps {
@@ -88,47 +89,48 @@ const EditMealModal: React.FC<EditMealModalProps> = ({ visible, onClose, onSave,
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="on-drag"
         >
-          {/* Meal Name */}
-          <View style={modalStyles.section}>
-            <Text style={modalStyles.label}>
-              Meal Name <Text style={modalStyles.requiredLabel}>*</Text>
-            </Text>
-            <TextInput
-              style={[
-                modalStyles.input,
-                focusedField === 'name' && modalStyles.inputFocused,
-              ]}
-              placeholder="e.g., Breakfast, Chicken & Rice"
-              placeholderTextColor={placeholderColor}
-              value={name}
-              onChangeText={setName}
-              onFocus={() => setFocusedField('name')}
-              onBlur={() => setFocusedField(null)}
-              autoCapitalize="words"
-              autoFocus
-              selectTextOnFocus
-            />
-          </View>
+          {/* Meal Name + Calories - side by side on desktop */}
+          <FormRow gap={spacing.lg}>
+            <View style={modalStyles.section}>
+              <Text style={modalStyles.label}>
+                Meal Name <Text style={modalStyles.requiredLabel}>*</Text>
+              </Text>
+              <TextInput
+                style={[
+                  modalStyles.input,
+                  focusedField === 'name' && modalStyles.inputFocused,
+                ]}
+                placeholder="e.g., Breakfast, Chicken & Rice"
+                placeholderTextColor={placeholderColor}
+                value={name}
+                onChangeText={setName}
+                onFocus={() => setFocusedField('name')}
+                onBlur={() => setFocusedField(null)}
+                autoCapitalize="words"
+                autoFocus
+                selectTextOnFocus
+              />
+            </View>
 
-          {/* Calories */}
-          <View style={modalStyles.section}>
-            <Text style={modalStyles.label}>
-              Calories <Text style={modalStyles.requiredLabel}>*</Text>
-            </Text>
-            <TextInput
-              style={[
-                modalStyles.input,
-                focusedField === 'calories' && modalStyles.inputFocused,
-              ]}
-              placeholder="e.g., 500"
-              placeholderTextColor={placeholderColor}
-              value={calories}
-              onChangeText={setCalories}
-              onFocus={() => setFocusedField('calories')}
-              onBlur={() => setFocusedField(null)}
-              keyboardType="number-pad"
-            />
-          </View>
+            <View style={modalStyles.section}>
+              <Text style={modalStyles.label}>
+                Calories <Text style={modalStyles.requiredLabel}>*</Text>
+              </Text>
+              <TextInput
+                style={[
+                  modalStyles.input,
+                  focusedField === 'calories' && modalStyles.inputFocused,
+                ]}
+                placeholder="e.g., 500"
+                placeholderTextColor={placeholderColor}
+                value={calories}
+                onChangeText={setCalories}
+                onFocus={() => setFocusedField('calories')}
+                onBlur={() => setFocusedField(null)}
+                keyboardType="number-pad"
+              />
+            </View>
+          </FormRow>
 
           {/* Macros Section */}
           <View style={styles.macrosCard}>

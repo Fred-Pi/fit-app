@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GlassCard from '../../../components/GlassCard';
+import FormRow from '../../../components/FormRow';
 import UnitToggle from '../components/UnitToggle';
 import { colors, glass, spacing, typography, radius } from '../../../utils/theme';
 import { feetToCm, cmToFeet, lbsToKg, kgToLbs } from '../../../utils/bmiCalculator';
@@ -157,104 +158,107 @@ const BodyMetricsStep: React.FC<BodyMetricsStepProps> = ({
             {errors.age && <Text style={styles.errorText}>{errors.age}</Text>}
           </View>
 
-          {/* Height Input */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.inputLabel}>Height</Text>
-              <UnitToggle
-                value={heightUnit}
-                options={[
-                  { value: 'cm', label: 'cm' },
-                  { value: 'ft', label: 'ft' },
-                ]}
-                onChange={handleHeightUnitChange}
-              />
+          {/* Height + Weight - side by side on desktop */}
+          <FormRow gap={spacing.lg}>
+            {/* Height Input */}
+            <View style={styles.inputGroup}>
+              <View style={styles.labelRow}>
+                <Text style={styles.inputLabel}>Height</Text>
+                <UnitToggle
+                  value={heightUnit}
+                  options={[
+                    { value: 'cm', label: 'cm' },
+                    { value: 'ft', label: 'ft' },
+                  ]}
+                  onChange={handleHeightUnitChange}
+                />
+              </View>
+              {heightUnit === 'cm' ? (
+                <View style={[styles.inputContainer, errors.height && styles.inputContainerError]}>
+                  <Ionicons name="resize-outline" size={20} color={colors.textSecondary} />
+                  <TextInput
+                    style={styles.input}
+                    value={heightDisplay}
+                    onChangeText={handleHeightCmChange}
+                    placeholder="170"
+                    placeholderTextColor={colors.textTertiary}
+                    keyboardType="number-pad"
+                    maxLength={3}
+                  />
+                  <Text style={styles.inputSuffix}>cm</Text>
+                </View>
+              ) : (
+                <View style={styles.feetInputRow}>
+                  <View
+                    style={[
+                      styles.inputContainer,
+                      styles.feetInput,
+                      errors.height && styles.inputContainerError,
+                    ]}
+                  >
+                    <TextInput
+                      style={styles.input}
+                      value={feetDisplay}
+                      onChangeText={handleFeetChange}
+                      placeholder="5"
+                      placeholderTextColor={colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={1}
+                    />
+                    <Text style={styles.inputSuffix}>ft</Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.inputContainer,
+                      styles.feetInput,
+                      errors.height && styles.inputContainerError,
+                    ]}
+                  >
+                    <TextInput
+                      style={styles.input}
+                      value={inchesDisplay}
+                      onChangeText={handleInchesChange}
+                      placeholder="10"
+                      placeholderTextColor={colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                    />
+                    <Text style={styles.inputSuffix}>in</Text>
+                  </View>
+                </View>
+              )}
+              {errors.height && <Text style={styles.errorText}>{errors.height}</Text>}
             </View>
-            {heightUnit === 'cm' ? (
-              <View style={[styles.inputContainer, errors.height && styles.inputContainerError]}>
-                <Ionicons name="resize-outline" size={20} color={colors.textSecondary} />
+
+            {/* Weight Input */}
+            <View style={styles.inputGroup}>
+              <View style={styles.labelRow}>
+                <Text style={styles.inputLabel}>Weight</Text>
+                <UnitToggle
+                  value={weightUnit}
+                  options={[
+                    { value: 'kg', label: 'kg' },
+                    { value: 'lbs', label: 'lbs' },
+                  ]}
+                  onChange={handleWeightUnitChange}
+                />
+              </View>
+              <View style={[styles.inputContainer, errors.weight && styles.inputContainerError]}>
+                <Ionicons name="scale-outline" size={20} color={colors.textSecondary} />
                 <TextInput
                   style={styles.input}
-                  value={heightDisplay}
-                  onChangeText={handleHeightCmChange}
-                  placeholder="170"
+                  value={weightDisplay}
+                  onChangeText={handleWeightChange}
+                  placeholder={weightUnit === 'kg' ? '70' : '154'}
                   placeholderTextColor={colors.textTertiary}
-                  keyboardType="number-pad"
-                  maxLength={3}
+                  keyboardType="decimal-pad"
+                  maxLength={5}
                 />
-                <Text style={styles.inputSuffix}>cm</Text>
+                <Text style={styles.inputSuffix}>{weightUnit}</Text>
               </View>
-            ) : (
-              <View style={styles.feetInputRow}>
-                <View
-                  style={[
-                    styles.inputContainer,
-                    styles.feetInput,
-                    errors.height && styles.inputContainerError,
-                  ]}
-                >
-                  <TextInput
-                    style={styles.input}
-                    value={feetDisplay}
-                    onChangeText={handleFeetChange}
-                    placeholder="5"
-                    placeholderTextColor={colors.textTertiary}
-                    keyboardType="number-pad"
-                    maxLength={1}
-                  />
-                  <Text style={styles.inputSuffix}>ft</Text>
-                </View>
-                <View
-                  style={[
-                    styles.inputContainer,
-                    styles.feetInput,
-                    errors.height && styles.inputContainerError,
-                  ]}
-                >
-                  <TextInput
-                    style={styles.input}
-                    value={inchesDisplay}
-                    onChangeText={handleInchesChange}
-                    placeholder="10"
-                    placeholderTextColor={colors.textTertiary}
-                    keyboardType="number-pad"
-                    maxLength={2}
-                  />
-                  <Text style={styles.inputSuffix}>in</Text>
-                </View>
-              </View>
-            )}
-            {errors.height && <Text style={styles.errorText}>{errors.height}</Text>}
-          </View>
-
-          {/* Weight Input */}
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.inputLabel}>Weight</Text>
-              <UnitToggle
-                value={weightUnit}
-                options={[
-                  { value: 'kg', label: 'kg' },
-                  { value: 'lbs', label: 'lbs' },
-                ]}
-                onChange={handleWeightUnitChange}
-              />
+              {errors.weight && <Text style={styles.errorText}>{errors.weight}</Text>}
             </View>
-            <View style={[styles.inputContainer, errors.weight && styles.inputContainerError]}>
-              <Ionicons name="scale-outline" size={20} color={colors.textSecondary} />
-              <TextInput
-                style={styles.input}
-                value={weightDisplay}
-                onChangeText={handleWeightChange}
-                placeholder={weightUnit === 'kg' ? '70' : '154'}
-                placeholderTextColor={colors.textTertiary}
-                keyboardType="decimal-pad"
-                maxLength={5}
-              />
-              <Text style={styles.inputSuffix}>{weightUnit}</Text>
-            </View>
-            {errors.weight && <Text style={styles.errorText}>{errors.weight}</Text>}
-          </View>
+          </FormRow>
         </GlassCard>
       </View>
     </KeyboardAvoidingView>
