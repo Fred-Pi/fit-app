@@ -18,7 +18,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -178,7 +177,7 @@ const ActiveWorkoutScreen: React.FC = () => {
   // If no active workout, show error
   if (!hasActiveWorkout) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="warning" size={48} color={colors.warning} />
           <Text style={styles.errorText}>No active workout</Text>
@@ -188,12 +187,12 @@ const ActiveWorkoutScreen: React.FC = () => {
             variant="primary"
           />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.container}>
       <KeyboardAvoidingView
         style={styles.keyboardAvoid}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -294,7 +293,7 @@ const ActiveWorkoutScreen: React.FC = () => {
           <View style={styles.bottomSpacer} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
