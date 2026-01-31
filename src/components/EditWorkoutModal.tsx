@@ -18,6 +18,7 @@ import { useUserStore } from '../stores';
 import ResponsiveModal from './ResponsiveModal';
 import NumberInput from './NumberInput';
 import ExercisePicker from './ExercisePicker';
+import DraggableList, { DragHandle } from './DraggableList';
 import WorkoutTimer from './WorkoutTimer';
 import ExerciseHistoryIndicator from './ExerciseHistoryIndicator';
 
@@ -218,27 +219,33 @@ const EditWorkoutModal: React.FC<EditWorkoutModalProps> = ({
               <Text style={styles.sectionTitle}>
                 Exercises ({exercises.length})
               </Text>
-              {exercises.map((exercise) => (
-                <View key={exercise.id} style={styles.exerciseItem}>
-                  <View style={styles.exerciseInfo}>
-                    <Text style={styles.exerciseItemName}>
-                      {exercise.exerciseName}
-                    </Text>
-                    <Text style={styles.exerciseItemDetails}>
-                      {exercise.sets.length} sets × {exercise.sets[0]?.reps} reps
-                      {exercise.sets[0]?.weight > 0 && ` @ ${exercise.sets[0].weight} ${weightUnit}`}
-                    </Text>
-                    {exercise.notes && (
-                      <Text style={styles.exerciseItemNotes}>{exercise.notes}</Text>
-                    )}
+              <DraggableList
+                items={exercises}
+                keyExtractor={(ex) => ex.id}
+                onReorder={setExercises}
+                renderItem={(exercise, index, dragHandleProps) => (
+                  <View style={styles.exerciseItem}>
+                    <DragHandle {...dragHandleProps} />
+                    <View style={styles.exerciseInfo}>
+                      <Text style={styles.exerciseItemName}>
+                        {exercise.exerciseName}
+                      </Text>
+                      <Text style={styles.exerciseItemDetails}>
+                        {exercise.sets.length} sets × {exercise.sets[0]?.reps} reps
+                        {exercise.sets[0]?.weight > 0 && ` @ ${exercise.sets[0].weight} ${weightUnit}`}
+                      </Text>
+                      {exercise.notes && (
+                        <Text style={styles.exerciseItemNotes}>{exercise.notes}</Text>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleRemoveExercise(exercise.id)}
+                    >
+                      <Ionicons name="close-circle" size={24} color="#FF3B30" />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveExercise(exercise.id)}
-                  >
-                    <Ionicons name="close-circle" size={24} color="#FF3B30" />
-                  </TouchableOpacity>
-                </View>
-              ))}
+                )}
+              />
             </View>
           )}
 

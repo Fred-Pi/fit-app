@@ -26,6 +26,7 @@ import TemplatePicker from './TemplatePicker';
 import RestTimer from './RestTimer';
 import WorkoutTimer from './WorkoutTimer';
 import ExerciseHistoryIndicator from './ExerciseHistoryIndicator';
+import DraggableList, { DragHandle } from './DraggableList';
 
 interface AddWorkoutModalProps {
   visible: boolean;
@@ -379,26 +380,32 @@ const AddWorkoutModal: React.FC<AddWorkoutModalProps> = ({
                 <Text style={modalStyles.sectionTitle}>Exercises ({exercises.length})</Text>
               </View>
 
-              {exercises.map((exercise) => (
-                <View key={exercise.id} style={styles.exerciseItem}>
-                  <View style={styles.exerciseInfo}>
-                    <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
-                    <Text style={styles.exerciseDetails}>
-                      {exercise.sets.length} sets × {exercise.sets[0]?.reps} reps
-                      {exercise.sets[0]?.weight > 0 && ` @ ${exercise.sets[0].weight} ${weightUnit}`}
-                    </Text>
-                    {exercise.notes && (
-                      <Text style={styles.exerciseNotes}>{exercise.notes}</Text>
-                    )}
+              <DraggableList
+                items={exercises}
+                keyExtractor={(ex) => ex.id}
+                onReorder={setExercises}
+                renderItem={(exercise, index, dragHandleProps) => (
+                  <View style={styles.exerciseItem}>
+                    <DragHandle {...dragHandleProps} />
+                    <View style={styles.exerciseInfo}>
+                      <Text style={styles.exerciseName}>{exercise.exerciseName}</Text>
+                      <Text style={styles.exerciseDetails}>
+                        {exercise.sets.length} sets × {exercise.sets[0]?.reps} reps
+                        {exercise.sets[0]?.weight > 0 && ` @ ${exercise.sets[0].weight} ${weightUnit}`}
+                      </Text>
+                      {exercise.notes && (
+                        <Text style={styles.exerciseNotes}>{exercise.notes}</Text>
+                      )}
+                    </View>
+                    <Pressable
+                      onPress={() => handleRemoveExercise(exercise.id)}
+                      style={styles.removeButton}
+                    >
+                      <Ionicons name="close-circle" size={24} color={colors.error} />
+                    </Pressable>
                   </View>
-                  <Pressable
-                    onPress={() => handleRemoveExercise(exercise.id)}
-                    style={styles.removeButton}
-                  >
-                    <Ionicons name="close-circle" size={24} color={colors.error} />
-                  </Pressable>
-                </View>
-              ))}
+                )}
+              />
             </View>
           )}
 
