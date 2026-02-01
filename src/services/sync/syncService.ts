@@ -1,13 +1,14 @@
 /**
  * Sync Service
  *
- * Handles offline-first data synchronization between SQLite and Supabase.
+ * Handles offline-first data synchronization between local storage and Supabase.
  * - Queues local changes for cloud sync
  * - Processes queue when online
  * - Pulls remote changes on app foreground
- * - Monitors network state
+ * - Monitors network state (with web fallback)
  */
 
+import { Platform } from 'react-native';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { supabase, isSupabaseConfigured } from '../supabase';
 import { getDatabase } from '../database';
@@ -48,23 +49,53 @@ class SyncService {
 
   /**
    * Initialize the sync service
-   * Sets up network monitoring
+   * Sets up network monitoring with web fallback
    */
   async initialize(): Promise<void> {
-    // Check initial network state
-    const state = await NetInfo.fetch();
-    this.isOnline = state.isConnected ?? false;
+    try {
+      if (Platform.OS === 'web') {
+        // Web: use navigator.onLine with online/offline events
+        this.isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
-    // Subscribe to network changes
-    this.unsubscribeNetInfo = NetInfo.addEventListener((state: NetInfoState) => {
-      const wasOffline = !this.isOnline;
-      this.isOnline = state.isConnected ?? false;
+        if (typeof window !== 'undefined') {
+          const handleOnline = () => {
+            const wasOffline = !this.isOnline;
+            this.isOnline = true;
+            if (wasOffline) {
+              this.processQueue();
+            }
+          };
+          const handleOffline = () => {
+            this.isOnline = false;
+          };
 
-      // If coming back online, process queue
-      if (wasOffline && this.isOnline) {
-        this.processQueue();
+          window.addEventListener('online', handleOnline);
+          window.addEventListener('offline', handleOffline);
+
+          this.unsubscribeNetInfo = () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+          };
+        }
+      } else {
+        // Native: use NetInfo
+        const state = await NetInfo.fetch();
+        this.isOnline = state.isConnected ?? false;
+
+        this.unsubscribeNetInfo = NetInfo.addEventListener((state: NetInfoState) => {
+          const wasOffline = !this.isOnline;
+          this.isOnline = state.isConnected ?? false;
+
+          if (wasOffline && this.isOnline) {
+            this.processQueue();
+          }
+        });
       }
-    });
+    } catch (error) {
+      // Fallback: assume online
+      console.warn('Failed to initialize network monitoring:', error);
+      this.isOnline = true;
+    }
   }
 
   /**

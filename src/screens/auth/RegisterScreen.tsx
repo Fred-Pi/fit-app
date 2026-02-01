@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +16,7 @@ import GlassCard from '../../components/GlassCard';
 import GlassButton from '../../components/GlassButton';
 import SuccessModal from '../../components/SuccessModal';
 import { colors, glass, spacing, typography, radius } from '../../utils/theme';
+import { showAlert } from '../../utils/platform';
 import { useAuthStore } from '../../stores';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { signInWithGoogle } from '../../services/supabase';
@@ -36,16 +36,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  // Cross-platform alert helper
-  const showAlert = (title: string, message: string, onDismiss?: () => void) => {
-    if (Platform.OS === 'web') {
-      window.alert(`${title}\n\n${message}`);
-      onDismiss?.();
-    } else {
-      Alert.alert(title, message, [{ text: 'OK', onPress: onDismiss }]);
-    }
-  };
 
   const handleRegister = async () => {
     const trimmedName = name.trim();

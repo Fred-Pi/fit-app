@@ -3,9 +3,9 @@
  *
  * Handles migrating local data to the cloud when a user signs up or logs in.
  * This allows users who were using the app locally to sync their data.
+ * Works on all platforms (iOS, Android, Web).
  */
 
-import { Platform } from 'react-native';
 import { getDatabase } from '../database';
 import { syncService } from './syncService';
 
@@ -26,8 +26,6 @@ class MigrationService {
    * Returns true if there's data without a proper user_id (old local data)
    */
   async hasLocalDataToMigrate(): Promise<boolean> {
-    if (Platform.OS === 'web') return false;
-
     const db = await getDatabase();
     if (!db) return false;
 
@@ -43,19 +41,6 @@ class MigrationService {
    * Get statistics about local data to be migrated
    */
   async getMigrationStats(): Promise<MigrationStats> {
-    if (Platform.OS === 'web') {
-      return {
-        workouts: 0,
-        nutrition: 0,
-        steps: 0,
-        weights: 0,
-        templates: 0,
-        personalRecords: 0,
-        customExercises: 0,
-        achievements: 0,
-      };
-    }
-
     const db = await getDatabase();
     if (!db) {
       return {
@@ -117,8 +102,6 @@ class MigrationService {
    * Updates all records with the new userId and queues them for sync
    */
   async migrateToCloud(newUserId: string): Promise<void> {
-    if (Platform.OS === 'web') return;
-
     const db = await getDatabase();
     if (!db) return;
 

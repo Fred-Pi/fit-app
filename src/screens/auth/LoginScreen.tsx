@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import GlassCard from '../../components/GlassCard';
 import GlassButton from '../../components/GlassButton';
 import { colors, glass, spacing, typography, radius } from '../../utils/theme';
+import { showAlert } from '../../utils/platform';
 import { useAuthStore } from '../../stores';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { signInWithGoogle } from '../../services/supabase';
@@ -32,15 +32,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
-
-  // Cross-platform alert helper
-  const showAlert = (title: string, message: string) => {
-    if (Platform.OS === 'web') {
-      window.alert(`${title}\n\n${message}`);
-    } else {
-      Alert.alert(title, message);
-    }
-  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
