@@ -10,7 +10,7 @@
  * - Encrypts sensitive data in sync queue
  */
 
-import { Platform } from 'react-native';
+import { Platform, AppState, AppStateStatus } from 'react-native';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import * as Crypto from 'expo-crypto';
 import { supabase, isSupabaseConfigured } from '../supabase';
@@ -105,7 +105,11 @@ class SyncService {
   private isOnline: boolean = true;
   private isSyncing: boolean = false;
   private unsubscribeNetInfo: (() => void) | null = null;
+  private unsubscribeAppState: (() => void) | null = null;
   private conflictResolution: ConflictResolution = 'cloud_wins';
+  private currentUserId: string | null = null;
+  private lastForegroundSync: number = 0;
+  private readonly FOREGROUND_SYNC_DEBOUNCE = 30000; // 30 seconds minimum between foreground syncs
 
   /**
    * Subscribe to conflict notifications
@@ -138,8 +142,30 @@ class SyncService {
   }
 
   /**
+   * Set the current user ID for foreground sync
+   */
+  setUserId(userId: string | null): void {
+    this.currentUserId = userId;
+  }
+
+  /**
+   * Handle app state changes - sync when coming to foreground
+   */
+  private handleAppStateChange = (nextAppState: AppStateStatus) => {
+    if (nextAppState === 'active' && this.isOnline && this.currentUserId) {
+      const now = Date.now();
+      // Debounce to prevent rapid syncs
+      if (now - this.lastForegroundSync > this.FOREGROUND_SYNC_DEBOUNCE) {
+        this.lastForegroundSync = now;
+        logInfo('App came to foreground, triggering sync');
+        this.fullSync(this.currentUserId);
+      }
+    }
+  };
+
+  /**
    * Initialize the sync service
-   * Sets up network monitoring with web fallback
+   * Sets up network monitoring and app state listening for foreground sync
    */
   async initialize(): Promise<void> {
     try {
@@ -186,15 +212,36 @@ class SyncService {
       logWarn('Failed to initialize network monitoring', error);
       this.isOnline = true;
     }
+
+    // Set up app state listener for foreground sync (native only)
+    if (Platform.OS !== 'web') {
+      const subscription = AppState.addEventListener('change', this.handleAppStateChange);
+      this.unsubscribeAppState = () => subscription.remove();
+    } else if (typeof document !== 'undefined') {
+      // Web: use visibilitychange event
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          this.handleAppStateChange('active');
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      this.unsubscribeAppState = () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
+    }
   }
 
   /**
-   * Cleanup network listener
+   * Cleanup network and app state listeners
    */
   cleanup(): void {
     if (this.unsubscribeNetInfo) {
       this.unsubscribeNetInfo();
       this.unsubscribeNetInfo = null;
+    }
+    if (this.unsubscribeAppState) {
+      this.unsubscribeAppState();
+      this.unsubscribeAppState = null;
     }
   }
 

@@ -86,6 +86,12 @@ export default function App() {
     };
   }, [prepare]);
 
+  // Update sync service with user ID for foreground sync
+  useEffect(() => {
+    const userId = session?.user?.id ?? null;
+    syncService.setUserId(userId);
+  }, [session]);
+
   const handleOnboardingComplete = async (userData: OnboardingData) => {
     try {
       // Save onboarding completion flag
