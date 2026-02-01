@@ -31,6 +31,7 @@ import { WorkoutsStackParamList } from '../navigation/WorkoutsStack';
 import { successHaptic, lightHaptic } from '../utils/haptics';
 import { useAuthStore } from '../stores/authStore';
 import { useResponsive } from '../hooks/useResponsive';
+import { logError } from '../utils/logger';
 
 type WorkoutDetailRouteProp = RouteProp<{ params: { workoutId: string } }, 'params'>;
 
@@ -70,7 +71,7 @@ const WorkoutDetailScreen = () => {
       const foundWorkout = workouts.find(w => w.id === workoutId);
       setWorkout(foundWorkout || null);
     } catch (error) {
-      console.error('Error loading workout:', error);
+      logError('Error loading workout', error);
     } finally {
       setLoading(false);
     }

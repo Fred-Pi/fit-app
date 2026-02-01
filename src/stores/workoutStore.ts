@@ -29,6 +29,7 @@ import {
 } from '../services/storage';
 import { calculateWorkoutStreak } from '../utils/analyticsCalculations';
 import { useAuthStore } from './authStore';
+import { logError } from '../utils/logger';
 
 // Helper to get current userId from auth store
 const getUserId = (): string | null => {
@@ -139,7 +140,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
         workoutsByDateCache: new Map(), // Clear date cache on full refresh
       });
     } catch (error) {
-      console.error('Failed to fetch workouts:', error);
+      logError('Failed to fetch workouts', error);
     } finally {
       set({ isLoading: false, isRefreshing: false });
     }
@@ -311,7 +312,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       const templates = await getTemplates(userId);
       set({ templates, templatesLoaded: true });
     } catch (error) {
-      console.error('Failed to fetch templates:', error);
+      logError('Failed to fetch templates', error);
     }
   },
 
@@ -348,7 +349,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       const personalRecords = await getPersonalRecords(userId);
       set({ personalRecords, prsLoaded: true });
     } catch (error) {
-      console.error('Failed to fetch personal records:', error);
+      logError('Failed to fetch personal records', error);
     } finally {
       set({ isPRsLoading: false, isPRsRefreshing: false });
     }
@@ -370,7 +371,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       const customExercises = await getCustomExercises(userId);
       set({ customExercises, customExercisesLoaded: true });
     } catch (error) {
-      console.error('Failed to fetch custom exercises:', error);
+      logError('Failed to fetch custom exercises', error);
     }
   },
 

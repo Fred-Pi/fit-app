@@ -5,6 +5,7 @@
 import { WorkoutTemplate, ExerciseTemplate } from '../../types';
 import { getDb } from './db';
 import { syncService } from '../sync';
+import { logError } from '../../utils/logger';
 
 const loadTemplateExercises = async (templateId: string): Promise<ExerciseTemplate[]> => {
   const db = await getDb();
@@ -56,7 +57,7 @@ export const getTemplates = async (userId: string): Promise<WorkoutTemplate[]> =
     }
     return results;
   } catch (error) {
-    console.error('Error getting templates:', error);
+    logError('Error getting templates', error);
     return [];
   }
 };
@@ -93,7 +94,7 @@ export const saveTemplate = async (template: WorkoutTemplate): Promise<void> => 
       created_at: template.created,
     });
   } catch (error) {
-    console.error('Error saving template:', error);
+    logError('Error saving template', error);
   }
 };
 
@@ -105,7 +106,7 @@ export const deleteTemplate = async (templateId: string): Promise<void> => {
     // Queue for cloud sync
     await syncService.queueMutation('workout_templates', templateId, 'DELETE');
   } catch (error) {
-    console.error('Error deleting template:', error);
+    logError('Error deleting template', error);
   }
 };
 
@@ -133,7 +134,7 @@ export const getTemplateById = async (templateId: string): Promise<WorkoutTempla
       exercises,
     };
   } catch (error) {
-    console.error('Error getting template by id:', error);
+    logError('Error getting template by id', error);
     return null;
   }
 };

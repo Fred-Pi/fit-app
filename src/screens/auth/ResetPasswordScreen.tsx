@@ -20,6 +20,7 @@ import GlassButton from '../../components/GlassButton';
 import { colors, glass, spacing, typography, radius } from '../../utils/theme';
 import { supabase } from '../../services/supabase';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
+import { logError } from '../../utils/logger';
 
 type ResetPasswordScreenProps = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'ResetPassword'>;
@@ -48,7 +49,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, r
             refresh_token: refreshToken,
           });
         } catch (error) {
-          console.error('Failed to set session from reset link:', error);
+          logError('Failed to set session from reset link', error);
         }
       }
     };

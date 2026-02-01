@@ -4,6 +4,7 @@
 
 import { User } from '../../types';
 import { getUser, saveUser, createDefaultUser } from './userStorage';
+import { logError } from '../../utils/logger';
 
 export const initializeApp = async (): Promise<User> => {
   let user = await getUser();
@@ -21,6 +22,6 @@ export const clearAllData = async (): Promise<void> => {
     const { clearDatabase } = await import('../database');
     await clearDatabase();
   } catch (error) {
-    console.error('Error clearing data:', error);
+    logError('Error clearing data', error);
   }
 };

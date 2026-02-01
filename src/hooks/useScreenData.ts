@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { logError } from '../utils/logger';
 
 interface UseScreenDataOptions {
   reloadOnFocus?: boolean;
@@ -35,7 +36,7 @@ export function useScreenData(
     try {
       await fetchFunction();
     } catch (error) {
-      console.error('Error loading data:', error);
+      logError('Error loading data', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

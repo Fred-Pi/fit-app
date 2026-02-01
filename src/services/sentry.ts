@@ -7,12 +7,13 @@
 
 import * as Sentry from '@sentry/react-native';
 import { Platform } from 'react-native';
+import { logInfo, logError } from '../utils/logger';
 
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
 export const initializeSentry = () => {
   if (!SENTRY_DSN) {
-    console.log('Sentry DSN not configured, error monitoring disabled');
+    logInfo('Sentry DSN not configured, error monitoring disabled');
     return;
   }
 
@@ -32,7 +33,7 @@ export const initializeSentry = () => {
  */
 export const captureError = (error: Error, context?: Record<string, unknown>) => {
   if (!SENTRY_DSN || __DEV__) {
-    console.error('Error:', error, context);
+    logError('Error', error, context);
     return;
   }
 

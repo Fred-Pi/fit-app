@@ -5,6 +5,7 @@
 import { DailyNutrition, Meal } from '../../types';
 import { getDb } from './db';
 import { syncService } from '../sync';
+import { logError } from '../../utils/logger';
 
 const loadNutritionMeals = async (nutritionId: string): Promise<Meal[]> => {
   const db = await getDb();
@@ -58,7 +59,7 @@ export const getNutrition = async (userId: string): Promise<DailyNutrition[]> =>
     }
     return results;
   } catch (error) {
-    console.error('Error getting nutrition:', error);
+    logError('Error getting nutrition', error);
     return [];
   }
 };
@@ -87,7 +88,7 @@ export const getNutritionByDate = async (date: string, userId: string): Promise<
       meals,
     };
   } catch (error) {
-    console.error('Error getting nutrition by date:', error);
+    logError('Error getting nutrition by date', error);
     return null;
   }
 };
@@ -127,7 +128,7 @@ export const saveNutrition = async (nutrition: DailyNutrition): Promise<void> =>
       updated_at: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error saving nutrition:', error);
+    logError('Error saving nutrition', error);
   }
 };
 
@@ -157,7 +158,7 @@ export const getNutritionInRange = async (startDate: string, endDate: string, us
     }
     return results;
   } catch (error) {
-    console.error('Error getting nutrition in range:', error);
+    logError('Error getting nutrition in range', error);
     return [];
   }
 };

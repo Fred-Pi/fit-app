@@ -5,6 +5,7 @@
 import { DailySteps } from '../../types';
 import { getDb } from './db';
 import { syncService } from '../sync';
+import { logError } from '../../utils/logger';
 
 export const getSteps = async (userId: string): Promise<DailySteps[]> => {
   try {
@@ -30,7 +31,7 @@ export const getSteps = async (userId: string): Promise<DailySteps[]> => {
       source: r.source as 'manual' | 'apple_health' | 'google_fit',
     }));
   } catch (error) {
-    console.error('Error getting steps:', error);
+    logError('Error getting steps', error);
     return [];
   }
 };
@@ -61,7 +62,7 @@ export const getStepsByDate = async (date: string, userId: string): Promise<Dail
       source: row.source as 'manual' | 'apple_health' | 'google_fit',
     };
   } catch (error) {
-    console.error('Error getting steps by date:', error);
+    logError('Error getting steps by date', error);
     return null;
   }
 };
@@ -87,7 +88,7 @@ export const saveSteps = async (steps: DailySteps): Promise<void> => {
       updated_at: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error saving steps:', error);
+    logError('Error saving steps', error);
   }
 };
 
@@ -115,7 +116,7 @@ export const getStepsInRange = async (startDate: string, endDate: string, userId
       source: r.source as 'manual' | 'apple_health' | 'google_fit',
     }));
   } catch (error) {
-    console.error('Error getting steps in range:', error);
+    logError('Error getting steps in range', error);
     return [];
   }
 };

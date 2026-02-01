@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { supabase, isSupabaseConfigured } from './client';
+import { logError } from '../../utils/logger';
 
 // Required for OAuth redirect handling on native
 WebBrowser.maybeCompleteAuthSession();
@@ -110,7 +111,7 @@ export const signInWithGoogle = async (): Promise<{ error: Error | null }> => {
       return { error: null };
     }
   } catch (error) {
-    console.error('Google sign-in error:', error);
+    logError('Google sign-in error', error);
     return { error: error instanceof Error ? error : new Error('Unknown error') };
   }
 };

@@ -13,6 +13,7 @@ import { isSupabaseConfigured } from '../services/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import { lightHaptic, successHaptic } from '../utils/haptics';
+import { logError } from '../utils/logger';
 
 const SyncStatus: React.FC = () => {
   const [isOnline, setIsOnline] = useState(true);
@@ -44,7 +45,7 @@ const SyncStatus: React.FC = () => {
       await syncService.fullSync(user.id);
       successHaptic();
     } catch (error) {
-      console.error('Sync failed:', error);
+      logError('Sync failed', error);
     } finally {
       setIsSyncing(false);
       await refreshStatus();

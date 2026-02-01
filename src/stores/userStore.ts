@@ -16,6 +16,7 @@ import {
   isSupabaseConfigured,
 } from '../services/supabase';
 import { useAuthStore } from './authStore';
+import { logError } from '../utils/logger';
 
 const WELCOME_SHOWN_KEY = '@fittrack:lastWelcomeShown';
 const NAME_SET_KEY_PREFIX = '@fittrack:nameSet:';
@@ -138,7 +139,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({ user, isInitialized: true });
       return user;
     } catch (error) {
-      console.error('Failed to initialize user:', error);
+      logError('Failed to initialize user', error);
       throw error;
     } finally {
       set({ isLoading: false });
@@ -152,7 +153,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ user });
       }
     } catch (error) {
-      console.error('Failed to refresh user:', error);
+      logError('Failed to refresh user', error);
     }
   },
 
@@ -203,7 +204,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ lastWelcomeShown: parseInt(stored, 10) });
       }
     } catch (error) {
-      console.error('Failed to load welcome state:', error);
+      logError('Failed to load welcome state', error);
     }
   },
 
@@ -226,7 +227,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       await AsyncStorage.setItem(WELCOME_SHOWN_KEY, now.toString());
       set({ lastWelcomeShown: now });
     } catch (error) {
-      console.error('Failed to save welcome state:', error);
+      logError('Failed to save welcome state', error);
     }
   },
 
@@ -239,7 +240,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ nameHasBeenSet: true });
       }
     } catch (error) {
-      console.error('Failed to load name state:', error);
+      logError('Failed to load name state', error);
     }
   },
 
@@ -256,7 +257,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       await AsyncStorage.setItem(`${NAME_SET_KEY_PREFIX}${user.id}`, 'true');
       set({ nameHasBeenSet: true });
     } catch (error) {
-      console.error('Failed to save name state:', error);
+      logError('Failed to save name state', error);
     }
   },
 }));

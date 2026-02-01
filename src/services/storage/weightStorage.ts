@@ -5,6 +5,7 @@
 import { DailyWeight } from '../../types';
 import { getDb } from './db';
 import { syncService } from '../sync';
+import { logError } from '../../utils/logger';
 
 export const getWeights = async (userId: string): Promise<DailyWeight[]> => {
   try {
@@ -32,7 +33,7 @@ export const getWeights = async (userId: string): Promise<DailyWeight[]> => {
       created: r.created,
     }));
   } catch (error) {
-    console.error('Error getting weights:', error);
+    logError('Error getting weights', error);
     return [];
   }
 };
@@ -65,7 +66,7 @@ export const getWeightByDate = async (date: string, userId: string): Promise<Dai
       created: row.created,
     };
   } catch (error) {
-    console.error('Error getting weight by date:', error);
+    logError('Error getting weight by date', error);
     return null;
   }
 };
@@ -91,7 +92,7 @@ export const saveWeight = async (weight: DailyWeight): Promise<void> => {
       updated_at: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error saving weight:', error);
+    logError('Error saving weight', error);
   }
 };
 
@@ -103,7 +104,7 @@ export const deleteWeight = async (weightId: string): Promise<void> => {
     // Queue for cloud sync
     await syncService.queueMutation('daily_weights', weightId, 'DELETE');
   } catch (error) {
-    console.error('Error deleting weight:', error);
+    logError('Error deleting weight', error);
   }
 };
 
@@ -133,7 +134,7 @@ export const getWeightsInRange = async (startDate: string, endDate: string, user
       created: r.created,
     }));
   } catch (error) {
-    console.error('Error getting weights in range:', error);
+    logError('Error getting weights in range', error);
     return [];
   }
 };

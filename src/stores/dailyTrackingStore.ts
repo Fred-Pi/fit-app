@@ -16,6 +16,7 @@ import {
   generateId,
 } from '../services/storage';
 import { getWeekDates, getPreviousWeekDates } from '../utils/dateUtils';
+import { logError } from '../utils/logger';
 
 interface DailyTrackingState {
   // Steps
@@ -77,7 +78,7 @@ export const useDailyTrackingStore = create<DailyTrackingState>((set, get) => ({
       set({ todaySteps: steps });
       return steps;
     } catch (error) {
-      console.error('Failed to fetch steps:', error);
+      logError('Failed to fetch steps', error);
       throw error;
     }
   },
@@ -115,7 +116,7 @@ export const useDailyTrackingStore = create<DailyTrackingState>((set, get) => ({
       set({ todayWeight: weight });
       return weight;
     } catch (error) {
-      console.error('Failed to fetch weight:', error);
+      logError('Failed to fetch weight', error);
       throw error;
     }
   },
@@ -129,7 +130,7 @@ export const useDailyTrackingStore = create<DailyTrackingState>((set, get) => ({
       const weights = await getWeightsInRange(startDateStr, endDate, userId);
       set({ recentWeights: weights });
     } catch (error) {
-      console.error('Failed to fetch recent weights:', error);
+      logError('Failed to fetch recent weights', error);
     }
   },
 
@@ -211,7 +212,7 @@ export const useDailyTrackingStore = create<DailyTrackingState>((set, get) => ({
         weekComparison: comparison,
       });
     } catch (error) {
-      console.error('Failed to fetch weekly stats:', error);
+      logError('Failed to fetch weekly stats', error);
     } finally {
       set({ isLoading: false });
     }

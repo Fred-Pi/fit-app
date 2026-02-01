@@ -27,6 +27,7 @@ import {
   useWorkoutStore,
 } from '../stores';
 import { useAuthStore } from '../stores/authStore';
+import { logError } from '../utils/logger';
 
 const ProfileScreen = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -134,7 +135,7 @@ const ProfileScreen = () => {
 
       successHaptic();
     } catch (error) {
-      console.error('Error exporting data:', error);
+      logError('Error exporting data', error);
       Alert.alert('Error', 'Failed to export data');
     }
   };

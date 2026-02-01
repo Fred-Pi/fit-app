@@ -14,6 +14,7 @@ import {
   createPreset,
 } from '../services/storage';
 import { useAuthStore } from './authStore';
+import { logError } from '../utils/logger';
 
 const getUserId = (): string | null => {
   const { user } = useAuthStore.getState();
@@ -58,7 +59,7 @@ export const usePresetStore = create<PresetState>((set, get) => ({
         presetsLoaded: true,
       });
     } catch (error) {
-      console.error('Failed to fetch presets:', error);
+      logError('Failed to fetch presets', error);
     } finally {
       set({ isLoading: false });
     }

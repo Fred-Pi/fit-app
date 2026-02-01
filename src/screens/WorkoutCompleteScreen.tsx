@@ -33,6 +33,7 @@ import GlassButton from '../components/GlassButton';
 import { heavyHaptic, lightHaptic } from '../utils/haptics';
 import { generateId } from '../services/storage';
 import { DesktopWorkoutOverlayContext } from '../layouts/DesktopLayout';
+import { logError } from '../utils/logger';
 
 type NavigationProp = StackNavigationProp<WorkoutsStackParamList, 'WorkoutComplete'>;
 
@@ -181,7 +182,7 @@ const WorkoutCompleteScreen: React.FC = () => {
         navigateBack();
       }
     } catch (error) {
-      console.error('Failed to save workout:', error);
+      logError('Failed to save workout', error);
       Alert.alert('Error', 'Failed to save workout. Please try again.');
       setIsSaving(false);
     }

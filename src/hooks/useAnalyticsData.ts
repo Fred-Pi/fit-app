@@ -3,6 +3,7 @@ import { WorkoutLog, DateRangeKey } from '../types'
 import { getWorkouts } from '../services/storage'
 import { getDateRange } from '../utils/analyticsCalculations'
 import { useAuthStore } from '../stores/authStore'
+import { logError } from '../utils/logger'
 
 export function useAnalyticsData(dateRange: DateRangeKey) {
   const [workouts, setWorkouts] = useState<WorkoutLog[]>([])
@@ -21,7 +22,7 @@ export function useAnalyticsData(dateRange: DateRangeKey) {
       const completed = data.filter(w => w.completed)
       setWorkouts(completed)
     } catch (error) {
-      console.error('Error loading workouts for analytics:', error)
+      logError('Error loading workouts for analytics', error)
     } finally {
       setLoading(false)
       setRefreshing(false)

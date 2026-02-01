@@ -6,6 +6,7 @@ import { Achievement, MuscleGroup } from '../../types';
 import { getDb } from './db';
 import { syncService } from '../sync';
 import { isDateInRange } from './utils';
+import { logError } from '../../utils/logger';
 import { getWeekDates } from '../../utils/dateUtils';
 import { achievementDefinitions } from '../../data/achievements';
 import { calculateWorkoutStreak } from '../../utils/analyticsCalculations';
@@ -44,7 +45,7 @@ export const getAchievements = async (userId: string): Promise<Achievement[]> =>
       unlockedDate: r.unlocked_date || undefined,
     }));
   } catch (error) {
-    console.error('Error getting achievements:', error);
+    logError('Error getting achievements', error);
     return [];
   }
 };
@@ -75,7 +76,7 @@ export const saveAchievements = async (achievements: Achievement[]): Promise<voi
       });
     }
   } catch (error) {
-    console.error('Error saving achievements:', error);
+    logError('Error saving achievements', error);
   }
 };
 

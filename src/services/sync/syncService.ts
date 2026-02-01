@@ -12,6 +12,7 @@ import { Platform } from 'react-native';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { supabase, isSupabaseConfigured } from '../supabase';
 import { getDatabase } from '../database';
+import { logWarn, logError } from '../../utils/logger';
 
 // Supported table names for sync
 type SyncTableName =
@@ -93,7 +94,7 @@ class SyncService {
       }
     } catch (error) {
       // Fallback: assume online
-      console.warn('Failed to initialize network monitoring:', error);
+      logWarn('Failed to initialize network monitoring', error);
       this.isOnline = true;
     }
   }
@@ -169,7 +170,7 @@ class SyncService {
             'UPDATE sync_queue SET error = ? WHERE id = ?',
             [errorMessage, item.id]
           );
-          console.error(`Sync error for ${item.table_name}/${item.record_id}:`, error);
+          logError(`Sync error for ${item.table_name}/${item.record_id}`, error);
         }
       }
 
@@ -256,7 +257,7 @@ class SyncService {
     const { data, error } = await query;
 
     if (error) {
-      console.error(`Failed to pull changes for ${tableName}:`, error);
+      logError(`Failed to pull changes for ${tableName}`, error);
       return [];
     }
 
@@ -296,7 +297,7 @@ class SyncService {
       try {
         await this.pullChanges(table, userId);
       } catch (error) {
-        console.error(`Failed to sync ${table}:`, error);
+        logError(`Failed to sync ${table}`, error);
       }
     }
   }

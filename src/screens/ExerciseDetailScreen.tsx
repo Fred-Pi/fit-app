@@ -30,6 +30,7 @@ import EditCustomExerciseModal from '../components/EditCustomExerciseModal'
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack'
 import { warningHaptic } from '../utils/haptics'
 import { useAuthStore } from '../stores/authStore'
+import { logError } from '../utils/logger'
 
 type ExerciseDetailScreenRouteProp = RouteProp<
   WorkoutsStackParamList,
@@ -77,7 +78,7 @@ const ExerciseDetailScreen = () => {
       const history = getExerciseWorkoutHistory(ex.name, workouts)
       setWorkoutHistory(history)
     } catch (error) {
-      console.error('Error loading exercise:', error)
+      logError('Error loading exercise', error)
     } finally {
       setLoading(false)
     }

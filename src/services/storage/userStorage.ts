@@ -5,6 +5,7 @@
 import { User } from '../../types';
 import { getDb } from './db';
 import { generateId } from './utils';
+import { logError } from '../../utils/logger';
 
 export const getUser = async (): Promise<User | null> => {
   try {
@@ -45,7 +46,7 @@ export const getUser = async (): Promise<User | null> => {
       created: row.created,
     };
   } catch (error) {
-    console.error('Error getting user:', error);
+    logError('Error getting user', error);
     return null;
   }
 };
@@ -74,7 +75,7 @@ export const saveUser = async (user: User): Promise<void> => {
       ]
     );
   } catch (error) {
-    console.error('Error saving user:', error);
+    logError('Error saving user', error);
   }
 };
 

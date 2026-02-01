@@ -9,6 +9,7 @@ import { create } from 'zustand';
 import { Platform } from 'react-native';
 import { Session, User, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured, createProfile } from '../services/supabase';
+import { logWarn, logError } from '../utils/logger';
 
 const isWeb = Platform.OS === 'web';
 
@@ -47,7 +48,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     // If Supabase is not configured, skip auth initialization
     if (!isSupabaseConfigured) {
-      console.warn('Supabase not configured - running in offline-only mode');
+      logWarn('Supabase not configured - running in offline-only mode');
       set({ isInitialized: true, isLoading: false });
       return;
     }
@@ -72,7 +73,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
       });
     } catch (error) {
-      console.error('Failed to initialize auth:', error);
+      logError('Failed to initialize auth', error);
       set({ isInitialized: true });
     } finally {
       set({ isLoading: false });
@@ -108,7 +109,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Otherwise, profile will be created on first login via ensureProfile
         const profile = await createProfile(data.user.id, name, email);
         if (!profile) {
-          console.error('Failed to create profile during signup');
+          logError('Failed to create profile during signup');
         }
       }
 
@@ -129,7 +130,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await supabase.auth.signOut();
       set({ session: null, user: null });
     } catch (error) {
-      console.error('Failed to sign out:', error);
+      logError('Failed to sign out', error);
     } finally {
       set({ isLoading: false });
     }

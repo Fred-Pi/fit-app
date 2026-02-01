@@ -6,6 +6,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from './client';
+import { logError } from '../../utils/logger';
 
 export interface SupabaseProfile {
   id: string;
@@ -43,13 +44,13 @@ export const fetchProfile = async (userId: string): Promise<SupabaseProfile | nu
       .single();
 
     if (error) {
-      console.error('Error fetching profile:', error);
+      logError('Error fetching profile', error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching profile:', error);
+    logError('Error fetching profile', error);
     return null;
   }
 };
@@ -81,13 +82,13 @@ export const createProfile = async (
       .single();
 
     if (error) {
-      console.error('Error creating profile:', error);
+      logError('Error creating profile', error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error creating profile:', error);
+    logError('Error creating profile', error);
     return null;
   }
 };
@@ -115,13 +116,13 @@ export const updateProfile = async (
       .single();
 
     if (error) {
-      console.error('Error updating profile:', error);
+      logError('Error updating profile', error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error updating profile:', error);
+    logError('Error updating profile', error);
     return null;
   }
 };

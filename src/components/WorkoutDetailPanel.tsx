@@ -25,6 +25,7 @@ import { useUIStore, useWorkoutStore, useActiveWorkoutStore } from '../stores';
 import { useNavigation } from '@react-navigation/native';
 import { successHaptic, lightHaptic } from '../utils/haptics';
 import { useAuthStore } from '../stores/authStore';
+import { logError } from '../utils/logger';
 
 interface WorkoutDetailPanelProps {
   workoutId: string;
@@ -74,7 +75,7 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
       const foundWorkout = workouts.find(w => w.id === workoutId);
       setWorkout(foundWorkout || null);
     } catch (error) {
-      console.error('Error loading workout:', error);
+      logError('Error loading workout', error);
     } finally {
       setLoading(false);
     }

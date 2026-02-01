@@ -5,6 +5,7 @@
 import { Exercise, MuscleGroup } from '../../types';
 import { getDb } from './db';
 import { syncService } from '../sync';
+import { logError } from '../../utils/logger';
 
 export const getCustomExercises = async (userId: string): Promise<Exercise[]> => {
   try {
@@ -27,14 +28,14 @@ export const getCustomExercises = async (userId: string): Promise<Exercise[]> =>
       defaultReps: r.default_reps || undefined,
     }));
   } catch (error) {
-    console.error('Error getting custom exercises:', error);
+    logError('Error getting custom exercises', error);
     return [];
   }
 };
 
 export const saveCustomExercise = async (exercise: Exercise): Promise<void> => {
   if (!exercise.userId) {
-    console.error('Cannot save custom exercise without userId');
+    logError('Cannot save custom exercise without userId');
     return;
   }
 
@@ -57,7 +58,7 @@ export const saveCustomExercise = async (exercise: Exercise): Promise<void> => {
       created_at: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error saving custom exercise:', error);
+    logError('Error saving custom exercise', error);
   }
 };
 
@@ -73,7 +74,7 @@ export const deleteCustomExercise = async (exerciseId: string): Promise<void> =>
     // Queue for cloud sync
     await syncService.queueMutation('custom_exercises', exerciseId, 'DELETE');
   } catch (error) {
-    console.error('Error deleting custom exercise:', error);
+    logError('Error deleting custom exercise', error);
   }
 };
 
@@ -103,7 +104,7 @@ export const getCustomExerciseById = async (id: string): Promise<Exercise | null
       defaultReps: row.default_reps || undefined,
     };
   } catch (error) {
-    console.error('Error getting custom exercise by id:', error);
+    logError('Error getting custom exercise by id', error);
     return null;
   }
 };

@@ -11,6 +11,7 @@ import {
   saveNutrition,
   generateId,
 } from '../services/storage';
+import { logError } from '../utils/logger';
 
 interface NutritionState {
   // State
@@ -80,7 +81,7 @@ export const useNutritionStore = create<NutritionState>((set, get) => ({
 
       return nutrition;
     } catch (error) {
-      console.error('Failed to fetch nutrition:', error);
+      logError('Failed to fetch nutrition', error);
       throw error;
     } finally {
       set({ isLoading: false });

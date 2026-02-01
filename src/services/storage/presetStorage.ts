@@ -6,6 +6,7 @@ import { FoodPreset } from '../../types';
 import { getDb } from './db';
 import { generateId } from './utils';
 import { syncService } from '../sync';
+import { logError } from '../../utils/logger';
 
 interface PresetRow {
   id: string;
@@ -44,7 +45,7 @@ export const getPresets = async (userId: string): Promise<FoodPreset[]> => {
     );
     return rows.map(rowToPreset);
   } catch (error) {
-    console.error('Error getting presets:', error);
+    logError('Error getting presets', error);
     return [];
   }
 };
@@ -58,7 +59,7 @@ export const getPresetById = async (id: string): Promise<FoodPreset | null> => {
     );
     return row ? rowToPreset(row) : null;
   } catch (error) {
-    console.error('Error getting preset by id:', error);
+    logError('Error getting preset by id', error);
     return null;
   }
 };
@@ -100,7 +101,7 @@ export const savePreset = async (preset: FoodPreset): Promise<void> => {
       updated_at: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error saving preset:', error);
+    logError('Error saving preset', error);
     throw error;
   }
 };
@@ -112,7 +113,7 @@ export const deletePreset = async (id: string): Promise<void> => {
 
     await syncService.queueMutation('food_presets', id, 'DELETE');
   } catch (error) {
-    console.error('Error deleting preset:', error);
+    logError('Error deleting preset', error);
     throw error;
   }
 };
@@ -126,7 +127,7 @@ export const updatePresetLastUsed = async (id: string): Promise<void> => {
       [now, id]
     );
   } catch (error) {
-    console.error('Error updating preset last used:', error);
+    logError('Error updating preset last used', error);
   }
 };
 
@@ -142,7 +143,7 @@ export const getRecentPresets = async (userId: string, limit: number = 5): Promi
     );
     return rows.map(rowToPreset);
   } catch (error) {
-    console.error('Error getting recent presets:', error);
+    logError('Error getting recent presets', error);
     return [];
   }
 };

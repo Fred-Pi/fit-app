@@ -6,6 +6,7 @@ import { PersonalRecord, WorkoutLog } from '../../types';
 import { getDb } from './db';
 import { generateId } from './utils';
 import { syncService } from '../sync';
+import { logError } from '../../utils/logger';
 
 export const getPersonalRecords = async (userId: string): Promise<PersonalRecord[]> => {
   try {
@@ -35,7 +36,7 @@ export const getPersonalRecords = async (userId: string): Promise<PersonalRecord
       created: r.created,
     }));
   } catch (error) {
-    console.error('Error getting personal records:', error);
+    logError('Error getting personal records', error);
     return [];
   }
 };
@@ -61,7 +62,7 @@ export const savePersonalRecord = async (pr: PersonalRecord): Promise<void> => {
       created_at: pr.created,
     });
   } catch (error) {
-    console.error('Error saving personal record:', error);
+    logError('Error saving personal record', error);
   }
 };
 
@@ -73,7 +74,7 @@ export const deletePersonalRecord = async (prId: string): Promise<void> => {
     // Queue for cloud sync
     await syncService.queueMutation('personal_records', prId, 'DELETE');
   } catch (error) {
-    console.error('Error deleting personal record:', error);
+    logError('Error deleting personal record', error);
   }
 };
 
@@ -107,7 +108,7 @@ export const getPersonalRecordByExercise = async (exerciseName: string, userId: 
       created: row.created,
     };
   } catch (error) {
-    console.error('Error getting PR by exercise:', error);
+    logError('Error getting PR by exercise', error);
     return null;
   }
 };
@@ -222,7 +223,7 @@ export const getLastExercisePerformance = async (
       workoutName: workoutRow.workout_name,
     };
   } catch (error) {
-    console.error('Error getting last exercise performance:', error);
+    logError('Error getting last exercise performance', error);
     return null;
   }
 };
