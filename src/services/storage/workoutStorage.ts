@@ -8,53 +8,7 @@ import { generateId } from './utils';
 import { syncService } from '../sync';
 import { logError } from '../../utils/logger';
 
-// Helper to load exercises and sets for a workout
-const loadWorkoutExercises = async (workoutId: string): Promise<ExerciseLog[]> => {
-  const db = await getDb();
-
-  const exerciseRows = await db.getAllAsync<{
-    id: string;
-    exercise_name: string;
-    notes: string | null;
-    order_index: number;
-  }>(
-    'SELECT * FROM exercise_logs WHERE workout_id = ? ORDER BY order_index',
-    [workoutId]
-  );
-
-  const exercises: ExerciseLog[] = [];
-
-  for (const exRow of exerciseRows) {
-    const setRows = await db.getAllAsync<{
-      reps: number;
-      weight: number;
-      rpe: number | null;
-      completed: number;
-    }>(
-      'SELECT reps, weight, rpe, completed FROM set_logs WHERE exercise_log_id = ? ORDER BY order_index',
-      [exRow.id]
-    );
-
-    const sets: SetLog[] = setRows.map(s => ({
-      reps: s.reps,
-      weight: s.weight,
-      rpe: s.rpe || undefined,
-      completed: s.completed === 1,
-    }));
-
-    exercises.push({
-      id: exRow.id,
-      exerciseName: exRow.exercise_name,
-      notes: exRow.notes || undefined,
-      sets,
-    });
-  }
-
-  return exercises;
-};
-
-// Helper to convert workout row to WorkoutLog
-const rowToWorkoutLog = async (row: {
+interface WorkoutRow {
   id: string;
   user_id: string;
   date: string;
@@ -63,10 +17,101 @@ const rowToWorkoutLog = async (row: {
   notes: string | null;
   completed: number;
   created: string;
-}): Promise<WorkoutLog> => {
-  const exercises = await loadWorkoutExercises(row.id);
+}
 
-  return {
+interface ExerciseRow {
+  id: string;
+  workout_id: string;
+  exercise_name: string;
+  notes: string | null;
+  order_index: number;
+}
+
+interface SetRow {
+  exercise_log_id: string;
+  reps: number;
+  weight: number;
+  rpe: number | null;
+  completed: number;
+  order_index: number;
+}
+
+/**
+ * Batch load exercises and sets for multiple workouts in 2 queries instead of N+M
+ * This eliminates the N+1 query problem
+ */
+const batchLoadWorkoutData = async (workoutIds: string[]): Promise<{
+  exercisesByWorkout: Map<string, ExerciseLog[]>;
+}> => {
+  if (workoutIds.length === 0) {
+    return { exercisesByWorkout: new Map() };
+  }
+
+  const db = await getDb();
+  const placeholders = workoutIds.map(() => '?').join(',');
+
+  // Single query for all exercises across all workouts
+  const exerciseRows = await db.getAllAsync<ExerciseRow>(
+    `SELECT id, workout_id, exercise_name, notes, order_index
+     FROM exercise_logs
+     WHERE workout_id IN (${placeholders})
+     ORDER BY workout_id, order_index`,
+    workoutIds
+  );
+
+  if (exerciseRows.length === 0) {
+    return { exercisesByWorkout: new Map() };
+  }
+
+  const exerciseIds = exerciseRows.map(e => e.id);
+  const exercisePlaceholders = exerciseIds.map(() => '?').join(',');
+
+  // Single query for all sets across all exercises
+  const setRows = await db.getAllAsync<SetRow>(
+    `SELECT exercise_log_id, reps, weight, rpe, completed, order_index
+     FROM set_logs
+     WHERE exercise_log_id IN (${exercisePlaceholders})
+     ORDER BY exercise_log_id, order_index`,
+    exerciseIds
+  );
+
+  // Group sets by exercise_log_id
+  const setsByExercise = new Map<string, SetLog[]>();
+  for (const s of setRows) {
+    const sets = setsByExercise.get(s.exercise_log_id) || [];
+    sets.push({
+      reps: s.reps,
+      weight: s.weight,
+      rpe: s.rpe || undefined,
+      completed: s.completed === 1,
+    });
+    setsByExercise.set(s.exercise_log_id, sets);
+  }
+
+  // Group exercises by workout_id and attach sets
+  const exercisesByWorkout = new Map<string, ExerciseLog[]>();
+  for (const ex of exerciseRows) {
+    const exercises = exercisesByWorkout.get(ex.workout_id) || [];
+    exercises.push({
+      id: ex.id,
+      exerciseName: ex.exercise_name,
+      notes: ex.notes || undefined,
+      sets: setsByExercise.get(ex.id) || [],
+    });
+    exercisesByWorkout.set(ex.workout_id, exercises);
+  }
+
+  return { exercisesByWorkout };
+};
+
+/**
+ * Convert workout rows to WorkoutLog objects with pre-loaded exercise data
+ */
+const rowsToWorkoutLogs = (
+  rows: WorkoutRow[],
+  exercisesByWorkout: Map<string, ExerciseLog[]>
+): WorkoutLog[] => {
+  return rows.map(row => ({
     id: row.id,
     userId: row.user_id,
     date: row.date,
@@ -75,28 +120,23 @@ const rowToWorkoutLog = async (row: {
     notes: row.notes || undefined,
     completed: row.completed === 1,
     created: row.created,
-    exercises,
-  };
+    exercises: exercisesByWorkout.get(row.id) || [],
+  }));
 };
 
 export const getWorkouts = async (userId: string): Promise<WorkoutLog[]> => {
   try {
     const db = await getDb();
-    const rows = await db.getAllAsync<{
-      id: string;
-      user_id: string;
-      date: string;
-      name: string;
-      duration: number | null;
-      notes: string | null;
-      completed: number;
-      created: string;
-    }>(
+    const rows = await db.getAllAsync<WorkoutRow>(
       'SELECT * FROM workout_logs WHERE user_id = ? ORDER BY date DESC, created DESC',
       [userId]
     );
 
-    return Promise.all(rows.map(rowToWorkoutLog));
+    // Batch load all exercises and sets in 2 queries instead of N+M
+    const workoutIds = rows.map(r => r.id);
+    const { exercisesByWorkout } = await batchLoadWorkoutData(workoutIds);
+
+    return rowsToWorkoutLogs(rows, exercisesByWorkout);
   } catch (error) {
     logError('Error getting workouts', error);
     return [];
@@ -171,21 +211,15 @@ export const deleteWorkout = async (workoutId: string): Promise<void> => {
 export const getWorkoutsByDate = async (date: string, userId: string): Promise<WorkoutLog[]> => {
   try {
     const db = await getDb();
-    const rows = await db.getAllAsync<{
-      id: string;
-      user_id: string;
-      date: string;
-      name: string;
-      duration: number | null;
-      notes: string | null;
-      completed: number;
-      created: string;
-    }>(
+    const rows = await db.getAllAsync<WorkoutRow>(
       'SELECT * FROM workout_logs WHERE date = ? AND user_id = ? ORDER BY created DESC',
       [date, userId]
     );
 
-    return Promise.all(rows.map(rowToWorkoutLog));
+    const workoutIds = rows.map(r => r.id);
+    const { exercisesByWorkout } = await batchLoadWorkoutData(workoutIds);
+
+    return rowsToWorkoutLogs(rows, exercisesByWorkout);
   } catch (error) {
     logError('Error getting workouts by date', error);
     return [];
@@ -195,21 +229,15 @@ export const getWorkoutsByDate = async (date: string, userId: string): Promise<W
 export const getWorkoutsInRange = async (startDate: string, endDate: string, userId: string): Promise<WorkoutLog[]> => {
   try {
     const db = await getDb();
-    const rows = await db.getAllAsync<{
-      id: string;
-      user_id: string;
-      date: string;
-      name: string;
-      duration: number | null;
-      notes: string | null;
-      completed: number;
-      created: string;
-    }>(
+    const rows = await db.getAllAsync<WorkoutRow>(
       'SELECT * FROM workout_logs WHERE date BETWEEN ? AND ? AND user_id = ? ORDER BY date DESC',
       [startDate, endDate, userId]
     );
 
-    return Promise.all(rows.map(rowToWorkoutLog));
+    const workoutIds = rows.map(r => r.id);
+    const { exercisesByWorkout } = await batchLoadWorkoutData(workoutIds);
+
+    return rowsToWorkoutLogs(rows, exercisesByWorkout);
   } catch (error) {
     logError('Error getting workouts in range', error);
     return [];
