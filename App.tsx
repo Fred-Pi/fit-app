@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, StyleSheet, ActivityIndicator, Animated } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,6 +14,7 @@ import { syncService } from './src/services/sync';
 import ErrorFallback from './src/components/ErrorFallback';
 import { colors } from './src/utils/theme';
 import { initializeSentry, Sentry, captureError } from './src/services/sentry';
+import { logError } from './src/utils/logger';
 
 // Initialize Sentry as early as possible
 initializeSentry();
@@ -23,53 +24,67 @@ const ONBOARDING_KEY = '@fit_app_onboarding_complete';
 export default function App() {
   const [isReady, setIsReady] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+  const [initError, setInitError] = useState<Error | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const initializeUser = useUserStore((state) => state.initialize);
   const updateUser = useUserStore((state) => state.updateUser);
   const initializeAuth = useAuthStore((state) => state.initialize);
   const session = useAuthStore((state) => state.session);
 
-  useEffect(() => {
-    async function prepare() {
-      try {
-        // Initialize SQLite database and run migration from AsyncStorage
-        await initializeDatabase();
-        await migrateFromAsyncStorage();
+  const prepare = useCallback(async () => {
+    setInitError(null);
+    setIsReady(false);
 
-        // Initialize auth (check for existing session)
-        await initializeAuth();
+    try {
+      // Initialize SQLite database and run migration from AsyncStorage
+      await initializeDatabase();
+      await migrateFromAsyncStorage();
 
-        // Initialize sync service (network monitoring)
-        await syncService.initialize();
+      // Initialize auth (check for existing session)
+      await initializeAuth();
 
-        // Check if onboarding was completed (only relevant for authenticated users)
-        const onboardingComplete = await AsyncStorage.getItem(ONBOARDING_KEY);
+      // Initialize sync service (network monitoring)
+      await syncService.initialize();
 
-        // Initialize user store (creates default user if needed)
-        await initializeUser();
+      // Check if onboarding was completed (only relevant for authenticated users)
+      const onboardingComplete = await AsyncStorage.getItem(ONBOARDING_KEY);
 
-        setShowOnboarding(onboardingComplete !== 'true');
-      } catch (error) {
-        console.error('Error initializing app:', error);
-        setShowOnboarding(false);
-      } finally {
-        setIsReady(true);
-        // Fade in
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }).start();
-      }
+      // Initialize user store (creates default user if needed)
+      await initializeUser();
+
+      setShowOnboarding(onboardingComplete !== 'true');
+      setInitError(null);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      logError('Failed to initialize app', error);
+      captureError(err);
+      setInitError(err);
+    } finally {
+      setIsReady(true);
+      // Fade in
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
     }
+  }, [initializeUser, initializeAuth, fadeAnim]);
 
+  const handleRetry = useCallback(() => {
+    setRetryCount(c => c + 1);
+    fadeAnim.setValue(0);
+    prepare();
+  }, [prepare, fadeAnim]);
+
+  useEffect(() => {
     prepare();
 
     // Cleanup sync service on unmount
     return () => {
       syncService.cleanup();
     };
-  }, [initializeUser, initializeAuth]);
+  }, [prepare]);
 
   const handleOnboardingComplete = async (userData: OnboardingData) => {
     try {
@@ -103,11 +118,14 @@ export default function App() {
         }).start();
       });
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      logError('Failed to complete onboarding', error);
+      captureError(error instanceof Error ? error : new Error(String(error)));
+      // Still proceed - user data may not be saved but they can continue
       setShowOnboarding(false);
     }
   };
 
+  // Show loading screen while initializing
   if (!isReady || showOnboarding === null) {
     return (
       <View style={styles.loadingContainer}>
@@ -124,6 +142,20 @@ export default function App() {
           <ActivityIndicator size="small" color={colors.primary} style={styles.loadingSpinner} />
         </View>
       </View>
+    );
+  }
+
+  // Show error recovery UI if initialization failed
+  if (initError) {
+    return (
+      <SafeAreaProvider>
+        <ErrorFallback
+          error={initError}
+          resetError={handleRetry}
+          title="Failed to Start"
+          showDetails={__DEV__}
+        />
+      </SafeAreaProvider>
     );
   }
 
