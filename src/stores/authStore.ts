@@ -142,7 +142,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const redirectTo = isWeb
         ? `${window.location.origin}/reset-password`
         : 'fitapp://reset-password';
-      console.log('Password Reset Redirect URI:', redirectTo);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
       });

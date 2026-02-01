@@ -13,6 +13,7 @@ import {
   saveSteps,
   getUser,
 } from '../services/storage';
+import { logInfo, logError } from './logger';
 
 /**
  * Utility to create sample data for testing the app
@@ -21,7 +22,7 @@ import {
 export const createSampleData = async () => {
   const user = await getUser();
   if (!user) {
-    console.error('No user found');
+    logError('No user found for sample data creation');
     return;
   }
 
@@ -294,10 +295,10 @@ export const createSampleData = async () => {
     await saveSteps(steps2);
     await saveSteps(steps3);
 
-    console.log('Sample data created successfully!');
+    logInfo('Sample data created successfully');
     return true;
   } catch (error) {
-    console.error('Error creating sample data:', error);
+    logError('Error creating sample data', error);
     return false;
   }
 };

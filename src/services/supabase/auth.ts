@@ -22,12 +22,10 @@ const getRedirectUri = () => {
     return window.location.origin;
   }
   // On native, use deep link
-  const redirectUri = AuthSession.makeRedirectUri({
+  return AuthSession.makeRedirectUri({
     scheme: 'fitapp',
     path: 'auth/callback',
   });
-  console.log('OAuth Redirect URI:', redirectUri);
-  return redirectUri;
 };
 
 /**
@@ -40,7 +38,6 @@ export const signInWithGoogle = async (): Promise<{ error: Error | null }> => {
 
   try {
     const redirectUri = getRedirectUri();
-    console.log('Using redirect URI:', redirectUri);
 
     if (isWeb) {
       // On web, let Supabase handle the redirect flow

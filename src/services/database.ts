@@ -21,6 +21,7 @@ import {
   Achievement,
 } from '../types';
 import { getIndexedDBWrapper, initializeIndexedDB, IndexedDBWrapper } from './database/indexeddb';
+import { logInfo, logError } from '../utils/logger';
 
 const DATABASE_NAME = 'fitapp.db';
 const SCHEMA_VERSION = 3;
@@ -362,9 +363,9 @@ const runSchemaMigrations = async (db: SQLite.SQLiteDatabase): Promise<void> => 
       }
 
       await setSchemaVersion(2);
-      console.log('Schema migrated to version 2');
+      logInfo('Schema migrated to version 2');
     } catch (error) {
-      console.error('Schema migration to version 2 failed:', error);
+      logError('Schema migration to version 2 failed', error);
     }
   }
 
@@ -404,9 +405,9 @@ const runSchemaMigrations = async (db: SQLite.SQLiteDatabase): Promise<void> => 
       }
 
       await setSchemaVersion(3);
-      console.log('Schema migrated to version 3');
+      logInfo('Schema migrated to version 3');
     } catch (error) {
-      console.error('Schema migration to version 3 failed:', error);
+      logError('Schema migration to version 3 failed', error);
     }
   }
 };
@@ -615,9 +616,9 @@ export const migrateFromAsyncStorage = async (): Promise<void> => {
     // Mark migration as complete
     await markMigrationComplete();
 
-    console.log('Migration from AsyncStorage to SQLite completed successfully');
+    logInfo('Migration from AsyncStorage to SQLite completed successfully');
   } catch (error) {
-    console.error('Migration failed:', error);
+    logError('Migration failed', error);
     throw error;
   }
 };

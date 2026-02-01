@@ -6,6 +6,7 @@ import { WorkoutLog, ExerciseLog, SetLog } from '../../types';
 import { getDb } from './db';
 import { generateId } from './utils';
 import { syncService } from '../sync';
+import { logError } from '../../utils/logger';
 
 // Helper to load exercises and sets for a workout
 const loadWorkoutExercises = async (workoutId: string): Promise<ExerciseLog[]> => {
@@ -97,7 +98,7 @@ export const getWorkouts = async (userId: string): Promise<WorkoutLog[]> => {
 
     return Promise.all(rows.map(rowToWorkoutLog));
   } catch (error) {
-    console.error('Error getting workouts:', error);
+    logError('Error getting workouts', error);
     return [];
   }
 };
@@ -150,7 +151,7 @@ export const saveWorkout = async (workout: WorkoutLog): Promise<void> => {
       updated_at: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error saving workout:', error);
+    logError('Error saving workout', error);
   }
 };
 
@@ -163,7 +164,7 @@ export const deleteWorkout = async (workoutId: string): Promise<void> => {
     // Queue for cloud sync
     await syncService.queueMutation('workout_logs', workoutId, 'DELETE');
   } catch (error) {
-    console.error('Error deleting workout:', error);
+    logError('Error deleting workout', error);
   }
 };
 
@@ -186,7 +187,7 @@ export const getWorkoutsByDate = async (date: string, userId: string): Promise<W
 
     return Promise.all(rows.map(rowToWorkoutLog));
   } catch (error) {
-    console.error('Error getting workouts by date:', error);
+    logError('Error getting workouts by date', error);
     return [];
   }
 };
@@ -210,7 +211,7 @@ export const getWorkoutsInRange = async (startDate: string, endDate: string, use
 
     return Promise.all(rows.map(rowToWorkoutLog));
   } catch (error) {
-    console.error('Error getting workouts in range:', error);
+    logError('Error getting workouts in range', error);
     return [];
   }
 };
