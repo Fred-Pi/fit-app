@@ -3,7 +3,7 @@
  *
  * Handles database initialization, schema management, and migration from AsyncStorage.
  * Uses expo-sqlite for persistent local storage with proper relational structure.
- * Falls back to AsyncStorage on web platform where SQLite is not supported.
+ * Uses IndexedDB via Dexie on web platform for browser-based storage.
  */
 
 import { Platform } from 'react-native';
@@ -20,6 +20,7 @@ import {
   Exercise,
   Achievement,
 } from '../types';
+import { getIndexedDBWrapper, initializeIndexedDB, IndexedDBWrapper } from './database/indexeddb';
 
 const DATABASE_NAME = 'fitapp.db';
 const SCHEMA_VERSION = 3;
@@ -30,13 +31,18 @@ const isNativePlatform = Platform.OS !== 'web';
 // Singleton database instance
 let dbInstance: SQLite.SQLiteDatabase | null = null;
 
+// Type for database that works on both platforms
+export type DatabaseInstance = SQLite.SQLiteDatabase | IndexedDBWrapper;
+
 /**
  * Get or create database connection
- * Returns null on web platform (shim returns null)
+ * Returns SQLite on native platforms, IndexedDB wrapper on web
  */
-export const getDatabase = async (): Promise<SQLite.SQLiteDatabase | null> => {
+export const getDatabase = async (): Promise<DatabaseInstance | null> => {
   if (!isNativePlatform) {
-    return null;
+    // Web platform - use IndexedDB via Dexie
+    await initializeIndexedDB();
+    return getIndexedDBWrapper();
   }
   if (!dbInstance) {
     const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
@@ -50,19 +56,27 @@ export const getDatabase = async (): Promise<SQLite.SQLiteDatabase | null> => {
 
 /**
  * Get database with non-null assertion (for internal use after platform check)
+ * Only use this after confirming we're on native platform
  */
 const getNativeDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
-  const db = await getDatabase();
-  return db!;
+  if (!dbInstance) {
+    const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    if (db) {
+      dbInstance = db;
+    }
+  }
+  return dbInstance!;
 };
 
 /**
  * Initialize database schema - creates all tables and indexes
- * On web, this is a no-op as we use AsyncStorage directly
+ * On web, initializes IndexedDB via Dexie
  */
 export const initializeDatabase = async (): Promise<void> => {
   if (!isNativePlatform) {
-    return; // Web uses AsyncStorage directly via storage.ts
+    // Web uses IndexedDB via Dexie
+    await initializeIndexedDB();
+    return;
   }
   const db = await getNativeDatabase();
 
@@ -401,10 +415,8 @@ const runSchemaMigrations = async (db: SQLite.SQLiteDatabase): Promise<void> => 
  * Check if migration from AsyncStorage has been completed
  */
 export const isMigrationComplete = async (): Promise<boolean> => {
-  if (!isNativePlatform) {
-    return true; // Web doesn't need migration
-  }
-  const db = await getNativeDatabase();
+  const db = await getDatabase();
+  if (!db) return true;
   const result = await db.getFirstAsync<{ value: string }>(
     'SELECT value FROM app_meta WHERE key = ?',
     ['asyncstorage_migrated']
@@ -611,41 +623,36 @@ export const migrateFromAsyncStorage = async (): Promise<void> => {
 };
 
 /**
- * Clear all data from SQLite database (for testing/reset)
+ * Clear all data from database (for testing/reset)
  */
 export const clearDatabase = async (): Promise<void> => {
-  if (!isNativePlatform) {
-    return; // Web uses AsyncStorage.clear() directly
-  }
-  const db = await getNativeDatabase();
+  const db = await getDatabase();
+  if (!db) return;
 
-  await db.execAsync(`
-    DELETE FROM set_logs;
-    DELETE FROM exercise_logs;
-    DELETE FROM workout_logs;
-    DELETE FROM meals;
-    DELETE FROM daily_nutrition;
-    DELETE FROM food_presets;
-    DELETE FROM daily_steps;
-    DELETE FROM daily_weights;
-    DELETE FROM exercise_templates;
-    DELETE FROM workout_templates;
-    DELETE FROM personal_records;
-    DELETE FROM custom_exercises;
-    DELETE FROM achievements;
-    DELETE FROM users;
-    DELETE FROM app_meta;
-  `);
+  // These DELETE statements work on both SQLite and IndexedDB wrapper
+  await db.runAsync('DELETE FROM set_logs');
+  await db.runAsync('DELETE FROM exercise_logs');
+  await db.runAsync('DELETE FROM workout_logs');
+  await db.runAsync('DELETE FROM meals');
+  await db.runAsync('DELETE FROM daily_nutrition');
+  await db.runAsync('DELETE FROM food_presets');
+  await db.runAsync('DELETE FROM daily_steps');
+  await db.runAsync('DELETE FROM daily_weights');
+  await db.runAsync('DELETE FROM exercise_templates');
+  await db.runAsync('DELETE FROM workout_templates');
+  await db.runAsync('DELETE FROM personal_records');
+  await db.runAsync('DELETE FROM custom_exercises');
+  await db.runAsync('DELETE FROM achievements');
+  await db.runAsync('DELETE FROM users');
+  await db.runAsync('DELETE FROM app_meta');
 };
 
 /**
  * Get schema version for future migrations
  */
 export const getSchemaVersion = async (): Promise<number> => {
-  if (!isNativePlatform) {
-    return SCHEMA_VERSION; // Web doesn't track schema version
-  }
-  const db = await getNativeDatabase();
+  const db = await getDatabase();
+  if (!db) return SCHEMA_VERSION;
   const result = await db.getFirstAsync<{ value: string }>(
     'SELECT value FROM app_meta WHERE key = ?',
     ['schema_version']
@@ -657,10 +664,8 @@ export const getSchemaVersion = async (): Promise<number> => {
  * Set schema version
  */
 export const setSchemaVersion = async (version: number): Promise<void> => {
-  if (!isNativePlatform) {
-    return; // Web doesn't track schema version
-  }
-  const db = await getNativeDatabase();
+  const db = await getDatabase();
+  if (!db) return;
   await db.runAsync(
     'INSERT OR REPLACE INTO app_meta (key, value) VALUES (?, ?)',
     ['schema_version', version.toString()]

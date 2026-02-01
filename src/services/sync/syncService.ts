@@ -8,7 +8,6 @@
  * - Monitors network state
  */
 
-import { Platform } from 'react-native';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { supabase, isSupabaseConfigured } from '../supabase';
 import { getDatabase } from '../database';
@@ -88,8 +87,6 @@ class SyncService {
     operation: SyncOperation,
     payload?: Record<string, unknown>
   ): Promise<void> {
-    if (Platform.OS === 'web') return;
-
     const db = await getDatabase();
     if (!db) return;
 
@@ -112,7 +109,7 @@ class SyncService {
    * Process all pending items in the sync queue
    */
   async processQueue(): Promise<void> {
-    if (Platform.OS === 'web' || this.isSyncing || !this.isOnline || !isSupabaseConfigured) return;
+    if (this.isSyncing || !this.isOnline || !isSupabaseConfigured) return;
 
     const db = await getDatabase();
     if (!db) return;
@@ -277,8 +274,6 @@ class SyncService {
    * Get pending sync count
    */
   async getPendingCount(): Promise<number> {
-    if (Platform.OS === 'web') return 0;
-
     const db = await getDatabase();
     if (!db) return 0;
 
