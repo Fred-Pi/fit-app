@@ -124,6 +124,9 @@ const rowsToWorkoutLogs = (
   }));
 };
 
+// Default page size for pagination
+const DEFAULT_PAGE_SIZE = 50;
+
 export const getWorkouts = async (userId: string): Promise<WorkoutLog[]> => {
   try {
     const db = await getDb();
@@ -140,6 +143,61 @@ export const getWorkouts = async (userId: string): Promise<WorkoutLog[]> => {
   } catch (error) {
     logError('Error getting workouts', error);
     return [];
+  }
+};
+
+/**
+ * Get workouts with pagination support
+ */
+export const getWorkoutsPaginated = async (
+  userId: string,
+  limit: number = DEFAULT_PAGE_SIZE,
+  offset: number = 0
+): Promise<{ workouts: WorkoutLog[]; hasMore: boolean; total: number }> => {
+  try {
+    const db = await getDb();
+
+    // Get total count
+    const countResult = await db.getFirstAsync<{ count: number }>(
+      'SELECT COUNT(*) as count FROM workout_logs WHERE user_id = ?',
+      [userId]
+    );
+    const total = countResult?.count || 0;
+
+    // Get paginated rows
+    const rows = await db.getAllAsync<WorkoutRow>(
+      'SELECT * FROM workout_logs WHERE user_id = ? ORDER BY date DESC, created DESC LIMIT ? OFFSET ?',
+      [userId, limit, offset]
+    );
+
+    // Batch load exercises and sets
+    const workoutIds = rows.map(r => r.id);
+    const { exercisesByWorkout } = await batchLoadWorkoutData(workoutIds);
+
+    const workouts = rowsToWorkoutLogs(rows, exercisesByWorkout);
+    const hasMore = offset + workouts.length < total;
+
+    return { workouts, hasMore, total };
+  } catch (error) {
+    logError('Error getting paginated workouts', error);
+    return { workouts: [], hasMore: false, total: 0 };
+  }
+};
+
+/**
+ * Get workout count for a user (useful for stats without loading all data)
+ */
+export const getWorkoutCount = async (userId: string): Promise<number> => {
+  try {
+    const db = await getDb();
+    const result = await db.getFirstAsync<{ count: number }>(
+      'SELECT COUNT(*) as count FROM workout_logs WHERE user_id = ?',
+      [userId]
+    );
+    return result?.count || 0;
+  } catch (error) {
+    logError('Error getting workout count', error);
+    return 0;
   }
 };
 

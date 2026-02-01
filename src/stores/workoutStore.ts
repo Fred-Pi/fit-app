@@ -14,6 +14,7 @@ import {
 } from '../types';
 import {
   getWorkouts,
+  getWorkoutsPaginated,
   getWorkoutsByDate,
   saveWorkout,
   deleteWorkout as deleteWorkoutFromStorage,
@@ -30,6 +31,28 @@ import {
 import { calculateWorkoutStreak } from '../utils/analyticsCalculations';
 import { useAuthStore } from './authStore';
 import { logError } from '../utils/logger';
+
+// Pagination constants
+const PAGE_SIZE = 50;
+
+// Memoized streak calculation
+let lastStreakWorkoutCount = -1;
+let lastStreakResult = { current: 0, longest: 0 };
+
+const getMemoizedStreak = (workouts: WorkoutLog[]): { current: number; longest: number } => {
+  // Only recalculate if workout count changed
+  // This is a simple heuristic - could be more precise with a hash
+  if (workouts.length !== lastStreakWorkoutCount) {
+    lastStreakWorkoutCount = workouts.length;
+    lastStreakResult = calculateWorkoutStreak(workouts);
+  }
+  return lastStreakResult;
+};
+
+// Force streak recalculation (call when workouts are mutated)
+const invalidateStreakCache = () => {
+  lastStreakWorkoutCount = -1;
+};
 
 // Helper to get current userId from auth store
 const getUserId = (): string | null => {
@@ -70,7 +93,10 @@ interface WorkoutState {
   workoutsByDateCache: Map<string, WorkoutLog[]>;
   isLoading: boolean;
   isRefreshing: boolean;
+  isLoadingMore: boolean;
   lastFetched: number | null;
+  hasMoreWorkouts: boolean;
+  totalWorkouts: number;
 
   // State - Streaks (computed but cached)
   currentStreak: number;
@@ -93,6 +119,7 @@ interface WorkoutState {
   // Actions - Workouts
   fetchWorkouts: (force?: boolean) => Promise<void>;
   fetchWorkoutsByDate: (date: string) => Promise<WorkoutLog[]>;
+  loadMoreWorkouts: () => Promise<void>;
   addWorkout: (workout: WorkoutLog) => Promise<PersonalRecord[]>;
   updateWorkout: (workout: WorkoutLog) => Promise<void>;
   deleteWorkout: (workoutId: string) => Promise<void>;
@@ -127,7 +154,10 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
   workoutsByDateCache: new Map(),
   isLoading: false,
   isRefreshing: false,
+  isLoadingMore: false,
   lastFetched: null,
+  hasMoreWorkouts: true,
+  totalWorkouts: 0,
   currentStreak: 0,
   longestStreak: 0,
   templates: [],
@@ -154,12 +184,18 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
 
     set({ isLoading: !get().lastFetched, isRefreshing: !!get().lastFetched });
     try {
-      const workouts = await getWorkouts(userId);
-      const streakData = calculateWorkoutStreak(workouts);
+      // Use pagination for initial fetch
+      const { workouts, hasMore, total } = await getWorkoutsPaginated(userId, PAGE_SIZE, 0);
+
+      // Invalidate streak cache since we're refetching
+      invalidateStreakCache();
+      const streakData = getMemoizedStreak(workouts);
 
       set({
         workouts,
         lastFetched: now,
+        hasMoreWorkouts: hasMore,
+        totalWorkouts: total,
         currentStreak: streakData.current,
         longestStreak: streakData.longest,
         workoutsByDateCache: new Map(), // Clear date cache on full refresh
@@ -168,6 +204,42 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       logError('Failed to fetch workouts', error);
     } finally {
       set({ isLoading: false, isRefreshing: false });
+    }
+  },
+
+  loadMoreWorkouts: async () => {
+    const userId = getUserId();
+    if (!userId) return;
+
+    const { workouts, hasMoreWorkouts, isLoadingMore } = get();
+
+    // Skip if no more workouts or already loading
+    if (!hasMoreWorkouts || isLoadingMore) return;
+
+    set({ isLoadingMore: true });
+    try {
+      const { workouts: moreWorkouts, hasMore } = await getWorkoutsPaginated(
+        userId,
+        PAGE_SIZE,
+        workouts.length
+      );
+
+      const allWorkouts = [...workouts, ...moreWorkouts];
+
+      // Update streak with all loaded workouts
+      invalidateStreakCache();
+      const streakData = getMemoizedStreak(allWorkouts);
+
+      set({
+        workouts: allWorkouts,
+        hasMoreWorkouts: hasMore,
+        currentStreak: streakData.current,
+        longestStreak: streakData.longest,
+      });
+    } catch (error) {
+      logError('Failed to load more workouts', error);
+    } finally {
+      set({ isLoadingMore: false });
     }
   },
 
@@ -203,7 +275,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     await saveWorkout(workout);
     const newPRs = await checkAndUpdatePRs(workout);
 
-    const { workouts, workoutsByDateCache, personalRecords } = get();
+    const { workouts, workoutsByDateCache, personalRecords, totalWorkouts } = get();
 
     // Update workouts list
     const updatedWorkouts = [workout, ...workouts].sort(
@@ -222,13 +294,15 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
         ? [...personalRecords.filter((pr) => !newPRs.some((np) => np.id === pr.id)), ...newPRs]
         : personalRecords;
 
-    // Recalculate streaks
-    const streakData = calculateWorkoutStreak(updatedWorkouts);
+    // Recalculate streaks (invalidate cache since workouts changed)
+    invalidateStreakCache();
+    const streakData = getMemoizedStreak(updatedWorkouts);
 
     set({
       workouts: updatedWorkouts,
       workoutsByDateCache: boundedCache,
       personalRecords: updatedPRs,
+      totalWorkouts: totalWorkouts + 1,
       currentStreak: streakData.current,
       longestStreak: streakData.longest,
     });
@@ -261,7 +335,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
   deleteWorkout: async (workoutId: string) => {
     await deleteWorkoutFromStorage(workoutId);
 
-    const { workouts, workoutsByDateCache } = get();
+    const { workouts, workoutsByDateCache, totalWorkouts } = get();
     const deletedWorkout = workouts.find((w) => w.id === workoutId);
     const updatedWorkouts = workouts.filter((w) => w.id !== workoutId);
 
@@ -277,12 +351,14 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       }
     }
 
-    // Recalculate streaks
-    const streakData = calculateWorkoutStreak(updatedWorkouts);
+    // Recalculate streaks (invalidate cache since workouts changed)
+    invalidateStreakCache();
+    const streakData = getMemoizedStreak(updatedWorkouts);
 
     set({
       workouts: updatedWorkouts,
       workoutsByDateCache: newCache,
+      totalWorkouts: Math.max(0, totalWorkouts - 1),
       currentStreak: streakData.current,
       longestStreak: streakData.longest,
     });
@@ -292,7 +368,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     // Delete all workouts from storage
     await Promise.all(workoutIds.map((id) => deleteWorkoutFromStorage(id)));
 
-    const { workouts, workoutsByDateCache } = get();
+    const { workouts, workoutsByDateCache, totalWorkouts } = get();
     const idsSet = new Set(workoutIds);
     const deletedWorkouts = workouts.filter((w) => idsSet.has(w.id));
     const updatedWorkouts = workouts.filter((w) => !idsSet.has(w.id));
@@ -310,12 +386,14 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       }
     }
 
-    // Recalculate streaks once
-    const streakData = calculateWorkoutStreak(updatedWorkouts);
+    // Recalculate streaks once (invalidate cache since workouts changed)
+    invalidateStreakCache();
+    const streakData = getMemoizedStreak(updatedWorkouts);
 
     set({
       workouts: updatedWorkouts,
       workoutsByDateCache: newCache,
+      totalWorkouts: Math.max(0, totalWorkouts - workoutIds.length),
       currentStreak: streakData.current,
       longestStreak: streakData.longest,
     });

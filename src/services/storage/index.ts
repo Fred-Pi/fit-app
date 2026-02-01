@@ -14,6 +14,8 @@ export { getUser, saveUser, createDefaultUser } from './userStorage';
 // Workout operations
 export {
   getWorkouts,
+  getWorkoutsPaginated,
+  getWorkoutCount,
   saveWorkout,
   deleteWorkout,
   getWorkoutsByDate,
