@@ -26,7 +26,8 @@ type SyncTableName =
   | 'workout_templates'
   | 'exercise_templates'
   | 'custom_exercises'
-  | 'achievements';
+  | 'achievements'
+  | 'food_presets';
 
 type SyncOperation = 'UPSERT' | 'DELETE';
 

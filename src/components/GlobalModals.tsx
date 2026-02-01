@@ -18,8 +18,9 @@ import {
   useNutritionStore,
   useDailyTrackingStore,
   useActiveWorkoutStore,
+  usePresetStore,
 } from '../stores';
-import { WorkoutLog, Meal, WorkoutTemplate } from '../types';
+import { WorkoutLog, Meal, WorkoutTemplate, FoodPreset } from '../types';
 
 // Modal Components
 import EditWorkoutModal from './EditWorkoutModal';
@@ -31,6 +32,10 @@ import TemplatePicker from './TemplatePicker';
 import ConfirmDialog from './ConfirmDialog';
 import WelcomeModal from './WelcomeModal';
 import NamePromptModal from './NamePromptModal';
+import PresetPickerModal from './PresetPickerModal';
+import PresetFormModal from './PresetFormModal';
+import LogPresetModal from './LogPresetModal';
+import ManagePresetsScreen from '../screens/ManagePresetsScreen';
 
 const GlobalModals: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -41,6 +46,12 @@ const GlobalModals: React.FC = () => {
   const editWorkoutData = useUIStore((s) => s.editWorkoutData);
   const editMealData = useUIStore((s) => s.editMealData);
   const confirmDialogConfig = useUIStore((s) => s.confirmDialogConfig);
+  const editPresetData = useUIStore((s) => s.editPresetData);
+  const selectedPresetForLog = useUIStore((s) => s.selectedPresetForLog);
+  const openAddMeal = useUIStore((s) => s.openAddMeal);
+  const openPresetForm = useUIStore((s) => s.openPresetForm);
+  const openLogPreset = useUIStore((s) => s.openLogPreset);
+  const openManagePresets = useUIStore((s) => s.openManagePresets);
 
   // User Store
   const user = useUserStore((s) => s.user);
@@ -62,6 +73,11 @@ const GlobalModals: React.FC = () => {
   const todayWeight = useDailyTrackingStore((s) => s.todayWeight);
   const updateSteps = useDailyTrackingStore((s) => s.updateSteps);
   const updateWeight = useDailyTrackingStore((s) => s.updateWeight);
+
+  // Preset Store
+  const addPreset = usePresetStore((s) => s.addPreset);
+  const updatePreset = usePresetStore((s) => s.updatePreset);
+  const markPresetUsed = usePresetStore((s) => s.markPresetUsed);
 
   // Handlers
   const handleEditWorkout = useCallback(
@@ -133,6 +149,70 @@ const GlobalModals: React.FC = () => {
     [updateUser, markNameSet, closeModal]
   );
 
+  // Preset handlers
+  const handleSelectPreset = useCallback(
+    (preset: FoodPreset) => {
+      closeModal();
+      openLogPreset(preset);
+    },
+    [closeModal, openLogPreset]
+  );
+
+  const handleLogPreset = useCallback(
+    async (meal: Meal) => {
+      await addMeal(meal);
+      // Mark preset as used for "recent" sorting
+      if (meal.presetId) {
+        await markPresetUsed(meal.presetId);
+      }
+      closeModal();
+    },
+    [addMeal, markPresetUsed, closeModal]
+  );
+
+  const handleSavePreset = useCallback(
+    async (data: Omit<FoodPreset, 'id' | 'userId' | 'createdAt' | 'lastUsedAt'>) => {
+      if (editPresetData) {
+        // Update existing preset
+        await updatePreset({
+          ...editPresetData,
+          ...data,
+        });
+      } else {
+        // Create new preset
+        await addPreset(data);
+      }
+      closeModal();
+    },
+    [editPresetData, addPreset, updatePreset, closeModal]
+  );
+
+  const handleSaveAsPresetFromMeal = useCallback(
+    async (data: Omit<FoodPreset, 'id' | 'userId' | 'createdAt' | 'lastUsedAt'>) => {
+      await addPreset(data);
+    },
+    [addPreset]
+  );
+
+  const handleQuickEntry = useCallback(() => {
+    openAddMeal();
+  }, [openAddMeal]);
+
+  const handleCreatePreset = useCallback(() => {
+    openPresetForm();
+  }, [openPresetForm]);
+
+  const handleEditPreset = useCallback(
+    (preset: FoodPreset) => {
+      openPresetForm(preset);
+    },
+    [openPresetForm]
+  );
+
+  const handleOpenManagePresets = useCallback(() => {
+    openManagePresets();
+  }, [openManagePresets]);
+
   // Don't render anything if no user
   if (!user) return null;
 
@@ -151,6 +231,7 @@ const GlobalModals: React.FC = () => {
         visible={activeModal === 'addMeal'}
         onClose={closeModal}
         onSave={handleAddMeal}
+        onSaveAsPreset={handleSaveAsPresetFromMeal}
       />
 
       {/* Edit Meal Modal */}
@@ -209,6 +290,40 @@ const GlobalModals: React.FC = () => {
       <NamePromptModal
         visible={activeModal === 'namePrompt'}
         onSave={handleNameSave}
+      />
+
+      {/* Preset Picker Modal */}
+      <PresetPickerModal
+        visible={activeModal === 'presetPicker'}
+        onClose={closeModal}
+        onSelectPreset={handleSelectPreset}
+        onQuickEntry={handleQuickEntry}
+        onCreatePreset={handleCreatePreset}
+        onManagePresets={handleOpenManagePresets}
+      />
+
+      {/* Preset Form Modal (Create/Edit) */}
+      <PresetFormModal
+        visible={activeModal === 'presetForm'}
+        onClose={closeModal}
+        onSave={handleSavePreset}
+        preset={editPresetData}
+      />
+
+      {/* Log Preset Modal */}
+      <LogPresetModal
+        visible={activeModal === 'logPreset'}
+        onClose={closeModal}
+        onLog={handleLogPreset}
+        preset={selectedPresetForLog}
+      />
+
+      {/* Manage Presets Screen */}
+      <ManagePresetsScreen
+        visible={activeModal === 'managePresets'}
+        onClose={closeModal}
+        onEditPreset={handleEditPreset}
+        onCreatePreset={handleCreatePreset}
       />
     </>
   );

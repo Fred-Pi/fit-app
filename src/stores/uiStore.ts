@@ -6,7 +6,7 @@
  */
 
 import { create } from 'zustand';
-import { WorkoutLog, Meal, WorkoutTemplate } from '../types';
+import { WorkoutLog, Meal, WorkoutTemplate, FoodPreset } from '../types';
 
 export type ModalType =
   | 'editWorkout'
@@ -17,7 +17,11 @@ export type ModalType =
   | 'templatePicker'
   | 'confirmDialog'
   | 'welcome'
-  | 'namePrompt';
+  | 'namePrompt'
+  | 'presetPicker'
+  | 'presetForm'
+  | 'logPreset'
+  | 'managePresets';
 
 export interface ConfirmDialogConfig {
   title: string;
@@ -37,6 +41,8 @@ interface UIState {
   editWorkoutData: WorkoutLog | null;
   editMealData: Meal | null;
   confirmDialogConfig: ConfirmDialogConfig | null;
+  editPresetData: FoodPreset | null;
+  selectedPresetForLog: FoodPreset | null;
 
   // Current date context (for modals that need it)
   currentDate: string;
@@ -74,6 +80,12 @@ interface UIState {
   // Actions - Name Prompt Modal
   openNamePrompt: () => void;
 
+  // Actions - Preset Modals
+  openPresetPicker: () => void;
+  openPresetForm: (preset?: FoodPreset) => void;
+  openLogPreset: (preset: FoodPreset) => void;
+  openManagePresets: () => void;
+
   // Actions - Date
   setCurrentDate: (date: string) => void;
 
@@ -95,6 +107,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   editWorkoutData: null,
   editMealData: null,
   confirmDialogConfig: null,
+  editPresetData: null,
+  selectedPresetForLog: null,
   currentDate: new Date().toISOString().split('T')[0],
   selectedWorkoutId: null,
   selectedMealId: null,
@@ -107,6 +121,8 @@ export const useUIStore = create<UIState>((set, get) => ({
       editWorkoutData: null,
       editMealData: null,
       confirmDialogConfig: null,
+      editPresetData: null,
+      selectedPresetForLog: null,
     });
   },
 
@@ -116,6 +132,8 @@ export const useUIStore = create<UIState>((set, get) => ({
       editWorkoutData: null,
       editMealData: null,
       confirmDialogConfig: null,
+      editPresetData: null,
+      selectedPresetForLog: null,
     });
   },
 
@@ -180,6 +198,33 @@ export const useUIStore = create<UIState>((set, get) => ({
   openNamePrompt: () => {
     set({
       activeModal: 'namePrompt',
+    });
+  },
+
+  // Preset Modals
+  openPresetPicker: () => {
+    set({
+      activeModal: 'presetPicker',
+    });
+  },
+
+  openPresetForm: (preset) => {
+    set({
+      activeModal: 'presetForm',
+      editPresetData: preset || null,
+    });
+  },
+
+  openLogPreset: (preset) => {
+    set({
+      activeModal: 'logPreset',
+      selectedPresetForLog: preset,
+    });
+  },
+
+  openManagePresets: () => {
+    set({
+      activeModal: 'managePresets',
     });
   },
 

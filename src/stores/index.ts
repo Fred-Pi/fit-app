@@ -7,6 +7,7 @@ export { useUserStore } from './userStore';
 export { useUIStore, type ModalType, type ConfirmDialogConfig } from './uiStore';
 export { useWorkoutStore } from './workoutStore';
 export { useNutritionStore } from './nutritionStore';
+export { usePresetStore } from './presetStore';
 export { useDailyTrackingStore } from './dailyTrackingStore';
 export {
   useActiveWorkoutStore,

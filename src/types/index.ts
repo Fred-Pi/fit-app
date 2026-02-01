@@ -107,18 +107,31 @@ export interface Meal {
   carbs: number; // grams
   fats: number; // grams
   time: string; // ISO date string
+  // Optional preset linking
+  presetId?: string | null;
+  servingMultiplier?: number;
 }
 
-// For future use (Phase 2)
-export interface SavedMeal {
+// Food Presets - reusable food items
+export interface FoodPreset {
   id: string;
   userId: string;
   name: string;
+  servingSize: number;      // e.g., 150
+  servingUnit: 'g' | 'ml' | 'piece';
   calories: number;
   protein: number;
   carbs: number;
   fats: number;
+  createdAt: string;
+  lastUsedAt: string | null;
 }
+
+export const SERVING_UNITS: Array<{ value: FoodPreset['servingUnit']; label: string }> = [
+  { value: 'g', label: 'grams (g)' },
+  { value: 'ml', label: 'milliliters (ml)' },
+  { value: 'piece', label: 'piece/serving' },
+];
 
 // ============ STEPS/ACTIVITY MODELS ============
 

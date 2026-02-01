@@ -28,6 +28,17 @@ export {
   getNutritionInRange,
 } from './nutritionStorage';
 
+// Food preset operations
+export {
+  getPresets,
+  getPresetById,
+  savePreset,
+  deletePreset,
+  updatePresetLastUsed,
+  getRecentPresets,
+  createPreset,
+} from './presetStorage';
+
 // Steps operations
 export {
   getSteps,

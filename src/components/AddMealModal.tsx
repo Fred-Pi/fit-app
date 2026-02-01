@@ -6,12 +6,13 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Meal } from '../types';
+import { Meal, FoodPreset } from '../types';
 import { generateId } from '../services/storage';
-import { successHaptic } from '../utils/haptics';
+import { successHaptic, lightHaptic } from '../utils/haptics';
 import { validateMeal } from '../utils/validation';
 import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
 import ModalHeader from './ModalHeader';
@@ -24,15 +25,17 @@ interface AddMealModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (meal: Meal) => void;
+  onSaveAsPreset?: (data: Omit<FoodPreset, 'id' | 'userId' | 'createdAt' | 'lastUsedAt'>) => void;
 }
 
-const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave }) => {
+const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, onSaveAsPreset }) => {
   const [name, setName] = useState('');
   const [calories, setCalories] = useState('');
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fats, setFats] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [saveAsPreset, setSaveAsPreset] = useState(false);
 
   const handleSave = () => {
     const mealData = {
@@ -55,10 +58,28 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
       time: new Date().toISOString(),
     };
 
+    // Also create preset if checkbox is checked
+    if (saveAsPreset && onSaveAsPreset) {
+      onSaveAsPreset({
+        name: mealData.name,
+        servingSize: 1,
+        servingUnit: 'piece',
+        calories: mealData.calories,
+        protein: mealData.protein,
+        carbs: mealData.carbs,
+        fats: mealData.fats,
+      });
+    }
+
     successHaptic();
     onSave(meal);
     resetForm();
     onClose();
+  };
+
+  const handleToggleSaveAsPreset = () => {
+    lightHaptic();
+    setSaveAsPreset((prev) => !prev);
   };
 
   const resetForm = () => {
@@ -67,6 +88,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
     setProtein('');
     setCarbs('');
     setFats('');
+    setSaveAsPreset(false);
   };
 
   const handleClose = () => {
@@ -195,6 +217,31 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave })
             </View>
           </View>
 
+          {/* Save as Preset Option */}
+          {onSaveAsPreset && (
+            <Pressable
+              style={styles.saveAsPresetRow}
+              onPress={handleToggleSaveAsPreset}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  saveAsPreset && styles.checkboxChecked,
+                ]}
+              >
+                {saveAsPreset && (
+                  <Ionicons name="checkmark" size={16} color={colors.text} />
+                )}
+              </View>
+              <View style={styles.saveAsPresetInfo}>
+                <Text style={styles.saveAsPresetLabel}>Save as Preset</Text>
+                <Text style={styles.saveAsPresetSubtext}>
+                  Reuse this meal quickly next time
+                </Text>
+              </View>
+            </Pressable>
+          )}
+
           {/* Help Section */}
           <View style={modalStyles.helpSection}>
             <Ionicons name="information-circle" size={20} color={colors.primary} />
@@ -239,6 +286,43 @@ const styles = StyleSheet.create({
     fontSize: typography.size.sm,
     color: colors.textSecondary,
     marginTop: 2,
+  },
+  saveAsPresetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: glass.backgroundLight,
+    borderWidth: 1,
+    borderColor: glass.border,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.xl,
+    gap: spacing.md,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: radius.md,
+    borderWidth: 2,
+    borderColor: colors.textTertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  saveAsPresetInfo: {
+    flex: 1,
+  },
+  saveAsPresetLabel: {
+    fontSize: typography.size.base,
+    fontWeight: typography.weight.medium as '500',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  saveAsPresetSubtext: {
+    fontSize: typography.size.sm,
+    color: colors.textSecondary,
   },
 });
 

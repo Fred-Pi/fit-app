@@ -51,7 +51,7 @@ const NutritionScreen: React.FC<NutritionScreenProps> = ({
   const user = useUserStore((s) => s.user);
 
   // UI Store
-  const openAddMeal = useUIStore((s) => s.openAddMeal);
+  const openPresetPicker = useUIStore((s) => s.openPresetPicker);
   const openEditMeal = useUIStore((s) => s.openEditMeal);
   const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
   const selectedMealIds = useUIStore((s) => s.selectedMealIds);
@@ -147,7 +147,7 @@ const NutritionScreen: React.FC<NutritionScreenProps> = ({
           </View>
           <TouchableOpacity
             style={styles.addButtonSmall}
-            onPress={() => openAddMeal()}
+            onPress={() => openPresetPicker()}
           >
             <Ionicons name="add" size={20} color={colors.text} />
           </TouchableOpacity>
@@ -170,7 +170,7 @@ const NutritionScreen: React.FC<NutritionScreenProps> = ({
               <Text style={styles.listEmptyText}>No meals logged</Text>
               <TouchableOpacity
                 style={styles.listEmptyButton}
-                onPress={() => openAddMeal()}
+                onPress={() => openPresetPicker()}
               >
                 <Text style={styles.listEmptyButtonText}>Add Meal</Text>
               </TouchableOpacity>
@@ -332,7 +332,7 @@ const NutritionScreen: React.FC<NutritionScreenProps> = ({
                 <GlassButton
                   title="Add First Meal"
                   icon="add"
-                  onPress={() => openAddMeal()}
+                  onPress={() => openPresetPicker()}
                   variant="primary"
                 />
               </View>
@@ -394,7 +394,7 @@ const NutritionScreen: React.FC<NutritionScreenProps> = ({
           {
             icon: 'restaurant',
             label: 'Add Meal',
-            onPress: () => openAddMeal(),
+            onPress: () => openPresetPicker(),
             color: colors.nutrition,
           },
         ]}

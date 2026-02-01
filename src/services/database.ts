@@ -22,7 +22,7 @@ import {
 } from '../types';
 
 const DATABASE_NAME = 'fitapp.db';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 // Check if we're on a platform that supports SQLite
 const isNativePlatform = Platform.OS !== 'web';
@@ -153,7 +153,26 @@ export const initializeDatabase = async (): Promise<void> => {
       carbs REAL NOT NULL,
       fats REAL NOT NULL,
       time TEXT NOT NULL,
-      FOREIGN KEY (nutrition_id) REFERENCES daily_nutrition(id) ON DELETE CASCADE
+      preset_id TEXT,
+      serving_multiplier REAL DEFAULT 1.0,
+      FOREIGN KEY (nutrition_id) REFERENCES daily_nutrition(id) ON DELETE CASCADE,
+      FOREIGN KEY (preset_id) REFERENCES food_presets(id) ON DELETE SET NULL
+    );
+
+    -- Food presets (reusable food items)
+    CREATE TABLE IF NOT EXISTS food_presets (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      serving_size REAL NOT NULL,
+      serving_unit TEXT NOT NULL CHECK(serving_unit IN ('g', 'ml', 'piece')),
+      calories REAL NOT NULL,
+      protein REAL NOT NULL,
+      carbs REAL NOT NULL,
+      fats REAL NOT NULL,
+      created_at TEXT NOT NULL,
+      last_used_at TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
     -- Daily steps
@@ -283,6 +302,10 @@ export const initializeDatabase = async (): Promise<void> => {
     CREATE INDEX IF NOT EXISTS idx_meals_nutrition ON meals(nutrition_id);
     CREATE INDEX IF NOT EXISTS idx_exercise_templates_template ON exercise_templates(template_id);
 
+    -- Food preset lookups
+    CREATE INDEX IF NOT EXISTS idx_food_presets_user ON food_presets(user_id);
+    CREATE INDEX IF NOT EXISTS idx_food_presets_recent ON food_presets(user_id, last_used_at DESC);
+
     -- Sync queue indexes
     CREATE INDEX IF NOT EXISTS idx_sync_queue_pending ON sync_queue(processed_at) WHERE processed_at IS NULL;
     CREATE INDEX IF NOT EXISTS idx_sync_queue_table ON sync_queue(table_name, record_id);
@@ -328,6 +351,48 @@ const runSchemaMigrations = async (db: SQLite.SQLiteDatabase): Promise<void> => 
       console.log('Schema migrated to version 2');
     } catch (error) {
       console.error('Schema migration to version 2 failed:', error);
+    }
+  }
+
+  // Migration to version 3: Add food_presets table and extend meals table
+  if (currentVersion < 3) {
+    try {
+      // Create food_presets table if it doesn't exist
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS food_presets (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          serving_size REAL NOT NULL,
+          serving_unit TEXT NOT NULL CHECK(serving_unit IN ('g', 'ml', 'piece')),
+          calories REAL NOT NULL,
+          protein REAL NOT NULL,
+          carbs REAL NOT NULL,
+          fats REAL NOT NULL,
+          created_at TEXT NOT NULL,
+          last_used_at TEXT,
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_food_presets_user ON food_presets(user_id);
+        CREATE INDEX IF NOT EXISTS idx_food_presets_recent ON food_presets(user_id, last_used_at DESC);
+      `);
+
+      // Add columns to meals table for preset linking
+      const mealsTableInfo = await db.getAllAsync<{ name: string }>('PRAGMA table_info(meals)');
+      const existingMealsColumns = mealsTableInfo.map(col => col.name);
+
+      if (!existingMealsColumns.includes('preset_id')) {
+        await db.runAsync('ALTER TABLE meals ADD COLUMN preset_id TEXT REFERENCES food_presets(id) ON DELETE SET NULL');
+      }
+      if (!existingMealsColumns.includes('serving_multiplier')) {
+        await db.runAsync('ALTER TABLE meals ADD COLUMN serving_multiplier REAL DEFAULT 1.0');
+      }
+
+      await setSchemaVersion(3);
+      console.log('Schema migrated to version 3');
+    } catch (error) {
+      console.error('Schema migration to version 3 failed:', error);
     }
   }
 };
@@ -560,6 +625,7 @@ export const clearDatabase = async (): Promise<void> => {
     DELETE FROM workout_logs;
     DELETE FROM meals;
     DELETE FROM daily_nutrition;
+    DELETE FROM food_presets;
     DELETE FROM daily_steps;
     DELETE FROM daily_weights;
     DELETE FROM exercise_templates;

@@ -232,3 +232,47 @@ export const validateSet = (set: {
 
   return { isValid: true };
 };
+
+// Serving size validation
+const MAX_SERVING_SIZE = 10000;
+
+export const validateServingSize = (size: number): ValidationResult => {
+  if (size <= 0) {
+    return { isValid: false, error: 'Serving size must be greater than 0' };
+  }
+
+  if (size > MAX_SERVING_SIZE) {
+    return { isValid: false, error: `Serving size cannot exceed ${MAX_SERVING_SIZE}` };
+  }
+
+  return { isValid: true };
+};
+
+// Food preset validation
+export const validatePreset = (preset: {
+  name: string;
+  servingSize: number;
+  servingUnit: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+}): ValidationResult => {
+  const nameValidation = validateName(preset.name);
+  if (!nameValidation.isValid) return nameValidation;
+
+  const servingSizeValidation = validateServingSize(preset.servingSize);
+  if (!servingSizeValidation.isValid) return servingSizeValidation;
+
+  if (!['g', 'ml', 'piece'].includes(preset.servingUnit)) {
+    return { isValid: false, error: 'Invalid serving unit' };
+  }
+
+  const caloriesValidation = validateCalories(preset.calories);
+  if (!caloriesValidation.isValid) return caloriesValidation;
+
+  const macrosValidation = validateMacros(preset.protein, preset.carbs, preset.fats);
+  if (!macrosValidation.isValid) return macrosValidation;
+
+  return { isValid: true };
+};
