@@ -440,7 +440,7 @@ const markMigrationComplete = async (): Promise<void> => {
  * Generate unique ID (same as original storage.ts)
  */
 const generateId = (): string => {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
 };
 
 /**
