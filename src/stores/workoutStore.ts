@@ -38,6 +38,31 @@ const getUserId = (): string | null => {
 };
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const MAX_DATE_CACHE_ENTRIES = 30; // Limit date cache to prevent memory leaks
+
+/**
+ * Enforce cache size limit by removing oldest entries when exceeded.
+ * Uses date string comparison since dates are in YYYY-MM-DD format.
+ */
+const enforceCache = <T>(
+  cache: Map<string, T>,
+  maxEntries: number
+): Map<string, T> => {
+  if (cache.size <= maxEntries) {
+    return cache;
+  }
+
+  // Sort keys by date (oldest first) and keep only the most recent entries
+  const sortedKeys = Array.from(cache.keys()).sort();
+  const keysToRemove = sortedKeys.slice(0, cache.size - maxEntries);
+
+  const newCache = new Map(cache);
+  for (const key of keysToRemove) {
+    newCache.delete(key);
+  }
+
+  return newCache;
+};
 
 interface WorkoutState {
   // State - Workouts
@@ -162,7 +187,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       const filtered = workouts.filter((w) => w.date === date);
       const newCache = new Map(workoutsByDateCache);
       newCache.set(date, filtered);
-      set({ workoutsByDateCache: newCache });
+      set({ workoutsByDateCache: enforceCache(newCache, MAX_DATE_CACHE_ENTRIES) });
       return filtered;
     }
 
@@ -170,7 +195,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     const dateWorkouts = await getWorkoutsByDate(date, userId);
     const newCache = new Map(workoutsByDateCache);
     newCache.set(date, dateWorkouts);
-    set({ workoutsByDateCache: newCache });
+    set({ workoutsByDateCache: enforceCache(newCache, MAX_DATE_CACHE_ENTRIES) });
     return dateWorkouts;
   },
 
@@ -185,10 +210,11 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
 
-    // Update date cache
+    // Update date cache (enforce size limit for new dates)
     const newCache = new Map(workoutsByDateCache);
     const dateWorkouts = newCache.get(workout.date) || [];
     newCache.set(workout.date, [workout, ...dateWorkouts.filter((w) => w.id !== workout.id)]);
+    const boundedCache = enforceCache(newCache, MAX_DATE_CACHE_ENTRIES);
 
     // Update PRs if any new ones
     const updatedPRs =
@@ -201,7 +227,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
 
     set({
       workouts: updatedWorkouts,
-      workoutsByDateCache: newCache,
+      workoutsByDateCache: boundedCache,
       personalRecords: updatedPRs,
       currentStreak: streakData.current,
       longestStreak: streakData.longest,
