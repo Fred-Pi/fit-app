@@ -23,6 +23,7 @@ import { useResponsive } from '../hooks/useResponsive';
 import { getWorkouts, saveWorkout, deleteWorkout as deleteWorkoutService, getUser, checkAndUpdatePRs } from '../services/storage';
 import { useUIStore, useWorkoutStore, useActiveWorkoutStore } from '../stores';
 import { useNavigation } from '@react-navigation/native';
+import { AppNavigationProp } from '../navigation/types';
 import { successHaptic, lightHaptic } from '../utils/haptics';
 import { useAuthStore } from '../stores/authStore';
 import { logError } from '../utils/logger';
@@ -47,7 +48,7 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
 
   const { typographyScale } = useResponsive();
   const scaledType = getResponsiveTypography(typographyScale);
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const startFromRecent = useActiveWorkoutStore((s) => s.startFromRecent);
   const selectWorkout = useUIStore((s) => s.selectWorkout);

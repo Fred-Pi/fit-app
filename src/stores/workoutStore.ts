@@ -54,6 +54,10 @@ const invalidateStreakCache = () => {
   lastStreakWorkoutCount = -1;
 };
 
+// Request deduplication map for fetchWorkoutsByDate
+// Prevents duplicate fetches when multiple components request the same date concurrently
+const pendingDateFetches = new Map<string, Promise<WorkoutLog[]>>();
+
 // Helper to get current userId from auth store
 const getUserId = (): string | null => {
   const { user } = useAuthStore.getState();
@@ -263,12 +267,28 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       return filtered;
     }
 
-    // Otherwise fetch from storage
-    const dateWorkouts = await getWorkoutsByDate(date, userId);
-    const newCache = new Map(workoutsByDateCache);
-    newCache.set(date, dateWorkouts);
-    set({ workoutsByDateCache: enforceCache(newCache, MAX_DATE_CACHE_ENTRIES) });
-    return dateWorkouts;
+    // Check for pending request to deduplicate concurrent calls
+    const cacheKey = `${userId}:${date}`;
+    if (pendingDateFetches.has(cacheKey)) {
+      return pendingDateFetches.get(cacheKey)!;
+    }
+
+    // Create the fetch promise and store it to deduplicate
+    const fetchPromise = (async () => {
+      try {
+        const dateWorkouts = await getWorkoutsByDate(date, userId);
+        const newCache = new Map(get().workoutsByDateCache);
+        newCache.set(date, dateWorkouts);
+        set({ workoutsByDateCache: enforceCache(newCache, MAX_DATE_CACHE_ENTRIES) });
+        return dateWorkouts;
+      } finally {
+        // Clean up pending request after completion
+        pendingDateFetches.delete(cacheKey);
+      }
+    })();
+
+    pendingDateFetches.set(cacheKey, fetchPromise);
+    return fetchPromise;
   },
 
   addWorkout: async (workout: WorkoutLog) => {

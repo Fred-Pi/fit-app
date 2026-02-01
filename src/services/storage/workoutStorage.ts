@@ -6,7 +6,11 @@ import { WorkoutLog, ExerciseLog, SetLog } from '../../types';
 import { getDb } from './db';
 import { generateId } from './utils';
 import { syncService } from '../sync';
-import { logError } from '../../utils/logger';
+import { logError, logWarn } from '../../utils/logger';
+
+// Maximum batch size for IN clauses to prevent SQL errors
+// SQLite has a default SQLITE_MAX_VARIABLE_NUMBER of 999
+const MAX_BATCH_SIZE = 500;
 
 interface WorkoutRow {
   id: string;
@@ -37,8 +41,21 @@ interface SetRow {
 }
 
 /**
+ * Split an array into chunks of a given size
+ */
+const chunkArray = <T>(array: T[], size: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+};
+
+/**
  * Batch load exercises and sets for multiple workouts in 2 queries instead of N+M
  * This eliminates the N+1 query problem
+ *
+ * Handles large arrays by chunking to respect SQLite's variable limit
  */
 const batchLoadWorkoutData = async (workoutIds: string[]): Promise<{
   exercisesByWorkout: Map<string, ExerciseLog[]>;
@@ -47,37 +64,56 @@ const batchLoadWorkoutData = async (workoutIds: string[]): Promise<{
     return { exercisesByWorkout: new Map() };
   }
 
+  // Warn if array is very large (potential performance issue)
+  if (workoutIds.length > MAX_BATCH_SIZE * 2) {
+    logWarn(`Large batch load requested: ${workoutIds.length} workouts`, {
+      recommendation: 'Consider using pagination',
+    });
+  }
+
   const db = await getDb();
-  const placeholders = workoutIds.map(() => '?').join(',');
 
-  // Single query for all exercises across all workouts
-  const exerciseRows = await db.getAllAsync<ExerciseRow>(
-    `SELECT id, workout_id, exercise_name, notes, order_index
-     FROM exercise_logs
-     WHERE workout_id IN (${placeholders})
-     ORDER BY workout_id, order_index`,
-    workoutIds
-  );
+  // Chunk workout IDs to respect SQLite variable limit
+  const workoutChunks = chunkArray(workoutIds, MAX_BATCH_SIZE);
+  const allExerciseRows: ExerciseRow[] = [];
 
-  if (exerciseRows.length === 0) {
+  for (const chunk of workoutChunks) {
+    const placeholders = chunk.map(() => '?').join(',');
+    const rows = await db.getAllAsync<ExerciseRow>(
+      `SELECT id, workout_id, exercise_name, notes, order_index
+       FROM exercise_logs
+       WHERE workout_id IN (${placeholders})
+       ORDER BY workout_id, order_index`,
+      chunk
+    );
+    allExerciseRows.push(...rows);
+  }
+
+  if (allExerciseRows.length === 0) {
     return { exercisesByWorkout: new Map() };
   }
 
-  const exerciseIds = exerciseRows.map(e => e.id);
-  const exercisePlaceholders = exerciseIds.map(() => '?').join(',');
+  const exerciseIds = allExerciseRows.map(e => e.id);
 
-  // Single query for all sets across all exercises
-  const setRows = await db.getAllAsync<SetRow>(
-    `SELECT exercise_log_id, reps, weight, rpe, completed, order_index
-     FROM set_logs
-     WHERE exercise_log_id IN (${exercisePlaceholders})
-     ORDER BY exercise_log_id, order_index`,
-    exerciseIds
-  );
+  // Chunk exercise IDs for sets query
+  const exerciseChunks = chunkArray(exerciseIds, MAX_BATCH_SIZE);
+  const allSetRows: SetRow[] = [];
+
+  for (const chunk of exerciseChunks) {
+    const placeholders = chunk.map(() => '?').join(',');
+    const rows = await db.getAllAsync<SetRow>(
+      `SELECT exercise_log_id, reps, weight, rpe, completed, order_index
+       FROM set_logs
+       WHERE exercise_log_id IN (${placeholders})
+       ORDER BY exercise_log_id, order_index`,
+      chunk
+    );
+    allSetRows.push(...rows);
+  }
 
   // Group sets by exercise_log_id
   const setsByExercise = new Map<string, SetLog[]>();
-  for (const s of setRows) {
+  for (const s of allSetRows) {
     const sets = setsByExercise.get(s.exercise_log_id) || [];
     sets.push({
       reps: s.reps,
@@ -90,7 +126,7 @@ const batchLoadWorkoutData = async (workoutIds: string[]): Promise<{
 
   // Group exercises by workout_id and attach sets
   const exercisesByWorkout = new Map<string, ExerciseLog[]>();
-  for (const ex of exerciseRows) {
+  for (const ex of allExerciseRows) {
     const exercises = exercisesByWorkout.get(ex.workout_id) || [];
     exercises.push({
       id: ex.id,

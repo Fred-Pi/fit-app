@@ -21,6 +21,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useActiveWorkoutStore } from '../stores';
+import { AppNavigationProp } from '../navigation/types';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
@@ -49,7 +50,7 @@ interface TodayScreenProps {
 
 const TodayScreen: React.FC<TodayScreenProps> = ({ variant = 'full', onStartWorkout }) => {
   const { contentMaxWidth } = useResponsive();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<AppNavigationProp>();
   const date = getTodayDate();
 
   // User Store

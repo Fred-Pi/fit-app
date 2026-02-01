@@ -14,6 +14,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { AppNavigationProp } from '../navigation/types';
 import {
   useUIStore,
   useUserStore,
@@ -47,7 +48,7 @@ type ModalType =
   | 'presetPicker' | 'presetForm' | 'logPreset' | 'managePresets' | null;
 
 const GlobalModals: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // UI Store - only subscribe to activeModal for conditional rendering
   const activeModal = useUIStore((s) => s.activeModal) as ModalType;

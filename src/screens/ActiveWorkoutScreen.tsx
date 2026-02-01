@@ -77,25 +77,35 @@ const ActiveWorkoutScreen: React.FC = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [showExerciseSearch, setShowExerciseSearch] = useState(false);
 
-  // Update workout timer display
+  // Update workout timer display with mounted guard to prevent memory leaks
   useEffect(() => {
     if (!isWorkoutTimerRunning) return;
 
+    let mounted = true;
     const interval = setInterval(() => {
-      setDisplayDuration(getWorkoutDuration());
+      if (mounted) {
+        setDisplayDuration(getWorkoutDuration());
+      }
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, [isWorkoutTimerRunning, getWorkoutDuration]);
 
-  // Update rest timer display
+  // Update rest timer display with mounted guard to prevent memory leaks
   useEffect(() => {
     if (!isRestTimerRunning || !restTimerEndTime) {
       setRestTimeRemaining(0);
       return;
     }
 
+    let mounted = true;
+
     const updateRestTimer = () => {
+      if (!mounted) return;
+
       const remaining = Math.max(0, Math.ceil((restTimerEndTime - Date.now()) / 1000));
       setRestTimeRemaining(remaining);
 
@@ -109,7 +119,10 @@ const ActiveWorkoutScreen: React.FC = () => {
     updateRestTimer();
     const interval = setInterval(updateRestTimer, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, [isRestTimerRunning, restTimerEndTime, stopRestTimer]);
 
   // Format time as MM:SS
