@@ -89,6 +89,7 @@ export const saveSteps = async (steps: DailySteps): Promise<void> => {
     });
   } catch (error) {
     logError('Error saving steps', error);
+    throw error;
   }
 };
 

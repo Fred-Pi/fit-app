@@ -59,6 +59,7 @@ export const saveCustomExercise = async (exercise: Exercise): Promise<void> => {
     });
   } catch (error) {
     logError('Error saving custom exercise', error);
+    throw error;
   }
 };
 
@@ -75,6 +76,7 @@ export const deleteCustomExercise = async (exerciseId: string): Promise<void> =>
     await syncService.queueMutation('custom_exercises', exerciseId, 'DELETE');
   } catch (error) {
     logError('Error deleting custom exercise', error);
+    throw error;
   }
 };
 

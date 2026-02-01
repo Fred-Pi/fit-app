@@ -93,6 +93,7 @@ export const saveWeight = async (weight: DailyWeight): Promise<void> => {
     });
   } catch (error) {
     logError('Error saving weight', error);
+    throw error;
   }
 };
 
@@ -105,6 +106,7 @@ export const deleteWeight = async (weightId: string): Promise<void> => {
     await syncService.queueMutation('daily_weights', weightId, 'DELETE');
   } catch (error) {
     logError('Error deleting weight', error);
+    throw error;
   }
 };
 

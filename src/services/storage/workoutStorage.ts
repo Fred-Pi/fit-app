@@ -192,6 +192,7 @@ export const saveWorkout = async (workout: WorkoutLog): Promise<void> => {
     });
   } catch (error) {
     logError('Error saving workout', error);
+    throw error;
   }
 };
 
@@ -205,6 +206,7 @@ export const deleteWorkout = async (workoutId: string): Promise<void> => {
     await syncService.queueMutation('workout_logs', workoutId, 'DELETE');
   } catch (error) {
     logError('Error deleting workout', error);
+    throw error;
   }
 };
 

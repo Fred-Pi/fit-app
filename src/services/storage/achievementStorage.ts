@@ -77,6 +77,7 @@ export const saveAchievements = async (achievements: Achievement[]): Promise<voi
     }
   } catch (error) {
     logError('Error saving achievements', error);
+    throw error;
   }
 };
 

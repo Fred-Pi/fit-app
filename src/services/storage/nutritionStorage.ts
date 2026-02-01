@@ -129,6 +129,7 @@ export const saveNutrition = async (nutrition: DailyNutrition): Promise<void> =>
     });
   } catch (error) {
     logError('Error saving nutrition', error);
+    throw error;
   }
 };
 

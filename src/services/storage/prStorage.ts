@@ -63,6 +63,7 @@ export const savePersonalRecord = async (pr: PersonalRecord): Promise<void> => {
     });
   } catch (error) {
     logError('Error saving personal record', error);
+    throw error;
   }
 };
 
@@ -75,6 +76,7 @@ export const deletePersonalRecord = async (prId: string): Promise<void> => {
     await syncService.queueMutation('personal_records', prId, 'DELETE');
   } catch (error) {
     logError('Error deleting personal record', error);
+    throw error;
   }
 };
 

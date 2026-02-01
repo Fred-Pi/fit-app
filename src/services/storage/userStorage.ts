@@ -76,6 +76,7 @@ export const saveUser = async (user: User): Promise<void> => {
     );
   } catch (error) {
     logError('Error saving user', error);
+    throw error;
   }
 };
 

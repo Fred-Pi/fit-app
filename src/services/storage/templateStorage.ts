@@ -95,6 +95,7 @@ export const saveTemplate = async (template: WorkoutTemplate): Promise<void> => 
     });
   } catch (error) {
     logError('Error saving template', error);
+    throw error;
   }
 };
 
@@ -107,6 +108,7 @@ export const deleteTemplate = async (templateId: string): Promise<void> => {
     await syncService.queueMutation('workout_templates', templateId, 'DELETE');
   } catch (error) {
     logError('Error deleting template', error);
+    throw error;
   }
 };
 

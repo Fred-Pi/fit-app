@@ -6,13 +6,71 @@
  * - Processes queue when online
  * - Pulls remote changes on app foreground
  * - Monitors network state (with web fallback)
+ * - Detects and handles sync conflicts
+ * - Encrypts sensitive data in sync queue
  */
 
 import { Platform } from 'react-native';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import * as Crypto from 'expo-crypto';
 import { supabase, isSupabaseConfigured } from '../supabase';
 import { getDatabase } from '../database';
-import { logWarn, logError } from '../../utils/logger';
+import { logWarn, logError, logInfo } from '../../utils/logger';
+
+// Simple encryption key derivation (in production, use secure key storage)
+const ENCRYPTION_PREFIX = 'ENC:';
+const getEncryptionKey = async (): Promise<string> => {
+  // Use a deterministic key based on app identifier
+  // In production, store this in secure storage after first generation
+  const baseKey = 'fit-app-sync-key-v1';
+  const hash = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    baseKey
+  );
+  return hash.substring(0, 32);
+};
+
+// XOR-based encryption (lightweight, suitable for local obfuscation)
+const encryptPayload = async (payload: string): Promise<string> => {
+  const key = await getEncryptionKey();
+  let encrypted = '';
+  for (let i = 0; i < payload.length; i++) {
+    const charCode = payload.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+    encrypted += String.fromCharCode(charCode);
+  }
+  // Base64 encode for safe storage
+  return ENCRYPTION_PREFIX + btoa(encrypted);
+};
+
+const decryptPayload = async (encrypted: string): Promise<string> => {
+  if (!encrypted.startsWith(ENCRYPTION_PREFIX)) {
+    // Legacy unencrypted payload, return as-is
+    return encrypted;
+  }
+  const key = await getEncryptionKey();
+  const decoded = atob(encrypted.substring(ENCRYPTION_PREFIX.length));
+  let decrypted = '';
+  for (let i = 0; i < decoded.length; i++) {
+    const charCode = decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+    decrypted += String.fromCharCode(charCode);
+  }
+  return decrypted;
+};
+
+// Conflict resolution strategy
+type ConflictResolution = 'cloud_wins' | 'local_wins' | 'manual';
+
+interface ConflictInfo {
+  tableName: string;
+  recordId: string;
+  localUpdatedAt: string;
+  cloudUpdatedAt: string;
+  resolution: ConflictResolution;
+}
+
+// Callback for conflict notifications (stores can subscribe)
+type ConflictCallback = (conflict: ConflictInfo) => void;
+let conflictCallbacks: ConflictCallback[] = [];
 
 // Supported table names for sync
 type SyncTableName =
@@ -47,6 +105,37 @@ class SyncService {
   private isOnline: boolean = true;
   private isSyncing: boolean = false;
   private unsubscribeNetInfo: (() => void) | null = null;
+  private conflictResolution: ConflictResolution = 'cloud_wins';
+
+  /**
+   * Subscribe to conflict notifications
+   */
+  onConflict(callback: ConflictCallback): () => void {
+    conflictCallbacks.push(callback);
+    return () => {
+      conflictCallbacks = conflictCallbacks.filter(cb => cb !== callback);
+    };
+  }
+
+  /**
+   * Set conflict resolution strategy
+   */
+  setConflictResolution(strategy: ConflictResolution): void {
+    this.conflictResolution = strategy;
+  }
+
+  /**
+   * Notify listeners of a conflict
+   */
+  private notifyConflict(conflict: ConflictInfo): void {
+    for (const callback of conflictCallbacks) {
+      try {
+        callback(conflict);
+      } catch (error) {
+        logError('Conflict callback error', error);
+      }
+    }
+  }
 
   /**
    * Initialize the sync service
@@ -112,6 +201,7 @@ class SyncService {
   /**
    * Queue a mutation for sync
    * This should be called after every local SQLite write
+   * Payloads are encrypted before storage for data safety
    */
   async queueMutation(
     tableName: SyncTableName,
@@ -123,12 +213,31 @@ class SyncService {
     if (!db) return;
 
     const now = new Date().toISOString();
-    const payloadJson = payload ? JSON.stringify(payload) : null;
+
+    // Ensure updated_at is set for conflict detection
+    let finalPayload = payload;
+    if (payload && !payload.updated_at) {
+      finalPayload = { ...payload, updated_at: now };
+    }
+
+    // Encrypt payload before storing
+    let encryptedPayload: string | null = null;
+    if (finalPayload) {
+      const payloadJson = JSON.stringify(finalPayload);
+      encryptedPayload = await encryptPayload(payloadJson);
+    }
+
+    // Deduplicate: remove any existing pending entry for same record/table
+    await db.runAsync(
+      `DELETE FROM sync_queue
+       WHERE table_name = ? AND record_id = ? AND processed_at IS NULL`,
+      [tableName, recordId]
+    );
 
     await db.runAsync(
       `INSERT INTO sync_queue (table_name, record_id, operation, payload, created_at)
        VALUES (?, ?, ?, ?, ?)`,
-      [tableName, recordId, operation, payloadJson, now]
+      [tableName, recordId, operation, encryptedPayload, now]
     );
 
     // Try to sync immediately if online
@@ -188,9 +297,20 @@ class SyncService {
 
   /**
    * Process a single queue item
+   * Handles decryption, conflict detection, and safe JSON parsing
    */
   private async processQueueItem(item: SyncQueueItem): Promise<void> {
-    const payload = item.payload ? JSON.parse(item.payload) : null;
+    // Safely parse and decrypt payload
+    let payload: Record<string, unknown> | null = null;
+    if (item.payload) {
+      try {
+        const decrypted = await decryptPayload(item.payload);
+        payload = JSON.parse(decrypted);
+      } catch (parseError) {
+        logError(`Failed to parse payload for ${item.table_name}/${item.record_id}`, parseError);
+        throw new Error('Corrupted sync queue payload');
+      }
+    }
 
     if (item.operation === 'DELETE') {
       const { error } = await supabase
@@ -203,9 +323,52 @@ class SyncService {
         throw error;
       }
     } else {
-      // UPSERT
+      // UPSERT with conflict detection
       if (!payload) {
         throw new Error('UPSERT operation requires payload');
+      }
+
+      // Check for conflicts by fetching current cloud version
+      const { data: cloudRecord, error: fetchError } = await supabase
+        .from(item.table_name)
+        .select('id, updated_at')
+        .eq('id', item.record_id)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        // PGRST116 = not found, which means this is a new record
+        throw fetchError;
+      }
+
+      // Conflict detection: compare timestamps
+      if (cloudRecord?.updated_at && payload.updated_at) {
+        const cloudTime = new Date(cloudRecord.updated_at).getTime();
+        const localTime = new Date(payload.updated_at as string).getTime();
+
+        if (cloudTime > localTime) {
+          // Cloud version is newer - we have a conflict
+          const conflict: ConflictInfo = {
+            tableName: item.table_name,
+            recordId: item.record_id,
+            localUpdatedAt: payload.updated_at as string,
+            cloudUpdatedAt: cloudRecord.updated_at,
+            resolution: this.conflictResolution,
+          };
+
+          this.notifyConflict(conflict);
+          logInfo(`Sync conflict detected for ${item.table_name}/${item.record_id}`, {
+            localTime: payload.updated_at,
+            cloudTime: cloudRecord.updated_at,
+            resolution: this.conflictResolution,
+          });
+
+          if (this.conflictResolution === 'cloud_wins') {
+            // Skip this local change, cloud version is preserved
+            return;
+          }
+          // For 'local_wins', continue with upsert
+          // For 'manual', would need UI integration (future enhancement)
+        }
       }
 
       const { error } = await supabase.from(item.table_name).upsert(payload);

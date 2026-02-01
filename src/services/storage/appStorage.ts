@@ -23,5 +23,6 @@ export const clearAllData = async (): Promise<void> => {
     await clearDatabase();
   } catch (error) {
     logError('Error clearing data', error);
+    throw error;
   }
 };
