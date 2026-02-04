@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, glass, gradients, radius, typography, spacing, shadows } from '../utils/theme';
+import { colors, glass, radius, typography, spacing, shadows } from '../utils/theme';
 import { lightHaptic } from '../utils/haptics';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
@@ -259,7 +259,7 @@ const GlassButton: React.FC<GlassButtonProps> = ({
       accessibilityRole="button"
       accessibilityLabel={title}
       accessibilityState={{ disabled: disabled || loading }}
-      style={Platform.OS === 'web' ? { cursor: disabled ? 'not-allowed' : 'pointer' } as any : undefined}
+      style={Platform.OS === 'web' ? { cursor: disabled ? 'not-allowed' : 'pointer' } as Record<string, string> : undefined}
       {...webHoverProps}
     >
       <Animated.View

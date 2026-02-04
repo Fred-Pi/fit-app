@@ -13,7 +13,6 @@ import {
   Exercise,
 } from '../types';
 import {
-  getWorkouts,
   getWorkoutsPaginated,
   getWorkoutsByDate,
   saveWorkout,

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { WorkoutLog, FrequencyDataPoint } from '../types'
+import { WorkoutLog } from '../types'
 import { calculateFrequencyHeatmap, calculateWorkoutStreak } from '../utils/analyticsCalculations'
 
 interface FrequencyStats {

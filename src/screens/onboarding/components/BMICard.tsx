@@ -1,9 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import GlassCard from '../../../components/GlassCard';
-import { colors, spacing, typography, radius, glass } from '../../../utils/theme';
+import { colors, spacing, typography, radius } from '../../../utils/theme';
 import { BMIResult } from '../../../utils/bmiCalculator';
 
 interface BMICardProps {

@@ -77,7 +77,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, r
       } else {
         setIsSuccess(true);
       }
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Error', 'Failed to update password');
     } finally {
       setIsLoading(false);
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     fontSize: typography.size.base,
     color: colors.text,
     paddingVertical: spacing.md,
-  } as any,
+  } as Record<string, unknown>,
   footer: {
     paddingHorizontal: spacing['2xl'],
   },

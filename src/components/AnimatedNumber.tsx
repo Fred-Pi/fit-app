@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, StyleSheet, Animated, View, TextStyle } from 'react-native';
+import { Text, StyleSheet, Animated, TextStyle } from 'react-native';
 import { colors, typography } from '../utils/theme';
 
 interface AnimatedNumberProps {
@@ -78,6 +78,7 @@ const AnimatedNumber: React.FC<AnimatedNumberProps> = ({
     } else {
       setDisplayValue(value);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, duration, animated]);
 
   const formatDisplayValue = () => {

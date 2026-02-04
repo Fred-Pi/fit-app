@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     paddingVertical: spacing.md,
     outlineStyle: 'none',
-  } as any,
+  } as Record<string, unknown>,
   inputSuffix: {
     fontSize: typography.size.sm,
     color: colors.textTertiary,

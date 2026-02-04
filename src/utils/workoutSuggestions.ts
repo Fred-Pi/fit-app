@@ -6,7 +6,7 @@
  */
 
 import { WorkoutLog, MuscleGroup } from '../types';
-import { calculateMuscleGroupHeatmap, getExerciseMuscleGroup } from './muscleGroupCalculations';
+import { calculateMuscleGroupHeatmap } from './muscleGroupCalculations';
 
 export interface WorkoutSuggestion {
   muscleGroup: MuscleGroup;

@@ -13,7 +13,6 @@ import { WorkoutLog } from '../../types'
 import {
   getExercisesWithHistory,
   getExerciseProgression,
-  ExerciseProgressionStats,
 } from '../../utils/exerciseProgression'
 import { colors } from '../../utils/theme'
 import Card from '../Card'

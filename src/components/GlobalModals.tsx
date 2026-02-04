@@ -11,7 +11,7 @@
  * (QuickStartScreen → ActiveWorkoutScreen → WorkoutCompleteScreen)
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigationProp } from '../navigation/types';

@@ -5,7 +5,7 @@
  * and inline exercise search.
  */
 
-import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import {
   View,
   Text,
@@ -36,7 +36,7 @@ type ActiveWorkoutRouteProp = RouteProp<WorkoutsStackParamList, 'ActiveWorkout'>
 
 const ActiveWorkoutScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const route = useRoute<ActiveWorkoutRouteProp>();
+  const _route = useRoute<ActiveWorkoutRouteProp>();
   const scrollViewRef = useRef<ScrollView>(null);
   const desktopOverlay = useContext(DesktopWorkoutOverlayContext);
 
@@ -51,9 +51,7 @@ const ActiveWorkoutScreen: React.FC = () => {
     setWorkoutName,
     addExercise,
     removeExercise,
-    reorderExercises,
     toggleExerciseCollapse,
-    updateExerciseNotes,
     addSet,
     removeSet,
     updateSet,
@@ -62,12 +60,10 @@ const ActiveWorkoutScreen: React.FC = () => {
     getWorkoutDuration,
     getTotalSets,
     getCompletedSets,
-    startTime,
     isWorkoutTimerRunning,
     restTimerEndTime,
     isRestTimerRunning,
     stopRestTimer,
-    restTimerDuration,
     getExerciseHistory,
   } = useActiveWorkoutStore();
 
@@ -75,7 +71,7 @@ const ActiveWorkoutScreen: React.FC = () => {
   const [displayDuration, setDisplayDuration] = useState(0);
   const [restTimeRemaining, setRestTimeRemaining] = useState(0);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [showExerciseSearch, setShowExerciseSearch] = useState(false);
+  const [_showExerciseSearch, setShowExerciseSearch] = useState(false);
 
   // Update workout timer display with mounted guard to prevent memory leaks
   useEffect(() => {
@@ -286,7 +282,7 @@ const ActiveWorkoutScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {exercises.map((exercise, index) => (
+          {exercises.map((exercise, _index) => (
             <ActiveExerciseCard
               key={exercise.id}
               exercise={exercise}
@@ -297,7 +293,6 @@ const ActiveWorkoutScreen: React.FC = () => {
               onRemoveSet={(setId) => removeSet(exercise.id, setId)}
               onRemoveExercise={() => removeExercise(exercise.id)}
               onToggleCollapse={() => toggleExerciseCollapse(exercise.id)}
-              onUpdateNotes={(notes) => updateExerciseNotes(exercise.id, notes)}
               getExerciseHistory={getExerciseHistory}
             />
           ))}

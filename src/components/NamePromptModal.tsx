@@ -48,6 +48,7 @@ const NamePromptModal: React.FC<NamePromptModalProps> = ({
       scaleAnim.setValue(0.9);
       opacityAnim.setValue(0);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   const handleSave = () => {

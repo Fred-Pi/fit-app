@@ -90,7 +90,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         style={({ pressed }) => [
           styles.header,
           pressed && styles.headerPressed,
-          Platform.OS === 'web' && { cursor: 'pointer' } as any,
+          Platform.OS === 'web' && { cursor: 'pointer' } as Record<string, string>,
         ]}
         onPress={toggleExpanded}
         accessibilityRole="button"

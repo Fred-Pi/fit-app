@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && {
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-    } as any),
+    } as Record<string, string>),
   },
   countSection: {
     flexDirection: 'row',
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: radius.lg,
-    cursor: 'pointer' as any,
+    ...({ cursor: 'pointer' } as Record<string, string>),
   },
   actionButtonPressed: {
     backgroundColor: glass.backgroundLight,

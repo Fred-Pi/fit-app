@@ -43,6 +43,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ onDurationChange, initialDu
         clearInterval(intervalRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, startTime, accumulatedTime]);
 
   const handleStart = () => {

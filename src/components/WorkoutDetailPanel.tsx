@@ -57,6 +57,7 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
 
   useEffect(() => {
     loadWorkout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workoutId]);
 
   const loadWorkout = async () => {

@@ -7,7 +7,7 @@
  */
 
 import { create } from 'zustand';
-import { WorkoutLog, ExerciseLog, SetLog, WorkoutTemplate } from '../types';
+import { WorkoutLog, ExerciseLog, WorkoutTemplate } from '../types';
 import { generateId, getLastExercisePerformance } from '../services/storage';
 import { useAuthStore } from './authStore';
 

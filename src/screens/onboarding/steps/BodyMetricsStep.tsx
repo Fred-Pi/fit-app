@@ -57,6 +57,7 @@ const BodyMetricsStep: React.FC<BodyMetricsStepProps> = ({
         setInchesDisplay(inches.toString());
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [heightUnit]);
 
   useEffect(() => {
@@ -67,6 +68,7 @@ const BodyMetricsStep: React.FC<BodyMetricsStepProps> = ({
         setWeightDisplay(Math.round(kgToLbs(weightKg) * 10) / 10 + '');
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weightUnit]);
 
   const handleHeightCmChange = (text: string) => {
@@ -321,7 +323,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     paddingVertical: spacing.md,
     outlineStyle: 'none',
-  } as any,
+  } as Record<string, unknown>,
   inputSuffix: {
     fontSize: typography.size.sm,
     color: colors.textTertiary,

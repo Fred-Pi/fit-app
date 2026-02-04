@@ -206,7 +206,7 @@ const ExerciseLibraryScreen = () => {
 
   const renderSectionHeader = ({ section }: { section: ExerciseSection }) => (
     <View style={styles.sectionHeader}>
-      <Ionicons name={section.icon as any} size={20} color={section.color} />
+      <Ionicons name={section.icon as React.ComponentProps<typeof Ionicons>['name']} size={20} color={section.color} />
       <Text style={styles.sectionHeaderText}>{section.title}</Text>
       <Text style={styles.sectionCount}>({section.data.length})</Text>
     </View>

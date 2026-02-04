@@ -24,7 +24,6 @@ import { colors } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { lightHaptic, warningHaptic } from '../utils/haptics';
 import {
-  useUserStore,
   useUIStore,
   useWorkoutStore,
 } from '../stores';
@@ -45,10 +44,7 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
   selectedWorkoutId,
 }) => {
   const navigation = useNavigation<WorkoutsScreenNavigationProp>();
-  const { contentMaxWidth, showSidebar } = useResponsive();
-
-  // User Store
-  const user = useUserStore((s) => s.user);
+  const { contentMaxWidth } = useResponsive();
 
   // UI Store
   const openEditWorkout = useUIStore((s) => s.openEditWorkout);
@@ -321,7 +317,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    cursor: 'pointer' as any,
+    ...({ cursor: 'pointer' } as Record<string, string>),
   },
   checkboxChecked: {
     backgroundColor: colors.primary,

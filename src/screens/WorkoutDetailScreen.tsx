@@ -18,11 +18,10 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../components/GlassCard';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditWorkoutModal from '../components/EditWorkoutModal';
-import { WorkoutLog, User, PersonalRecord } from '../types'
+import { WorkoutLog, User } from '../types'
 import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, checkAndUpdatePRs } from '../services/storage';
 import { useWorkoutStore, useActiveWorkoutStore } from '../stores';
@@ -53,6 +52,7 @@ const WorkoutDetailScreen = () => {
 
   useEffect(() => {
     loadWorkout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workoutId]);
 
   const loadWorkout = async () => {

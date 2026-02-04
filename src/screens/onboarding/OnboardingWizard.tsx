@@ -67,6 +67,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
   }>({});
 
   // Calculate BMI
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const bmiResult: BMIResult = weightKg > 0 && heightCm > 0
     ? getBMIResult(weightKg, heightCm)
     : { value: 0, category: 'normal', label: 'Normal', color: '#10B981' };
@@ -104,6 +105,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
     });
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const validateStep = (step: number): boolean => {
     const newErrors: typeof errors = {};
 

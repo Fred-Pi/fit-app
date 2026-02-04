@@ -90,8 +90,8 @@ const NumberInput: React.FC<NumberInputProps> = ({
   useEffect(() => {
     if (!isWeb || !inputRef.current) return;
 
-    const element = inputRef.current as any;
-    const nativeElement = element._nativeTag || element;
+    const element = inputRef.current as unknown as (HTMLElement & { _nativeTag?: HTMLElement }) | null;
+    const nativeElement = element?._nativeTag || element;
 
     const handleWheel = (e: WheelEvent) => {
       // Only handle if focused
@@ -110,6 +110,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
       nativeElement.addEventListener('wheel', handleWheel, { passive: false });
       return () => nativeElement.removeEventListener('wheel', handleWheel);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWeb, numericValue, step, min, max]);
 
   // Desktop: Show steppers
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
     minWidth: 50,
-    outlineStyle: 'none' as any,
+    ...({ outlineStyle: 'none' } as Record<string, string>),
   },
   inputLarge: {
     fontSize: typography.size['2xl'],
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: glass.background,
-    cursor: 'pointer' as any,
+    ...({ cursor: 'pointer' } as Record<string, string>),
   },
   stepperLeft: {
     borderRightWidth: 1,
@@ -272,7 +273,7 @@ const styles = StyleSheet.create({
   },
   stepperDisabled: {
     opacity: 0.5,
-    cursor: 'not-allowed' as any,
+    ...({ cursor: 'not-allowed' } as Record<string, string>),
   },
 
   // Mobile styles

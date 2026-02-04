@@ -59,7 +59,7 @@ export function calculateMuscleGroupHeatmap(
     volume: number
     days: Set<string>
     lastTrained: string | null
-  }> = {} as any
+  }> = {} as Record<MuscleGroup, { sets: number; volume: number; days: Set<string>; lastTrained: string | null }>
 
   ALL_MUSCLE_GROUPS.forEach(group => {
     groupData[group] = { sets: 0, volume: 0, days: new Set(), lastTrained: null }

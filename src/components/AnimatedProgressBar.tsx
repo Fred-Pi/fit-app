@@ -72,6 +72,7 @@ const AnimatedProgressBar: React.FC<AnimatedProgressBarProps> = ({
       widthAnim.setValue(percentage);
       setDisplayValue(current);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, percentage, animated]);
 
   // Pulse animation when at 100%
@@ -92,6 +93,7 @@ const AnimatedProgressBar: React.FC<AnimatedProgressBarProps> = ({
         ])
       ).start();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [percentage, animated]);
 
   const animatedWidth = widthAnim.interpolate({

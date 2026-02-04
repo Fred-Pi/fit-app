@@ -286,7 +286,7 @@ const PRsTab: React.FC = () => {
               <View key={category}>
                 <View style={styles.categoryHeader}>
                   <Ionicons
-                    name={CATEGORY_ICONS[category] as any}
+                    name={CATEGORY_ICONS[category] as React.ComponentProps<typeof Ionicons>['name']}
                     size={20}
                     color={CATEGORY_COLORS[category]}
                   />

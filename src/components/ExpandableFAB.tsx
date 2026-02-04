@@ -34,11 +34,6 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const { showSidebar } = useResponsive();
-
-  // Hide FAB on desktop - it's a mobile pattern
-  if (showSidebar) {
-    return null;
-  }
   const [expanded, setExpanded] = useState(false);
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -103,7 +98,14 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
         }),
       ]).start();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded]);
+
+  // Hide FAB on desktop - it's a mobile pattern
+  // Note: This early return must come AFTER all hooks
+  if (showSidebar) {
+    return null;
+  }
 
   const toggleMenu = () => {
     lightHaptic();
@@ -198,7 +200,7 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
             >
               <View style={[styles.actionIconWrapper, { backgroundColor: (action.color || mainColor) + '20' }]}>
                 <Ionicons
-                  name={action.icon as any}
+                  name={action.icon as React.ComponentProps<typeof Ionicons>['name']}
                   size={20}
                   color={action.color || mainColor}
                 />
@@ -236,7 +238,7 @@ const ExpandableFAB: React.FC<ExpandableFABProps> = ({
           >
             <Animated.View style={{ transform: [{ rotate: isSingleAction ? '0deg' : rotation }] }}>
               <Ionicons
-                name={(isSingleAction ? actions[0].icon : mainIcon) as any}
+                name={(isSingleAction ? actions[0].icon : mainIcon) as React.ComponentProps<typeof Ionicons>['name']}
                 size={28}
                 color="#fff"
               />

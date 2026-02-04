@@ -8,7 +8,7 @@ import {
   Vibration,
   Alert,
 } from 'react-native'
-import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
+import { colors, glass, radius, spacing, typography } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import ModalHeader from './ModalHeader';
 import GlassButton from './GlassButton';

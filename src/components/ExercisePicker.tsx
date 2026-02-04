@@ -136,7 +136,7 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
           >
             <View style={[styles.categoryIcon, { backgroundColor: `${category.color}30` }]}>
               <Ionicons
-                name={category.icon as any}
+                name={category.icon as React.ComponentProps<typeof Ionicons>['name']}
                 size={28}
                 color={category.color}
               />
@@ -162,7 +162,7 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
             ]}
           >
             <Ionicons
-              name={categoryInfo?.icon as any}
+              name={categoryInfo?.icon as React.ComponentProps<typeof Ionicons>['name']}
               size={16}
               color={categoryInfo?.color}
             />
@@ -220,7 +220,7 @@ const ExercisePicker: React.FC<ExercisePickerProps> = ({
             ]}
           >
             <Ionicons
-              name={categoryInfo?.icon as any}
+              name={categoryInfo?.icon as React.ComponentProps<typeof Ionicons>['name']}
               size={16}
               color={categoryInfo?.color}
             />

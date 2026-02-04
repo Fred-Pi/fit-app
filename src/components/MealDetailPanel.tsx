@@ -17,7 +17,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from './GlassCard';
 import ConfirmDialog from './ConfirmDialog';
-import { Meal } from '../types';
 import { colors, glass, spacing, typography, radius, getResponsiveTypography } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useUIStore, useNutritionStore } from '../stores';

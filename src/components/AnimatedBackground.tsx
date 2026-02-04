@@ -79,6 +79,7 @@ const FloatingOrb: React.FC<{ config: OrbConfig }> = ({ config }) => {
     };
 
     animateOrb();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
     // Blur effect via shadow on iOS, filter on web
     ...(Platform.OS === 'web' ? {
       filter: 'blur(60px)',
-    } as any : {
+    } as Record<string, string> : {
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.5,
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
     // CSS noise pattern for web
     ...(Platform.OS === 'web' ? {
       backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-    } as any : {}),
+    } as Record<string, string> : {}),
   },
   gridOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
       backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
                         linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
       backgroundSize: '50px 50px',
-    } as any : {}),
+    } as Record<string, string> : {}),
   },
 });
 

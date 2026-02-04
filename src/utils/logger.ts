@@ -32,6 +32,7 @@ export const logWarn = (message: string, data?: unknown): void => {
  */
 export const logInfo = (message: string, data?: unknown): void => {
   if (isDev) {
+    // eslint-disable-next-line no-console
     console.log(message, data);
   }
 };
@@ -42,6 +43,7 @@ export const logInfo = (message: string, data?: unknown): void => {
  */
 export const logDebug = (message: string, data?: unknown): void => {
   if (isDev) {
+    // eslint-disable-next-line no-console
     console.log(`[DEBUG] ${message}`, data);
   }
 };

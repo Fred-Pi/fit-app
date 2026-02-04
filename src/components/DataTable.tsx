@@ -80,8 +80,8 @@ function DataTable<T>({
     if (!sortKey) return data;
 
     return [...data].sort((a, b) => {
-      const aVal = (a as any)[sortKey];
-      const bVal = (b as any)[sortKey];
+      const aVal = (a as Record<string, unknown>)[sortKey as string];
+      const bVal = (b as Record<string, unknown>)[sortKey as string];
 
       if (aVal === bVal) return 0;
       if (aVal === null || aVal === undefined) return 1;
@@ -105,7 +105,7 @@ function DataTable<T>({
     if (column.render) {
       return column.render(item, sortedData.indexOf(item));
     }
-    const value = (item as any)[column.key];
+    const value = (item as Record<string, unknown>)[column.key as string];
     if (value === null || value === undefined) return '-';
     return String(value);
   };
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   headerCellSortable: {
-    cursor: 'pointer' as any,
+    ...({ cursor: 'pointer' } as Record<string, string>),
   },
   headerText: {
     fontSize: typography.size.xs,
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     backgroundColor: glass.backgroundLight,
   },
   dataRowClickable: {
-    cursor: 'pointer' as any,
+    ...({ cursor: 'pointer' } as Record<string, string>),
   },
   dataCell: {
     paddingVertical: spacing.md,

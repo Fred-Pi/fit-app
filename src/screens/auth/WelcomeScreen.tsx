@@ -30,7 +30,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       if (error) {
         showAlert('Sign In Failed', error.message);
       }
-    } catch (err) {
+    } catch (_err) {
       showAlert('Sign In Failed', 'An unexpected error occurred. Please try again.');
     } finally {
       setOauthLoading(false);

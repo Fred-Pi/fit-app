@@ -6,7 +6,7 @@
  */
 
 import { create } from 'zustand';
-import { WorkoutLog, Meal, WorkoutTemplate, FoodPreset } from '../types';
+import { WorkoutLog, Meal, FoodPreset } from '../types';
 
 export type ModalType =
   | 'editWorkout'
@@ -102,7 +102,7 @@ interface UIState {
   clearMealSelection: () => void;
 }
 
-export const useUIStore = create<UIState>((set, get) => ({
+export const useUIStore = create<UIState>((set, _get) => ({
   activeModal: null,
   editWorkoutData: null,
   editMealData: null,

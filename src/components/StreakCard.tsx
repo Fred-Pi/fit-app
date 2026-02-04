@@ -26,7 +26,7 @@ const StreakCard: React.FC<StreakCardProps> = ({
     return "Unstoppable!";
   };
 
-  const flameColor = hasActiveStreak ? colors.warning : colors.textTertiary;
+  const _flameColor = hasActiveStreak ? colors.warning : colors.textTertiary;
   const glowIntensity = hasActiveStreak ? (isNewRecord ? 'strong' : 'medium') : 'none';
 
   return (

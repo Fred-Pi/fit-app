@@ -21,7 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useWorkoutStore, useActiveWorkoutStore } from '../stores';
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack';
 import { WorkoutLog, WorkoutTemplate } from '../types';
-import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
+import { colors, glass, radius, spacing, typography } from '../utils/theme';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
 import { lightHaptic } from '../utils/haptics';
@@ -44,6 +44,7 @@ const QuickStartScreen: React.FC = () => {
   useEffect(() => {
     fetchTemplates();
     fetchWorkouts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleStartFresh = () => {

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { WorkoutLog, VolumeDataPoint } from '../types'
+import { WorkoutLog } from '../types'
 import { calculateWeeklyVolume } from '../utils/analyticsCalculations'
 
 interface VolumeStats {

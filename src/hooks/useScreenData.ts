@@ -4,7 +4,7 @@ import { logError } from '../utils/logger';
 
 interface UseScreenDataOptions {
   reloadOnFocus?: boolean;
-  deps?: any[];
+  deps?: unknown[];
 }
 
 interface UseScreenDataReturn {

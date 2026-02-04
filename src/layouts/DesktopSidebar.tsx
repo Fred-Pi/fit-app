@@ -73,7 +73,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         style={[
           styles.navItem,
           isActive && styles.navItemActive,
-          Platform.OS === 'web' && { cursor: 'pointer' } as any,
+          Platform.OS === 'web' && { cursor: 'pointer' } as Record<string, string>,
         ]}
         onPress={() => onNavigate(key)}
         accessibilityRole="button"
@@ -135,7 +135,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           <Pressable
             style={[
               styles.helpButton,
-              Platform.OS === 'web' && { cursor: 'pointer' } as any,
+              Platform.OS === 'web' && { cursor: 'pointer' } as Record<string, string>,
             ]}
             accessibilityLabel="Help"
           >

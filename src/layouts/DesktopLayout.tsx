@@ -9,7 +9,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import GlobalModals from '../components/GlobalModals';
 import WorkoutDetailPanel from '../components/WorkoutDetailPanel';
 import MealDetailPanel from '../components/MealDetailPanel';
-import { useUIStore, useActiveWorkoutStore } from '../stores';
+import { useUIStore } from '../stores';
 import { lightHaptic } from '../utils/haptics';
 
 // Screens

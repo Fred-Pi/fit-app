@@ -5,7 +5,7 @@
  * to show strength gains over time.
  */
 
-import { WorkoutLog, ExerciseLog, SetLog } from '../types'
+import { WorkoutLog, SetLog } from '../types'
 
 export interface ProgressionDataPoint {
   date: string

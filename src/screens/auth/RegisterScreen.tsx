@@ -95,7 +95,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
         // Account created successfully - show nice modal
         setShowSuccessModal(true);
       }
-    } catch (err) {
+    } catch (_err) {
       showAlert('Registration Failed', 'An unexpected error occurred. Please try again.');
     }
   };
@@ -107,7 +107,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       if (error) {
         showAlert('Sign In Failed', error.message);
       }
-    } catch (err) {
+    } catch (_err) {
       showAlert('Sign In Failed', 'An unexpected error occurred. Please try again.');
     } finally {
       setOauthLoading(false);
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     fontSize: typography.size.base,
     color: colors.text,
     paddingVertical: spacing.md,
-  } as any,
+  } as Record<string, unknown>,
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',

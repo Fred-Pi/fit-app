@@ -6,7 +6,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { colors, glass, radius, spacing, typography } from '../utils/theme';
+import { colors, glass, spacing, typography } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { successHaptic } from '../utils/haptics';
 import { validateBodyWeight } from '../utils/validation';

@@ -10,7 +10,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../types';
 import { getUser, saveUser, initializeApp } from '../services/storage';
 import {
-  fetchProfile,
   updateProfile as updateSupabaseProfile,
   ensureProfile,
   isSupabaseConfigured,

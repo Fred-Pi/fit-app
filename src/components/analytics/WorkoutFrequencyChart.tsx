@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native'
 import { colors } from '../../utils/theme'
 import { ContributionGraph } from 'react-native-chart-kit'
 import { FrequencyDataPoint } from '../../types'
-import { ANALYTICS_CHART_CONFIG, CHART_COLORS } from '../../utils/analyticsChartConfig'
+import { ANALYTICS_CHART_CONFIG } from '../../utils/analyticsChartConfig'
 import Card from '../Card'
 
 interface WorkoutFrequencyChartProps {
@@ -69,7 +69,7 @@ const WorkoutFrequencyChart: React.FC<WorkoutFrequencyChartProps> = ({
             color: (opacity = 1) => `rgba(52, 199, 89, ${opacity})`, // Green
           }}
           style={styles.chart}
-          tooltipDataAttrs={(value: any) => ({})}
+          tooltipDataAttrs={(_value: unknown) => ({})}
         />
       </View>
 

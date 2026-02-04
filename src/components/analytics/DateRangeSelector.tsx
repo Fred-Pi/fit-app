@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
+import { Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import { colors } from '../../utils/theme'
 import { DateRangeKey } from '../../types'
 import { DATE_RANGES } from '../../utils/analyticsChartConfig'

@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Platform,
   ScrollView,
   Alert,
 } from 'react-native';
@@ -266,11 +265,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#2A2A30',
     color: colors.text,
   },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
   exercisesList: {
     marginBottom: 24,
   },
@@ -312,23 +306,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
   },
-  addExerciseButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    backgroundColor: '#0F1A2E',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderStyle: 'dashed',
-  },
-  addExerciseButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
-    marginLeft: 8,
-  },
   helpSection: {
     flexDirection: 'row',
     backgroundColor: '#2E2416',
@@ -342,26 +319,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginLeft: 8,
     lineHeight: 18,
-  },
-  exercisePickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2A2A30',
-    borderWidth: 1,
-    borderColor: '#3A3A42',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 12,
-  },
-  exercisePickerButtonText: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginLeft: 10,
-  },
-  exercisePickerButtonTextSelected: {
-    color: colors.text,
-    fontWeight: '500',
   },
   orText: {
     fontSize: 13,

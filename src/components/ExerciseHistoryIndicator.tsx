@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
-import { colors, glass, spacing, typography, radius } from '../utils/theme';
+import { colors, spacing, typography, radius } from '../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { calculateProgression, formatSuggestion } from '../utils/progressiveOverload';
 import { lightHaptic } from '../utils/haptics';

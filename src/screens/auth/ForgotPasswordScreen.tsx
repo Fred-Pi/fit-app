@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     fontSize: typography.size.base,
     color: colors.text,
     paddingVertical: spacing.md,
-  } as any,
+  } as Record<string, unknown>,
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',

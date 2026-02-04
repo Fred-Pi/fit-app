@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   Pressable,
   SectionList,
 } from 'react-native';
@@ -13,7 +12,6 @@ import { colors, glass, radius, spacing, typography, shadows } from '../utils/th
 import ModalHeader from './ModalHeader';
 import ResponsiveModal from './ResponsiveModal';
 import SearchBar from './SearchBar';
-import { modalStyles } from '../styles/modalStyles';
 import { FoodPreset } from '../types';
 import { usePresetStore } from '../stores/presetStore';
 import { lightHaptic } from '../utils/haptics';
@@ -45,7 +43,7 @@ const PresetPickerModal: React.FC<PresetPickerModalProps> = ({
   onManagePresets,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { presets, fetchPresets, getRecentPresets, searchPresets, isLoading } = usePresetStore();
+  const { presets, fetchPresets, getRecentPresets, searchPresets } = usePresetStore();
 
   useEffect(() => {
     if (visible) {

@@ -127,7 +127,7 @@ export const FormGrid: React.FC<FormGridProps> = ({
           key={index}
           style={[
             styles.gridItem,
-            { width: itemWidth } as any,
+            { width: itemWidth } as Record<string, string>,
           ]}
         >
           {child}

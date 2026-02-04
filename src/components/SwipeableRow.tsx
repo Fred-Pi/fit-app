@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     borderColor: glass.border,
     justifyContent: 'center',
     alignItems: 'center',
-    cursor: 'pointer' as any,
+    ...({ cursor: 'pointer' } as Record<string, string>),
   },
   hoverButtonPressed: {
     opacity: 0.7,

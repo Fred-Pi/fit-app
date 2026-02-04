@@ -60,7 +60,7 @@ const WorkoutSuggestionsCard: React.FC<WorkoutSuggestionsCardProps> = ({
 
       {/* Suggestions List */}
       <View style={styles.suggestionsContainer}>
-        {suggestions.suggestions.map((suggestion, index) => (
+        {suggestions.suggestions.map((suggestion, _index) => (
           <View key={suggestion.muscleGroup} style={styles.suggestionRow}>
             <View style={styles.suggestionLeft}>
               <View

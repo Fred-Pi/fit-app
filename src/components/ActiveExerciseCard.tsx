@@ -23,11 +23,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ActiveExerciseLog, ActiveSetLog, ExerciseHistoryData } from '../stores/activeWorkoutStore';
-import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
+import { colors, glass, radius, spacing, typography } from '../utils/theme';
 import { lightHaptic } from '../utils/haptics';
 import GlassCard from './GlassCard';
 import SetRow from './SetRow';
-import GlassButton from './GlassButton';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -43,7 +42,6 @@ interface ActiveExerciseCardProps {
   onRemoveSet: (setId: string) => void;
   onRemoveExercise: () => void;
   onToggleCollapse: () => void;
-  onUpdateNotes: (notes: string) => void;
   getExerciseHistory: (exerciseName: string) => Promise<ExerciseHistoryData | null>;
 }
 
@@ -56,17 +54,17 @@ const ActiveExerciseCard: React.FC<ActiveExerciseCardProps> = ({
   onRemoveSet,
   onRemoveExercise,
   onToggleCollapse,
-  onUpdateNotes,
   getExerciseHistory,
 }) => {
   const [historyData, setHistoryData] = useState<ExerciseHistoryData | null>(null);
-  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [_loadingHistory, setLoadingHistory] = useState(false);
 
   // Animation values
   const chevronRotation = useSharedValue(exercise.isCollapsed ? -90 : 0);
 
   useEffect(() => {
     chevronRotation.value = withTiming(exercise.isCollapsed ? -90 : 0, { duration: 200 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exercise.isCollapsed]);
 
   // Load exercise history on mount

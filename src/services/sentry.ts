@@ -6,7 +6,6 @@
  */
 
 import * as Sentry from '@sentry/react-native';
-import { Platform } from 'react-native';
 import { logInfo, logError } from '../utils/logger';
 
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;

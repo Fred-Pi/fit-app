@@ -37,7 +37,7 @@ const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
   columns: forcedColumns,
   style,
 }) => {
-  const { width, isMobile, isTablet, isDesktop } = useResponsive();
+  const { width } = useResponsive();
 
   // Calculate columns based on available width
   const calculateColumns = (): number => {

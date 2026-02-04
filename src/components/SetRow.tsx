@@ -37,7 +37,7 @@ const SetRow: React.FC<SetRowProps> = ({
   onUpdate,
   onComplete,
   onRemove,
-  isLastSet = false,
+  isLastSet: _isLastSet = false,
 }) => {
   const [repsValue, setRepsValue] = useState(set.reps.toString());
   const [weightValue, setWeightValue] = useState(set.weight.toString());

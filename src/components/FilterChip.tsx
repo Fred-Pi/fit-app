@@ -1,6 +1,6 @@
 import React from 'react';
 import { colors, glass, spacing, typography, radius } from '../utils/theme'
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface FilterChipProps {
@@ -32,7 +32,7 @@ const FilterChip: React.FC<FilterChipProps> = ({
     >
       {icon && (
         <Ionicons
-          name={icon as any}
+          name={icon as React.ComponentProps<typeof Ionicons>['name']}
           size={16}
           color={active ? colors.text : colors.textSecondary}
           style={styles.icon}

@@ -106,7 +106,7 @@ const MuscleGroupHeatmap: React.FC<MuscleGroupHeatmapProps> = ({ data }) => {
                 activeOpacity={0.7}
               >
                 <Ionicons
-                  name={category?.icon as any || 'fitness-outline'}
+                  name={(category?.icon || 'fitness-outline') as React.ComponentProps<typeof Ionicons>['name']}
                   size={16}
                   color={category?.color || colors.textSecondary}
                 />
@@ -130,7 +130,7 @@ const MuscleGroupHeatmap: React.FC<MuscleGroupHeatmapProps> = ({ data }) => {
         <View style={styles.detailCard}>
           <View style={styles.detailHeader}>
             <Ionicons
-              name={getCategoryInfo(selectedScore.name)?.icon as any || 'fitness-outline'}
+              name={(getCategoryInfo(selectedScore.name)?.icon || 'fitness-outline') as React.ComponentProps<typeof Ionicons>['name']}
               size={20}
               color={getCategoryInfo(selectedScore.name)?.color}
             />

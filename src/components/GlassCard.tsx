@@ -162,7 +162,7 @@ const GlassCard: React.FC<GlassCardProps> = ({
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={Platform.OS === 'web' ? { cursor: 'pointer' } as any : undefined}
+        style={Platform.OS === 'web' ? { cursor: 'pointer' } as Record<string, string> : undefined}
         {...webHoverProps}
       >
         <Animated.View style={animatedHoverStyle}>

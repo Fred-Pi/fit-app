@@ -1,4 +1,4 @@
-import { StyleSheet, Platform, Dimensions } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
 
 /**

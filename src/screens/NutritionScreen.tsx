@@ -339,7 +339,7 @@ const NutritionScreen: React.FC<NutritionScreenProps> = ({
             </View>
           </GlassCard>
         ) : (
-          todayNutrition.meals.map((meal, index) => (
+          todayNutrition.meals.map((meal, _index) => (
             <SwipeableRow
               key={meal.id}
               onEdit={() => openEditMeal(meal)}
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.lg,
     justifyContent: 'center',
     alignItems: 'center',
-    cursor: 'pointer' as any,
+    ...({ cursor: 'pointer' } as Record<string, string>),
   },
   checkboxChecked: {
     backgroundColor: colors.nutrition,

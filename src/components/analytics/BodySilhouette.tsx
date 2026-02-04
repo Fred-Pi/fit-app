@@ -1,6 +1,6 @@
 import React from 'react'
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
-import Svg, { Path, G, Circle } from 'react-native-svg'
+import { View, StyleSheet } from 'react-native'
+import Svg, { Path, G } from 'react-native-svg'
 import { MuscleGroup, MuscleGroupScore } from '../../types'
 import { colors } from '../../utils/theme'
 
@@ -76,9 +76,6 @@ const BodySilhouette: React.FC<BodySilhouetteProps> = ({
   const getStrokeColor = (muscle: MuscleGroup): string => {
     return selectedMuscle === muscle ? colors.primary : colors.border
   }
-
-  // Scale factor for responsive sizing
-  const scale = Math.min(width / 200, height / 350)
 
   return (
     <View style={styles.container}>

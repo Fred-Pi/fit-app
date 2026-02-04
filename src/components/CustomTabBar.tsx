@@ -55,7 +55,7 @@ const tabConfig: Record<string, TabConfig> = {
 
 const CustomTabBar: React.FC<BottomTabBarProps> = ({
   state,
-  descriptors,
+  descriptors: _descriptors,
   navigation,
 }) => {
   const insets = useSafeAreaInsets();
@@ -69,6 +69,7 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
       damping: 15,
       stiffness: 150,
     }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.index, tabWidth]);
 
   return (
@@ -105,7 +106,6 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
         {/* Tab buttons */}
         <View style={styles.tabsContainer}>
           {state.routes.map((route, index) => {
-            const { options } = descriptors[route.key];
             const isFocused = state.index === index;
             const config = tabConfig[route.name];
 
@@ -175,6 +175,7 @@ const TabButton: React.FC<TabButtonProps> = ({
       damping: 12,
       stiffness: 180,
     }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 
   const handlePressIn = () => {

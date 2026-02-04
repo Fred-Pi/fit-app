@@ -403,7 +403,7 @@ export class IndexedDBWrapper {
       const end = params[endIndex] as string | number;
 
       // First filter by BETWEEN, then by other conditions
-      let collection = table.where(column).between(start, end, true, true);
+      const collection = table.where(column).between(start, end, true, true);
 
       const filterConditions = parsed.whereConditions;
       results = await collection.filter((row: Record<string, unknown>) => {

@@ -62,7 +62,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   useEffect(() => {
     if (!isWeb || disabled) return;
 
-    const container = containerRef.current as any;
+    const container = containerRef.current as unknown as (HTMLElement & { _nativeTag?: HTMLElement }) | null;
     if (!container) return;
 
     const handleContextMenu = (e: MouseEvent) => {
@@ -262,14 +262,14 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && {
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-    } as any),
+    } as Record<string, string>),
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    cursor: 'pointer' as any,
+    cursor: 'pointer' as unknown as undefined,
   },
   menuItemFirst: {
     borderTopLeftRadius: radius.md,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   menuItemDisabled: {
     opacity: 0.5,
-    cursor: 'not-allowed' as any,
+    cursor: 'not-allowed' as unknown as undefined,
   },
   menuItemIcon: {
     marginRight: spacing.sm,

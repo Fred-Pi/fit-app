@@ -58,7 +58,7 @@ const WorkoutCompleteScreen: React.FC = () => {
   const weightUnit = useUserStore((s) => s.user?.preferredWeightUnit) || 'kg';
 
   // Local state
-  const [newPRs, setNewPRs] = useState<PersonalRecord[]>([]);
+  const [_newPRs, setNewPRs] = useState<PersonalRecord[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const [templateName, setTemplateName] = useState(workoutName);
@@ -70,6 +70,7 @@ const WorkoutCompleteScreen: React.FC = () => {
   useEffect(() => {
     iconScale.value = withSpring(1, { damping: 10, stiffness: 100 });
     contentOpacity.value = withDelay(300, withSpring(1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const iconAnimatedStyle = useAnimatedStyle(() => ({

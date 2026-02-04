@@ -23,7 +23,6 @@ import {
   isCustomExercise,
   getExerciseWorkoutHistory,
   getExerciseUsageCount,
-  findExerciseByName,
 } from '../utils/exerciseHelpers'
 import Card from '../components/Card'
 import EditCustomExerciseModal from '../components/EditCustomExerciseModal'
@@ -86,6 +85,7 @@ const ExerciseDetailScreen = () => {
 
   useEffect(() => {
     loadExerciseData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exerciseId])
 
   const handleEditExercise = async (
@@ -162,7 +162,7 @@ const ExerciseDetailScreen = () => {
         <View style={styles.headerContainer}>
           <View style={styles.iconContainer}>
             <Ionicons
-              name={category?.icon as any || 'barbell'}
+              name={(category?.icon || 'barbell') as React.ComponentProps<typeof Ionicons>['name']}
               size={32}
               color={category?.color || '#A0A0A8'}
             />

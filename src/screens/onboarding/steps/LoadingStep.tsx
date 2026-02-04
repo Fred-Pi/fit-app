@@ -79,6 +79,7 @@ const LoadingStep: React.FC<LoadingStepProps> = ({ onComplete }) => {
       spinAnimation.stop();
       pulseAnimation.stop();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onComplete]);
 
   const spin = spinAnim.interpolate({

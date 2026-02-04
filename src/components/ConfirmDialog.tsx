@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import {
   Modal,
   View,
@@ -33,7 +33,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   message,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
-  confirmColor = colors.error,
+  confirmColor: _confirmColor = colors.error,
   onConfirm,
   onCancel,
   icon = 'alert-circle',
@@ -41,6 +41,21 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 }) => {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  const handleClose = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(scaleAnim, {
+        toValue: 0.9,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start(() => onCancel());
+  }, [scaleAnim, opacityAnim, onCancel]);
 
   useEffect(() => {
     if (visible) {
@@ -61,7 +76,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       scaleAnim.setValue(0.9);
       opacityAnim.setValue(0);
     }
-  }, [visible]);
+  }, [visible, scaleAnim, opacityAnim]);
 
   // Handle Escape key on web
   useEffect(() => {
@@ -75,22 +90,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [visible]);
-
-  const handleClose = () => {
-    Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 0.9,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-    ]).start(() => onCancel());
-  };
+  }, [visible, handleClose]);
 
   return (
     <Modal

@@ -19,7 +19,6 @@ import {
   StyleSheet,
   Platform,
   Modal,
-  LayoutRectangle,
 } from 'react-native';
 import { colors, glass, radius, spacing, typography, shadows } from '../utils/theme';
 
@@ -62,7 +61,7 @@ const Tooltip: React.FC<TooltipProps> = ({
     if (disabled || !isWeb) return;
 
     // Measure the container position
-    const container = containerRef.current as any;
+    const container = containerRef.current as unknown as (HTMLElement & { measure?: (cb: (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void) => void }) | null;
     if (container?.measure) {
       container.measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
         setCoords({ x: pageX, y: pageY, width, height });
@@ -183,7 +182,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' && {
       backdropFilter: 'blur(8px)',
       WebkitBackdropFilter: 'blur(8px)',
-    } as any),
+    } as Record<string, string>),
   },
   tooltipText: {
     fontSize: typography.size.sm,

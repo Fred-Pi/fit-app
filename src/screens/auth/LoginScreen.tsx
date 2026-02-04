@@ -45,7 +45,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       if (error) {
         showAlert('Login Failed', error.message);
       }
-    } catch (err) {
+    } catch (_err) {
       showAlert('Login Failed', 'An unexpected error occurred. Please try again.');
     }
   };
@@ -57,7 +57,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       if (error) {
         showAlert('Sign In Failed', error.message);
       }
-    } catch (err) {
+    } catch (_err) {
       showAlert('Sign In Failed', 'An unexpected error occurred. Please try again.');
     } finally {
       setOauthLoading(false);
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     fontSize: typography.size.base,
     color: colors.text,
     paddingVertical: spacing.md,
-  } as any,
+  } as Record<string, unknown>,
   forgotPassword: {
     alignSelf: 'flex-end',
     marginBottom: spacing.xl,

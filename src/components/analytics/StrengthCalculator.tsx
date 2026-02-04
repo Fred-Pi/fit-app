@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { User, DailyWeight } from '../../types'
+import { User } from '../../types'
 import { getWeights } from '../../services/storage'
 import { useAuthStore } from '../../stores/authStore'
 import { calculateOneRepMax, generateRepTable } from '../../utils/oneRepMax'

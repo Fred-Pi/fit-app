@@ -15,7 +15,6 @@ import ModalHeader from '../components/ModalHeader';
 import ResponsiveModal from '../components/ResponsiveModal';
 import SearchBar from '../components/SearchBar';
 import SwipeableRow from '../components/SwipeableRow';
-import { modalStyles } from '../styles/modalStyles';
 import { FoodPreset } from '../types';
 import { usePresetStore } from '../stores/presetStore';
 import { warningHaptic, lightHaptic } from '../utils/haptics';

@@ -84,6 +84,7 @@ const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
       modalScale.setValue(0.95);
       modalOpacity.setValue(0);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, showDesktopStyle]);
 
   // Handle Escape key on web

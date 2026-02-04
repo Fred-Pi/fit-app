@@ -24,9 +24,6 @@ import { useActiveWorkoutStore } from '../stores';
 import { AppNavigationProp } from '../navigation/types';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../components/GlassCard';
-import GlassButton from '../components/GlassButton';
-import AnimatedProgressBar from '../components/AnimatedProgressBar';
-import AnimatedNumber from '../components/AnimatedNumber';
 import { TodayScreenSkeleton } from '../components/SkeletonLoader';
 import { lightHaptic } from '../utils/haptics';
 import { getTodayDate } from '../services/storage';
@@ -57,7 +54,6 @@ const TodayScreen: React.FC<TodayScreenProps> = ({ variant = 'full', onStartWork
   const user = useUserStore((s) => s.user);
 
   // Active Workout Store
-  const startWorkout = useActiveWorkoutStore((s) => s.startWorkout);
   const startFromRecent = useActiveWorkoutStore((s) => s.startFromRecent);
 
   // UI Store

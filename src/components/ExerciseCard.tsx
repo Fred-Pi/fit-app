@@ -22,7 +22,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, onPress }) => {
         <View style={styles.container}>
           <View style={styles.iconContainer}>
             <Ionicons
-              name={category?.icon as any || 'barbell'}
+              name={(category?.icon || 'barbell') as React.ComponentProps<typeof Ionicons>['name']}
               size={24}
               color={category?.color || colors.textSecondary}
             />

@@ -23,19 +23,18 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
-  Text,
+  ViewProps,
   StyleSheet,
   Platform,
-  Animated,
-  PanResponder,
   LayoutChangeEvent,
+  GestureResponderEvent,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, glass, radius, spacing } from '../utils/theme';
+import { colors, spacing } from '../utils/theme';
 
 interface DragHandleProps {
-  style?: any;
-  onMouseDown?: (e: any) => void;
+  style?: Record<string, unknown>;
+  onMouseDown?: (e: GestureResponderEvent | MouseEvent) => void;
 }
 
 interface DraggableListProps<T> {
@@ -75,7 +74,6 @@ function DraggableList<T>({
 
   // Find which index the drag is currently over
   const findDropIndex = useCallback((clientY: number): number => {
-    const layouts = Array.from(itemLayouts.current.entries());
     let cumulativeHeight = 0;
 
     for (let i = 0; i < items.length; i++) {
@@ -93,19 +91,20 @@ function DraggableList<T>({
   }, [items, keyExtractor, gap]);
 
   // Handle drag start
-  const handleDragStart = useCallback((index: number, e: any) => {
+  const handleDragStart = useCallback((index: number, e: GestureResponderEvent | MouseEvent) => {
     if (!isWeb) return;
 
     e.preventDefault?.();
     setDraggingIndex(index);
-    dragStartY.current = e.clientY || e.pageY || 0;
+    const mouseEvent = e as MouseEvent;
+    dragStartY.current = mouseEvent.clientY || mouseEvent.pageY || 0;
     currentDragY.current = dragStartY.current;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       currentDragY.current = moveEvent.clientY;
 
       // Calculate relative position within container
-      const container = containerRef.current as any;
+      const container = containerRef.current as unknown as HTMLElement | null;
       if (container) {
         const rect = container.getBoundingClientRect?.();
         if (rect) {
@@ -157,7 +156,7 @@ function DraggableList<T>({
 
         const dragHandleProps: DragHandleProps = {
           style: styles.dragHandle,
-          onMouseDown: (e: any) => handleDragStart(index, e),
+          onMouseDown: (e: GestureResponderEvent | MouseEvent) => handleDragStart(index, e),
         };
 
         return (
@@ -195,7 +194,7 @@ export const DragHandle: React.FC<DragHandleProps & { children?: React.ReactNode
   return (
     <View
       style={[styles.dragHandleContainer, style]}
-      onTouchStart={onMouseDown}
+      onTouchStart={onMouseDown as ViewProps['onTouchStart']}
       {...(isWeb ? { onMouseDown } : {})}
     >
       {children || (
@@ -222,11 +221,11 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xs,
   },
   dragHandle: {
-    cursor: 'grab' as any,
+    ...({ cursor: 'grab' } as Record<string, string>),
   },
   dragHandleContainer: {
     padding: spacing.sm,
-    cursor: 'grab' as any,
+    ...({ cursor: 'grab' } as Record<string, string>),
     alignItems: 'center',
     justifyContent: 'center',
   },
