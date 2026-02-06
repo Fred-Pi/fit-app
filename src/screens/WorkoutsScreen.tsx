@@ -128,6 +128,11 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
 
   const renderWorkoutItem = ({ item }: { item: WorkoutLog }) => {
     const totalSets = item.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+    const totalVolume = item.exercises.reduce((sum, ex) => {
+      return sum + ex.sets.reduce((setSum, set) => {
+        return setSum + (set.weight || 0) * (set.reps || 0);
+      }, 0);
+    }, 0);
     const formattedDate = new Date(item.date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -166,6 +171,7 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
             </View>
             <Text style={styles.workoutDetail} numberOfLines={1}>
               {item.exercises.length} exercises • {totalSets} sets
+              {totalVolume > 0 && ` • ${totalVolume.toLocaleString()} lbs`}
             </Text>
           </TouchableOpacity>
         </View>
@@ -192,6 +198,7 @@ const WorkoutsScreen: React.FC<WorkoutsScreenProps> = ({
               <Text style={styles.workoutDetail}>
                 {item.exercises.length} exercises • {totalSets} sets
                 {item.duration && ` • ${Math.round(item.duration)} min`}
+                {totalVolume > 0 && ` • ${totalVolume.toLocaleString()} lbs`}
               </Text>
             </View>
             {item.completed && (
