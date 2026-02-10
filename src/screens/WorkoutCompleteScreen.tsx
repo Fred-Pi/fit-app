@@ -24,7 +24,7 @@ import Animated, {
   withSpring,
   withDelay,
 } from 'react-native-reanimated';
-import { useActiveWorkoutStore, useWorkoutStore, useUserStore } from '../stores';
+import { useActiveWorkoutStore, useWorkoutStore, useUserStore, useTemplateStore } from '../stores';
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack';
 import { PersonalRecord, WorkoutTemplate, ExerciseTemplate } from '../types';
 import { colors, glass, radius, spacing, typography } from '../utils/theme';
@@ -53,7 +53,7 @@ const WorkoutCompleteScreen: React.FC = () => {
   } = useActiveWorkoutStore();
 
   const addWorkout = useWorkoutStore((s) => s.addWorkout);
-  const addTemplate = useWorkoutStore((s) => s.addTemplate);
+  const addTemplate = useTemplateStore((s) => s.addTemplate);
   const userId = useUserStore((s) => s.user?.id) || 'local-user';
   const weightUnit = useUserStore((s) => s.user?.preferredWeightUnit) || 'kg';
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,9 +14,8 @@ import ModalHeader from './ModalHeader';
 import ResponsiveModal from './ResponsiveModal';
 import { modalStyles } from '../styles/modalStyles';
 import { WorkoutTemplate } from '../types';
-import { getTemplates, deleteTemplate } from '../services/storage';
 import { warningHaptic } from '../utils/haptics';
-import { useAuthStore } from '../stores/authStore';
+import { useTemplateStore } from '../stores';
 
 interface TemplatePickerProps {
   visible: boolean;
@@ -29,26 +28,16 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
   onClose,
   onSelectTemplate,
 }) => {
-  const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const templates = useTemplateStore((s) => s.templates);
+  const isLoading = useTemplateStore((s) => s.isLoading);
+  const fetchTemplates = useTemplateStore((s) => s.fetchTemplates);
+  const deleteTemplateFromStore = useTemplateStore((s) => s.deleteTemplate);
 
   useEffect(() => {
     if (visible) {
-      loadTemplates();
+      fetchTemplates();
     }
-  }, [visible]);
-
-  const loadTemplates = async () => {
-    setLoading(true);
-    const userId = useAuthStore.getState().user?.id;
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-    const templateData = await getTemplates(userId);
-    setTemplates(templateData);
-    setLoading(false);
-  };
+  }, [visible, fetchTemplates]);
 
   const handleSelectTemplate = (template: WorkoutTemplate) => {
     onSelectTemplate(template);
@@ -66,8 +55,7 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            await deleteTemplate(templateId);
-            loadTemplates();
+            await deleteTemplateFromStore(templateId);
           },
         },
       ]
@@ -136,7 +124,7 @@ const TemplatePicker: React.FC<TemplatePickerProps> = ({
           showSave={false}
         />
 
-        {loading ? (
+        {isLoading ? (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Loading templates...</Text>
           </View>

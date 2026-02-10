@@ -24,6 +24,7 @@ import {
   useUserStore,
   useUIStore,
   useWorkoutStore,
+  useTemplateStore,
 } from '../stores';
 import { useAuthStore } from '../stores/authStore';
 import { logError } from '../utils/logger';
@@ -43,10 +44,12 @@ const ProfileScreen = () => {
   // UI Store
   const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
 
+  // Template Store
+  const templates = useTemplateStore((s) => s.templates);
+  const fetchTemplates = useTemplateStore((s) => s.fetchTemplates);
+  const deleteTemplate = useTemplateStore((s) => s.deleteTemplate);
+
   // Workout Store
-  const templates = useWorkoutStore((s) => s.templates);
-  const fetchTemplates = useWorkoutStore((s) => s.fetchTemplates);
-  const deleteTemplate = useWorkoutStore((s) => s.deleteTemplate);
   const invalidateWorkoutCache = useWorkoutStore((s) => s.invalidateCache);
 
   // Auth Store

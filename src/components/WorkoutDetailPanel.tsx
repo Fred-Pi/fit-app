@@ -21,7 +21,7 @@ import { WorkoutLog, User } from '../types';
 import { colors, glass, spacing, typography, radius, getResponsiveTypography } from '../utils/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import { getWorkouts, saveWorkout, deleteWorkout as deleteWorkoutService, getUser, checkAndUpdatePRs } from '../services/storage';
-import { useUIStore, useWorkoutStore, useActiveWorkoutStore } from '../stores';
+import { useUIStore, useWorkoutStore, useActiveWorkoutStore, usePersonalRecordStore } from '../stores';
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigationProp } from '../navigation/types';
 import { successHaptic, lightHaptic } from '../utils/haptics';
@@ -52,8 +52,8 @@ const WorkoutDetailPanel: React.FC<WorkoutDetailPanelProps> = ({
 
   const startFromRecent = useActiveWorkoutStore((s) => s.startFromRecent);
   const selectWorkout = useUIStore((s) => s.selectWorkout);
-  const personalRecords = useWorkoutStore((s) => s.personalRecords);
   const fetchWorkouts = useWorkoutStore((s) => s.fetchWorkouts);
+  const personalRecords = usePersonalRecordStore((s) => s.personalRecords);
 
   useEffect(() => {
     loadWorkout();

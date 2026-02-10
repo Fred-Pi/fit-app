@@ -24,7 +24,7 @@ import EditWorkoutModal from '../components/EditWorkoutModal';
 import { WorkoutLog, User } from '../types'
 import { colors, glass, spacing, typography, radius } from '../utils/theme';
 import { getWorkouts, saveWorkout, deleteWorkout, getUser, checkAndUpdatePRs } from '../services/storage';
-import { useWorkoutStore, useActiveWorkoutStore } from '../stores';
+import { useActiveWorkoutStore, usePersonalRecordStore } from '../stores';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack';
 import { successHaptic, lightHaptic } from '../utils/haptics';
@@ -48,7 +48,7 @@ const WorkoutDetailScreen = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const startFromRecent = useActiveWorkoutStore((s) => s.startFromRecent);
-  const personalRecords = useWorkoutStore((s) => s.personalRecords);
+  const personalRecords = usePersonalRecordStore((s) => s.personalRecords);
 
   useEffect(() => {
     loadWorkout();

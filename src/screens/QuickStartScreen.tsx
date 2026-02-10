@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useWorkoutStore, useActiveWorkoutStore } from '../stores';
+import { useWorkoutStore, useActiveWorkoutStore, useTemplateStore } from '../stores';
 import { WorkoutsStackParamList } from '../navigation/WorkoutsStack';
 import { WorkoutLog, WorkoutTemplate } from '../types';
 import { colors, glass, radius, spacing, typography } from '../utils/theme';
@@ -32,8 +32,8 @@ const QuickStartScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
 
   // Stores
-  const templates = useWorkoutStore((s) => s.templates);
-  const fetchTemplates = useWorkoutStore((s) => s.fetchTemplates);
+  const templates = useTemplateStore((s) => s.templates);
+  const fetchTemplates = useTemplateStore((s) => s.fetchTemplates);
   const getRecentWorkouts = useWorkoutStore((s) => s.getRecentWorkouts);
   const fetchWorkouts = useWorkoutStore((s) => s.fetchWorkouts);
   const startWorkout = useActiveWorkoutStore((s) => s.startWorkout);

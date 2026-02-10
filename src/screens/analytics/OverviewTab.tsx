@@ -15,6 +15,7 @@ import {
   useUserStore,
   useWorkoutStore,
   useDailyTrackingStore,
+  usePersonalRecordStore,
 } from '../../stores';
 
 const OverviewTab: React.FC = () => {
@@ -27,9 +28,10 @@ const OverviewTab: React.FC = () => {
   const allWorkouts = useWorkoutStore((s) => s.workouts);
   const currentStreak = useWorkoutStore((s) => s.currentStreak);
   const longestStreak = useWorkoutStore((s) => s.longestStreak);
-  const personalRecords = useWorkoutStore((s) => s.personalRecords);
   const fetchWorkouts = useWorkoutStore((s) => s.fetchWorkouts);
-  const fetchPersonalRecords = useWorkoutStore((s) => s.fetchPersonalRecords);
+
+  const personalRecords = usePersonalRecordStore((s) => s.personalRecords);
+  const fetchPersonalRecords = usePersonalRecordStore((s) => s.fetchPersonalRecords);
 
   const todayWeight = useDailyTrackingStore((s) => s.todayWeight);
   const recentWeights = useDailyTrackingStore((s) => s.recentWeights);

@@ -19,7 +19,7 @@ import DataTable from '../../components/DataTable';
 import { colors, getResponsiveTypography } from '../../utils/theme';
 import { useResponsive } from '../../hooks/useResponsive';
 import { warningHaptic } from '../../utils/haptics';
-import { useUserStore, useUIStore, useWorkoutStore } from '../../stores';
+import { useUserStore, useUIStore, usePersonalRecordStore } from '../../stores';
 
 const CATEGORY_ICONS: { [key: string]: string } = {
   Chest: 'fitness-outline',
@@ -51,10 +51,10 @@ const PRsTab: React.FC = () => {
   const user = useUserStore((s) => s.user);
   const openConfirmDialog = useUIStore((s) => s.openConfirmDialog);
 
-  const personalRecords = useWorkoutStore((s) => s.personalRecords);
-  const isPRsLoading = useWorkoutStore((s) => s.isPRsLoading);
-  const fetchPersonalRecords = useWorkoutStore((s) => s.fetchPersonalRecords);
-  const deletePersonalRecord = useWorkoutStore((s) => s.deletePersonalRecord);
+  const personalRecords = usePersonalRecordStore((s) => s.personalRecords);
+  const isPRsLoading = usePersonalRecordStore((s) => s.isPRsLoading);
+  const fetchPersonalRecords = usePersonalRecordStore((s) => s.fetchPersonalRecords);
+  const deletePersonalRecord = usePersonalRecordStore((s) => s.deletePersonalRecord);
 
   const prs = [...personalRecords].sort((a, b) => b.weight - a.weight);
 
@@ -356,7 +356,7 @@ const PRsTab: React.FC = () => {
 };
 
 export const refreshPRs = () => {
-  useWorkoutStore.getState().fetchPersonalRecords(true);
+  usePersonalRecordStore.getState().fetchPersonalRecords(true);
 };
 
 const styles = StyleSheet.create({
